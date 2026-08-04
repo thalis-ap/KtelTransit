@@ -1,0 +1,445 @@
+import 'package:flutter/services.dart';
+import 'package:ktel_transit/models/departure.dart';
+import 'package:ktel_transit/models/osrm_trip.dart';
+import 'package:ktel_transit/models/stop.dart';
+import 'package:ktel_transit/models/trip.dart';
+import 'package:ktel_transit/models/route.dart';
+import 'package:ktel_transit/models/stop_time.dart';
+
+import 'package:csv/csv.dart';
+import 'package:ktel_transit/utilities/time_format.dart';
+
+/// This class handles the gtfs data from the txt files
+class GtfsRepository {
+  List<Stop> stops = [];
+  List<Route> routes = [];
+  List<Trip> trips = [];
+  List<StopTime> stopTimes = [];
+
+  GtfsRepository();
+
+  /// Asynchronously load route/trip/stop data from txt files
+  Future<void> loadData() async {
+    String stopsString = await rootBundle.loadString("assets/gtfs/stops.txt");
+
+    List<List<dynamic>> stopsGrid = csv.decode(stopsString);
+
+    if (stopsGrid.isNotEmpty) {
+      final headers = {
+        for (int i = 0; i < stopsGrid[0].length; i++)
+          stopsGrid[0][i].toString(): i,
+      };
+
+      for (List<dynamic> row in stopsGrid.skip(1)) {
+        if (row.isEmpty || row.length < 2) continue;
+        stops.add(Stop.fromCsv(row, headers));
+      }
+    }
+
+    String routesString = await rootBundle.loadString("assets/gtfs/routes.txt");
+
+    List<List<dynamic>> routesGrid = csv.decode(routesString);
+
+    if (routesGrid.isNotEmpty) {
+      final headers = {
+        for (int i = 0; i < routesGrid[0].length; i++)
+          routesGrid[0][i].toString(): i,
+      };
+
+      for (List<dynamic> row in routesGrid.skip(1)) {
+        if (row.isEmpty || row.length < 2) continue;
+        routes.add(Route.fromCsv(row, headers));
+      }
+    }
+
+    String tripsString = await rootBundle.loadString("assets/gtfs/trips.txt");
+
+    List<List<dynamic>> tripsGrid = csv.decode(tripsString);
+
+    if (tripsGrid.isNotEmpty) {
+      final headers = {
+        for (int i = 0; i < tripsGrid[0].length; i++)
+          tripsGrid[0][i].toString(): i,
+      };
+
+      for (List<dynamic> row in tripsGrid.skip(1)) {
+        if (row.isEmpty || row.length < 2) continue;
+        trips.add(Trip.fromCsv(row, headers));
+      }
+    }
+
+    String stopTimesString = await rootBundle.loadString(
+      "assets/gtfs/stop_times.txt",
+    );
+
+    List<List<dynamic>> stopTimesGrid = csv.decode(stopTimesString);
+
+    if (stopTimesGrid.isNotEmpty) {
+      final headers = {
+        for (int i = 0; i < stopTimesGrid[0].length; i++)
+          stopTimesGrid[0][i].toString(): i,
+      };
+
+      for (List<dynamic> row in stopTimesGrid.skip(1)) {
+        if (row.isEmpty || row.length < 2) continue;
+        stopTimes.add(StopTime.fromCsv(row, headers));
+      }
+    }
+  }
+
+  /// Find all departures from a stop if it's a starting one or
+  /// arrivals to it if it's a terminal/middlepoint stop, after the
+  /// selected time. This way we don't see departures of the past
+  List<Departure> getDeparturesForStop(
+    String departureStopId, {
+    DateTime? selectedTime,
+  }) {
+    final DateTime target = selectedTime ?? DateTime.now();
+
+    // Get the service ids for the selected date time (e.g. SATURDAY, WEEKDAY)
+    List<String> validServiceIds = getServiceIds(target);
+
+    int startMinutes = target.hour * 60 + target.minute;
+
+    // Handle past-midnight trips
+    if (target.hour < 4) {
+      startMinutes += 24 * 60;
+      final prevDay = target.subtract(const Duration(days: 1));
+
+      validServiceIds = getServiceIds(prevDay);
+    }
+
+    // Find the departure stop object from the given id. At this point
+    // we cannot get the StopTime object because it can be of another trip.
+    // We must do so in the following for-loop, for the correct trip
+    final Stop departureStop = stops.firstWhere(
+      (s) => s.stopId == departureStopId,
+    );
+
+    // Find all the times at which a bus arrives on the target stop
+    // after the selected time.
+    List<StopTime> times = stopTimes.where((st) {
+      if (st.stopId != departureStopId) return false;
+      return TimeFormat.gtfsTimeToMinutes(st.arrivalTime) >= startMinutes;
+    }).toList();
+
+    times.sort((a, b) => a.arrivalTime.compareTo(b.arrivalTime));
+
+    // Now we are ready to find all corresponding departures
+    final List<Departure> results = [];
+
+    /// In this for loop we scan all StopTime objects. For each one of them
+    /// we find to which trip it belongs. For example StopTimes are like
+    /// 14:30 bus to Stop 1, Trip 123, 15:00 bus to Stop 1, Trip 124, ...
+    /// Once we find the trip, we can then filter the StopTimes and get those
+    /// that belong to the specific trip (Trip 123 for example).
+    /// We then go on to find the start and destination of this trip, the route
+    /// it's actually linked to and the corresponding times.
+    for (StopTime st in times) {
+      try {
+        // Find the first suitable trip for every StopTime
+        final Trip trip = trips.firstWhere((t) => t.tripId == st.tripId);
+
+        // Skip trips that are on not supported days/dates
+        if (!validServiceIds.contains(trip.serviceId)) continue;
+
+        // Find the route that corresponds to this trip
+        final Route route = routes.firstWhere((r) => r.routeId == trip.routeId);
+        final String routeName = trip.getDisplayName(route.longName);
+
+        // We now find all StopTime objects that correspond to a specific trip
+        final List<StopTime> allTripsStopTimes = stopTimes
+            .where((s) => s.tripId == trip.tripId)
+            .toList();
+        // Sort them by their stopSequence. This way we have all StopTimes
+        // of a trip in their correct order.
+        allTripsStopTimes.sort(
+          (a, b) => a.stopSequence.compareTo(b.stopSequence),
+        );
+
+        final StopTime originStopTime = allTripsStopTimes.first;
+        final StopTime destinationStopTime = allTripsStopTimes.last;
+
+        final StopTime departureStopTime = allTripsStopTimes.firstWhere(
+          (s) => s.stopId == departureStopId,
+        );
+
+        final Stop originStop = stops.firstWhere(
+          (s) => s.stopId == originStopTime.stopId,
+        );
+        final Stop destinationStop = stops.firstWhere(
+          (s) => s.stopId == destinationStopTime.stopId,
+        );
+
+        results.add(
+          Departure(
+            originStop: originStop,
+            departureStop: departureStop,
+            destinationStop: destinationStop,
+            originDepartureTime: TimeFormat.gtfsTimeToDateTime(
+              target,
+              originStopTime.departureTime,
+            ),
+            departureTime: TimeFormat.gtfsTimeToDateTime(
+              target,
+              departureStopTime.arrivalTime,
+            ),
+            routeName: routeName,
+          ),
+        );
+      } catch (_) {
+        continue;
+      }
+    }
+
+    /// Sort by originDepartureTime. This way we see buses that leave first up
+    /// on top. Note: We should not sort by departureTime. The attirbute
+    /// departureTime inside a Departure object is the time a bus arrives
+    /// or departs in the specific stop (Departure.departureStop). We should
+    /// sort chronologically and let the user choose if a bus that arrives
+    /// earlier is better than a bus that departs earlier
+    results.sort((a, b) => a.originDepartureTime.compareTo(b.originDepartureTime));
+
+    return results;
+  }
+
+  /// Returns a list of all trips found from the OSRM service back to the caller
+  /// for the given DateTime (now if null)
+  List<OsrmTrip> findAllTripsBetween(
+    String startStopId,
+    String destStopId, {
+    DateTime? selectedTime,
+  }) {
+    final DateTime targetDateTime = selectedTime ?? DateTime.now();
+
+    // Get the service ids for the selected date time (e.g. SATURDAY, WEEKDAY)
+    List<String> validServiceIds = getServiceIds(targetDateTime);
+
+    int startMinutes = targetDateTime.hour * 60 + targetDateTime.minute;
+    if (targetDateTime.hour < 4) {
+      startMinutes += 24 * 60;
+      final prevDay = targetDateTime.subtract(const Duration(days: 1));
+
+      validServiceIds = getServiceIds(prevDay);
+    }
+
+    // Find the stop times for the starting stop
+    List<StopTime> startTimes = stopTimes.where((st) {
+      if (st.stopId != startStopId) return false;
+      return TimeFormat.gtfsTimeToMinutes(st.departureTime) >= startMinutes;
+    }).toList();
+
+    startTimes.sort((a, b) => a.departureTime.compareTo(b.departureTime));
+
+    List<OsrmTrip> dailyTrips = [];
+
+    // Find all direct trips first (if any)
+    for (StopTime stStart in startTimes) {
+      try {
+        final Trip trip = trips.firstWhere((t) => t.tripId == stStart.tripId);
+        if (!validServiceIds.contains(trip.serviceId)) continue;
+
+        final List<StopTime> destTimes = stopTimes
+            .where((st) => st.tripId == trip.tripId && st.stopId == destStopId)
+            .toList();
+        if (destTimes.isEmpty) continue;
+
+        final StopTime stDest = destTimes.first;
+        if (stDest.stopSequence <= stStart.stopSequence) continue;
+
+        // Calculate total trip duration for sorting
+        final int durationMins =
+            TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
+            TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
+
+        final Route route = routes.firstWhere((r) => r.routeId == trip.routeId);
+
+        String displayName = trip.getDisplayName(route.longName);
+
+        final List<StopTime> allTripStops = stopTimes
+            .where((s) => s.tripId == trip.tripId)
+            .toList();
+        allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
+        final StopTime firstStop = allTripStops.first;
+        final String originStopName = stops
+            .firstWhere((s) => s.stopId == firstStop.stopId)
+            .name;
+
+        dailyTrips.add(
+          OsrmTrip(
+            isStartAlsoOrigin: firstStop.stopId == startStopId,
+            routeName: displayName,
+            originStopName: originStopName,
+            originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+              targetDateTime,
+              firstStop.departureTime,
+            ),
+            startDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+              targetDateTime,
+              stStart.departureTime,
+            ),
+            destArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+              targetDateTime,
+              stDest.arrivalTime,
+            ),
+            isTransfer: false,
+            estimatedDuration: durationMins,
+          ),
+        );
+      } catch (_) {
+        continue;
+      }
+    }
+
+    // If no direct trips exist then fallback to searching for trips with
+    // bus change/transfer
+    if (dailyTrips.isEmpty) {
+      for (StopTime stStart in startTimes) {
+        try {
+          final Trip tripA = trips.firstWhere(
+            (t) => t.tripId == stStart.tripId,
+          );
+          if (!validServiceIds.contains(tripA.serviceId)) continue;
+
+          final List<StopTime> tripAStops = stopTimes
+              .where(
+                (st) =>
+                    st.tripId == tripA.tripId &&
+                    st.stopSequence > stStart.stopSequence,
+              )
+              .toList();
+
+          for (StopTime transferA in tripAStops) {
+            final int tArrivalMins = TimeFormat.gtfsTimeToMinutes(
+              transferA.arrivalTime,
+            );
+
+            List<StopTime> potentialLeg2 = stopTimes.where((st) {
+              if (st.stopId != transferA.stopId) return false;
+              final tDepartMins = TimeFormat.gtfsTimeToMinutes(
+                st.departureTime,
+              );
+              return tDepartMins >= tArrivalMins &&
+                  tDepartMins <= tArrivalMins + 600;
+            }).toList();
+
+            for (StopTime stTransB in potentialLeg2) {
+              final Trip tripB = trips.firstWhere(
+                (t) => t.tripId == stTransB.tripId,
+              );
+              if (!validServiceIds.contains(tripB.serviceId)) continue;
+              if (tripA.tripId == tripB.tripId) continue;
+
+              final List<StopTime> destTimes = stopTimes
+                  .where(
+                    (st) =>
+                        st.tripId == tripB.tripId &&
+                        st.stopId == destStopId &&
+                        st.stopSequence > stTransB.stopSequence,
+                  )
+                  .toList();
+
+              if (destTimes.isNotEmpty) {
+                final StopTime stDest = destTimes.first;
+
+                // Calculate total trip duration for sorting
+                final int durationMins =
+                    TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
+                    TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
+
+                final Route routeA = routes.firstWhere(
+                  (r) => r.routeId == tripA.routeId,
+                );
+                final Route routeB = routes.firstWhere(
+                  (r) => r.routeId == tripB.routeId,
+                );
+                final String transferStopName = stops
+                    .firstWhere((s) => s.stopId == transferA.stopId)
+                    .name;
+
+                String rAName = routeA.longName;
+                if (tripA.directionId.toString() == '1') {
+                  rAName = rAName.split(' - ').reversed.join(' - ');
+                }
+                String rBName = routeB.longName;
+                if (tripB.directionId.toString() == '1') {
+                  rBName = rBName.split(' - ').reversed.join(' - ');
+                }
+
+                dailyTrips.add(
+                  OsrmTrip(
+                    isStartAlsoOrigin: true,
+                    routeName: '1. $rAName\n2. $rBName',
+                    originStopName: '',
+                    // origin and start are the same so we use the same date time
+                    originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+                      targetDateTime,
+                      stStart.departureTime,
+                    ),
+                    startDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+                      targetDateTime,
+                      stStart.departureTime,
+                    ),
+                    destArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+                      targetDateTime,
+                      stDest.arrivalTime,
+                    ),
+                    isTransfer: true,
+                    estimatedDuration: durationMins,
+                    transferStopName: transferStopName,
+                    transferArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+                      targetDateTime,
+                      transferA.arrivalTime,
+                    ),
+                    transferDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+                      targetDateTime,
+                      stTransB.departureTime,
+                    ),
+                  ),
+                );
+              }
+            }
+          }
+        } catch (_) {
+          continue;
+        }
+      }
+    }
+
+    // Sort all trips by their total time (fastest first)
+    dailyTrips.sort((a, b) {
+      // if (a. != b.estimatedDuration) {
+      //   return a.estimatedDuration.compareTo(
+      //     b.estimatedDuration,
+      //   ); // Sort by duration ascending
+      // }
+      // If duration is identical, sort by departure time ascending
+      return a.startDepartureDateTime.compareTo(b.startDepartureDateTime);
+    });
+
+    return dailyTrips;
+  }
+
+  /// Returns a service id 'code' based on the given date time
+  /// For example if the user selects a date where it's Saturday
+  /// the serviceIds should include the 'SATURDAY' keyword
+  List<String> getServiceIds(DateTime targetDateTime) {
+    final List<String> serviceIds = [];
+    if (targetDateTime.weekday == DateTime.saturday) {
+      serviceIds.add('SATURDAY');
+    } else if (targetDateTime.weekday == DateTime.sunday) {
+      serviceIds.add('SUNDAY');
+    } else {
+      serviceIds.add('WEEKDAY');
+      if (targetDateTime.weekday >= DateTime.monday &&
+          targetDateTime.weekday <= DateTime.thursday) {
+        serviceIds.add('MON_THU');
+      }
+      if (targetDateTime.weekday == DateTime.tuesday ||
+          targetDateTime.weekday == DateTime.friday) {
+        serviceIds.add('TUE_FRI');
+      }
+    }
+    return serviceIds;
+  }
+}
