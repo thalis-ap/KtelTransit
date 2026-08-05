@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:ktel_transit/models/calendar.dart';
 import 'package:ktel_transit/models/departure.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
 import 'package:ktel_transit/models/stop.dart';
@@ -15,6 +16,7 @@ class GtfsRepository {
   List<Route> routes = [];
   List<Trip> trips = [];
   List<StopTime> stopTimes = [];
+  List<Calendar> calendars = [];
 
   GtfsRepository();
 
@@ -83,6 +85,24 @@ class GtfsRepository {
       for (List<dynamic> row in stopTimesGrid.skip(1)) {
         if (row.isEmpty || row.length < 2) continue;
         stopTimes.add(StopTime.fromCsv(row, headers));
+      }
+    }
+
+    String calendarString = await rootBundle.loadString(
+      "assets/gtfs/calendar.txt",
+    );
+
+    List<List<dynamic>> calendarGrid = csv.decode(calendarString);
+
+    if (calendarGrid.isNotEmpty) {
+      final headers = {
+        for (int i = 0; i < calendarGrid[0].length; i++)
+          calendarGrid[0][i].toString(): i,
+      };
+
+      for (List<dynamic> row in calendarGrid.skip(1)) {
+        if (row.isEmpty || row.length < 2) continue;
+        calendars.add(Calendar.fromCsv(row, headers));
       }
     }
   }
@@ -420,26 +440,139 @@ class GtfsRepository {
     return dailyTrips;
   }
 
-  /// Returns a service id 'code' based on the given date time
-  /// For example if the user selects a date where it's Saturday
-  /// the serviceIds should include the 'SATURDAY' keyword
+  /// Returns a list of active service_ids based on the given date time
+  /// by checking the calendar table for valid date ranges and weekdays.
   List<String> getServiceIds(DateTime targetDateTime) {
-    final List<String> serviceIds = [];
-    if (targetDateTime.weekday == DateTime.saturday) {
-      serviceIds.add('SATURDAY');
-    } else if (targetDateTime.weekday == DateTime.sunday) {
-      serviceIds.add('SUNDAY');
-    } else {
-      serviceIds.add('WEEKDAY');
-      if (targetDateTime.weekday >= DateTime.monday &&
-          targetDateTime.weekday <= DateTime.thursday) {
-        serviceIds.add('MON_THU');
+    final List<String> activeServiceIds = [];
+
+    // Format the target date to match the gtfs date format which is typically
+    // yyyymmdd so that we can easily compare it as an integer against the
+    // start and end dates provided in the calendar file
+    final int targetDateInt = targetDateTime.year * 10000 +
+        targetDateTime.month * 100 +
+        targetDateTime.day;
+
+    for (final calendar in calendars) {
+      // We need to make sure the date we are looking for actually falls
+      // within the active period of this specific calendar schedule because
+      // gtfs feeds often include future or past schedules that shouldn't be
+      // shown to the user right now
+      try {
+        final int startDate = int.parse(calendar.startDate);
+        final int endDate = int.parse(calendar.endDate);
+
+        if (targetDateInt < startDate || targetDateInt > endDate) {
+          continue;
+        }
+      } catch (e) {
+        continue;
       }
-      if (targetDateTime.weekday == DateTime.tuesday ||
-          targetDateTime.weekday == DateTime.friday) {
-        serviceIds.add('TUE_FRI');
+
+      // Figure out if this specific service runs on the day of the week
+      // requested by the target date by matching dart's weekday integer
+      // with the boolean flags parsed from the calendar file
+      bool isRunningToday = false;
+      switch (targetDateTime.weekday) {
+        case DateTime.monday:
+          isRunningToday = calendar.monday;
+          break;
+        case DateTime.tuesday:
+          isRunningToday = calendar.tuesday;
+          break;
+        case DateTime.wednesday:
+          isRunningToday = calendar.wednesday;
+          break;
+        case DateTime.thursday:
+          isRunningToday = calendar.thursday;
+          break;
+        case DateTime.friday:
+          isRunningToday = calendar.friday;
+          break;
+        case DateTime.saturday:
+          isRunningToday = calendar.saturday;
+          break;
+        case DateTime.sunday:
+          isRunningToday = calendar.sunday;
+          break;
+      }
+
+      if (isRunningToday) {
+        activeServiceIds.add(calendar.serviceId);
       }
     }
-    return serviceIds;
+
+    return activeServiceIds;
+  }
+
+  /// Returns a human readable string of the days a specific service operates
+  /// by dynamically grouping consecutive active days into a clean format.
+  String getReadableDays(String serviceId) {
+    try {
+      final calendar = calendars.firstWhere((c) => c.serviceId == serviceId);
+
+      final List<bool> activeFlags = [
+        calendar.monday,
+        calendar.tuesday,
+        calendar.wednesday,
+        calendar.thursday,
+        calendar.friday,
+        calendar.saturday,
+        calendar.sunday,
+      ];
+
+      final List<String> dayNames = [
+        'Δευτέρα',
+        'Τρίτη',
+        'Τετάρτη',
+        'Πέμπτη',
+        'Παρασκευή',
+        'Σάββατο',
+        'Κυριακή'
+      ];
+
+      // If every single day is marked as true we can immediately return
+      // our daily keyword without needing to parse the individual blocks
+      if (!activeFlags.contains(false)) {
+        return "Καθημερινά";
+      }
+
+      List<String> formattedBlocks = [];
+      int currentIndex = 0;
+
+      // Loop through the entire week looking for active days so we can
+      // group consecutive true values into human readable blocks
+      while (currentIndex < 7) {
+        if (activeFlags[currentIndex]) {
+          int startIndex = currentIndex;
+
+          // keep moving forward as long as the days are consecutive and active
+          while (currentIndex < 7 && activeFlags[currentIndex]) {
+            currentIndex++;
+          }
+
+          int endIndex = currentIndex - 1;
+
+          // format the block based on how many consecutive days we found
+          // so that it reads naturally in greek
+          if (startIndex == endIndex) {
+            formattedBlocks.add(dayNames[startIndex]);
+          } else if (endIndex == startIndex + 1) {
+            formattedBlocks.add("${dayNames[startIndex]} & ${dayNames[endIndex]}");
+          } else {
+            formattedBlocks.add("${dayNames[startIndex]} - ${dayNames[endIndex]}");
+          }
+        } else {
+          currentIndex++;
+        }
+      }
+
+      if (formattedBlocks.isEmpty) return "Άγνωστες Ημέρες";
+
+      // join multiple distinct blocks with a comma in case the schedule
+      // is split up like monday - wednesday, saturday - sunday
+      return formattedBlocks.join(', ');
+    } catch (e) {
+      return "Άγνωστες Ημέρες";
+    }
   }
 }
