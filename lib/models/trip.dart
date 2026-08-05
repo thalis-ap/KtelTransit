@@ -23,4 +23,9 @@ class Trip {
     return directionId == 1 ? routeName.split(' - ').reversed.join(' - ') : routeName;
   }
 
+  String getShortDisplayName(String routeName) {
+    List<String> parts = getDisplayName(routeName).split(' - ');
+    return "${parts.first} - ${parts.last}";
+  }
+
 }
