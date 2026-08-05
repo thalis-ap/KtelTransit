@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
@@ -259,6 +260,35 @@ class _HomeScreenState extends State<HomeScreen> {
         : "${estimatedFare.toStringAsFixed(2)}€";
   }
 
+  Future<void> _showExitDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Έξοδος'),
+          content: const Text('Θέλετε σίγουρα να κλείσετε την εφαρμογή;'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ακύρωση'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Closes the dialog
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Έξοδος'),
+              onPressed: () {
+                SystemNavigator.pop(); // Exits the app gracefully
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Handle a 'back' action either from a gesture or from an app's button
   void _onBackPressed() {
     setState(() {
@@ -268,8 +298,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
       if (startStop == null && destinationStop == null) {
-        // Nothing is selected maybe ask the user for confirmation to exit
-        // TODO dialog to exit app
+        // Nothing is selected, ask the user for confirmation to exit
+        _showExitDialog();
       } else if (startStop != null && destinationStop != null) {
         // If user has selected both stops, make the last one chosen null
         if (lastChosenStopIsStart == null) {
@@ -653,7 +683,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Handle on back pressed gesture
     return PopScope(
-      canPop: !isDepartureBoardOpen && startStop == null && destinationStop == null,
+      // Make it always false, and let the exit dialog do the job
+      canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
 
