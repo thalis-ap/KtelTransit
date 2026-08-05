@@ -4,6 +4,8 @@ import 'package:ktel_transit/models/osrm_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:ktel_transit/screens/routes_screen.dart';
+import 'package:ktel_transit/screens/tickets_screen.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/route_details_sheet.dart';
 import 'package:latlong2/latlong.dart';
@@ -11,6 +13,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/stop.dart';
 import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
+import 'info_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -38,6 +41,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   DateTime selectedSearchTime = DateTime.now();
   int? selectedTripIndex;
+
+  // Used for the drawer
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -677,6 +683,61 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Drawer _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.blue, // Change this to match your app's primary color
+            ),
+            child: Text(
+              'ΚΤΕΛ Λευκάδας',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.directions_bus),
+            title: const Text('Δρομολόγια'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RoutesScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: const Text('Πληροφορίες'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InfoScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.confirmation_number),
+            title: const Text('Εισιτήρια'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TicketsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<OsrmTrip>? trips = _getTripInfo();
@@ -691,6 +752,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _onBackPressed();
       },
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: _buildDrawer(),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
             : Stack(
@@ -785,9 +848,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     IconButton(
                                       icon: const Icon(Icons.menu),
-                                      onPressed: () => _searchAndSetStop(
-                                        isStart: false,
-                                      ), // Drawer/Menu placeholder if needed
+                                      onPressed: () {
+                                        FocusScope.of(context).unfocus();
+                                        _scaffoldKey.currentState?.openDrawer();
+                                      }, // Drawer/Menu placeholder if needed
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
