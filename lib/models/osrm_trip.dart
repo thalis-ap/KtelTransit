@@ -18,7 +18,7 @@ class OsrmTrip {
 
   // Required locally fetched info
   final bool isTransfer, isStartAlsoOrigin;
-  final String routeName, originStopName;
+  final String routeName, originStopName, destinationStopName;
   final DateTime originDepartureDateTime,
       startDepartureDateTime,
       destArrivalDateTime;
@@ -36,6 +36,7 @@ class OsrmTrip {
     required this.routeName,
     required this.originStopName,
     required this.originDepartureDateTime,
+    required this.destinationStopName,
     required this.startDepartureDateTime,
     required this.destArrivalDateTime,
     required this.isTransfer,
@@ -54,6 +55,7 @@ class OsrmTrip {
     bool? isStartAlsoOrigin,
     String? routeName,
     String? originStopName,
+    String? destinationStopName,
     DateTime? originDepartureDateTime,
     DateTime? startDepartureDateTime,
     DateTime? destArrivalDateTime,
@@ -68,6 +70,7 @@ class OsrmTrip {
       isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
       routeName: routeName ?? this.routeName,
       originStopName: originStopName ?? this.originStopName,
+      destinationStopName: destinationStopName ?? this.destinationStopName,
       originDepartureDateTime:
           originDepartureDateTime ?? this.originDepartureDateTime,
       startDepartureDateTime:

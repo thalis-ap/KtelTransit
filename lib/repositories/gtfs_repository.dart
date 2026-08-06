@@ -253,6 +253,9 @@ class GtfsRepository {
 
     List<OsrmTrip> dailyTrips = [];
 
+    final String originStopName = stops.firstWhere((s) => s.stopId == startStopId).name;
+    final String destinationStopName = stops.firstWhere((s) => s.stopId == destStopId).name;
+
     // Find all direct trips first (if any)
     for (StopTime stStart in startTimes) {
       try {
@@ -281,15 +284,17 @@ class GtfsRepository {
             .toList();
         allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
         final StopTime firstStop = allTripStops.first;
-        final String originStopName = stops
-            .firstWhere((s) => s.stopId == firstStop.stopId)
-            .name;
+
+        // final String originStopName = stops
+        //     .firstWhere((s) => s.stopId == firstStop.stopId)
+        //     .name;
 
         dailyTrips.add(
           OsrmTrip(
             isStartAlsoOrigin: firstStop.stopId == startStopId,
             routeName: displayName,
             originStopName: originStopName,
+            destinationStopName: destinationStopName,
             originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
               targetDateTime,
               firstStop.departureTime,
@@ -390,7 +395,8 @@ class GtfsRepository {
                   OsrmTrip(
                     isStartAlsoOrigin: true,
                     routeName: '1. $rAName\n2. $rBName',
-                    originStopName: '',
+                    originStopName: originStopName,
+                    destinationStopName: destinationStopName,
                     // origin and start are the same so we use the same date time
                     originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
                       targetDateTime,
