@@ -17,7 +17,6 @@ import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
 import 'info_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -286,9 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Έξοδος'),
               onPressed: () {
                 SystemNavigator.pop(); // Exits the app gracefully
@@ -316,8 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (lastChosenStopIsStart == null) {
           // Handle null case - clear both (this should not happen)
           startStop = destinationStop = null;
-        }
-        else if (lastChosenStopIsStart == true) {
+        } else if (lastChosenStopIsStart == true) {
           startStop = null;
         } else {
           destinationStop = null;
@@ -369,7 +365,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Returns a widget that contains a single trip's details
-  Widget _buildTripDetails(OsrmTrip osrmTrip) {
+  /// If extra flag is true, then additional info such as ticket analysis
+  /// are provided
+  Widget _buildTripDetails(OsrmTrip osrmTrip, {bool extra = false}) {
     // Format total duration for UI display
     int totalMins = osrmTrip.estimatedDuration;
     String totalStr = totalMins >= 60
@@ -378,16 +376,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Split the 2 cases: transfer or not
     if (osrmTrip.isTransfer) {
-
       // Find the transfer stop (object)
-      transferStop = repository.stops.firstWhere((s) => s.name == osrmTrip.transferStopName);
+      transferStop = repository.stops.firstWhere(
+        (s) => s.name == osrmTrip.transferStopName,
+      );
 
       // Estimated fare in transfer trips is the sum of the 2 trips
-      double? estimatedFare =
-          startStop != null && destinationStop != null && transferStop != null
-          ? _estimateFare(startStop!, transferStop!) +
-                _estimateFare(transferStop!, destinationStop!)
-          : null;
+      double? fare1, fare2, estimatedFare;
+      if (startStop != null &&
+          destinationStop != null &&
+          transferStop != null) {
+        fare1 = _estimateFare(startStop!, transferStop!);
+        fare2 = _estimateFare(transferStop!, destinationStop!);
+        estimatedFare = fare1 + fare2;
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -557,6 +560,118 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+          if (extra)
+            Column(
+              children: [
+                Divider(height: 30),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "Ανάλυση κόστους",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "1. ${osrmTrip.originStopName} - ${osrmTrip.transferStopName}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.confirmation_num_outlined,
+                              size: 14,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _estimatedFareAsString(fare1),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "2. ${osrmTrip.transferStopName} - ${osrmTrip.destinationStopName}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.confirmation_num_outlined,
+                              size: 14,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _estimatedFareAsString(fare2),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Συνολικό κόστος εισιτηρίων",
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.confirmation_num_outlined,
+                              size: 14,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _estimatedFareAsString(estimatedFare),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            )
         ],
       );
     } else {
@@ -683,6 +798,87 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+          if (extra)
+            Column(
+              children: [
+                Divider(height: 30),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "Ανάλυση κόστους",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "${osrmTrip.originStopName} - ${osrmTrip.destinationStopName}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.confirmation_num_outlined,
+                              size: 14,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _estimatedFareAsString(estimatedFare),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Συνολικό κόστος εισιτηρίων",
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.confirmation_num_outlined,
+                              size: 14,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _estimatedFareAsString(estimatedFare),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            )
         ],
       );
     }
@@ -690,20 +886,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Drawer _buildDrawer() {
     return Drawer(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue, // Change this to match your app's primary color
-            ),
+            decoration: BoxDecoration(color: Colors.blue),
             child: Text(
               'ΚΤΕΛ Λευκάδας',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 24),
             ),
+            // TODO add the logo
           ),
           ListTile(
             leading: const Icon(Icons.directions_bus),
@@ -796,7 +989,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         markers: repository.stops.map((stop) {
                           IconData iconData;
                           Color iconColor;
-      
+
                           if (stop.stopId == startStop?.stopId) {
                             iconData = Icons.my_location;
                             iconColor = Colors.green;
@@ -807,7 +1000,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             iconData = Icons.directions_bus;
                             iconColor = Colors.blueGrey;
                           }
-      
+
                           return Marker(
                             point: LatLng(stop.latitude, stop.longitude),
                             width: 40,
@@ -821,7 +1014,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-      
+
                   // Search bar to enter start and destination stops
                   Positioned(
                     top: MediaQuery.of(context).padding.top + 16,
@@ -876,7 +1069,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                     ),
-                                    const Icon(Icons.search, color: Colors.blue),
+                                    const Icon(
+                                      Icons.search,
+                                      color: Colors.blue,
+                                    ),
                                     const SizedBox(width: 8),
                                   ],
                                 ),
@@ -989,8 +1185,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Compass icon to make map look north
                   Positioned(
-                    top: MediaQuery.of(context).padding.top +
-                        (startStop == null && destinationStop == null ? 120 : 160),
+                    top:
+                        MediaQuery.of(context).padding.top +
+                        (startStop == null && destinationStop == null
+                            ? 120
+                            : 160),
                     right: 16,
                     child: Container(
                       decoration: BoxDecoration(
@@ -1005,7 +1204,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       child: IconButton(
-                        icon: Transform.rotate(angle: mapRotation * (math.pi / 180), child: const Icon(Icons.navigation, color: Colors.red)),
+                        icon: Transform.rotate(
+                          angle: mapRotation * (math.pi / 180),
+                          child: const Icon(
+                            Icons.navigation,
+                            color: Colors.red,
+                          ),
+                        ),
                         tooltip: "Επαναφορά προσανατολισμού",
                         onPressed: () {
                           // reset the map rotation back to 0 degrees (north up)
@@ -1013,7 +1218,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             mapRotation = 0;
                           });
                           mapController.rotate(0);
-                          
                         },
                       ),
                     ),
@@ -1087,7 +1291,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               destinationStop = null;
                                               lastChosenStopIsStart = null;
                                               routeTrips.clear();
-                                              selectedSearchTime = DateTime.now();
+                                              selectedSearchTime =
+                                                  DateTime.now();
                                               selectedTripIndex = null;
                                             });
                                           },
@@ -1106,6 +1311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       child: _buildTripDetails(
                                         trips[selectedTripIndex!],
+                                        extra: true,
                                       ),
                                     ),
                                   ],
@@ -1119,14 +1325,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: Container(
                                         width: 40,
                                         height: 4,
-                                        margin: const EdgeInsets.only(bottom: 16),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 16,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.grey.shade300,
-                                          borderRadius: BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                     ),
-      
+
                                     // DateTime picker button
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -1159,10 +1369,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                             style: TextButton.styleFrom(
                                               backgroundColor:
                                                   Colors.blue.shade50,
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 0,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 0,
+                                                  ),
                                               minimumSize: const Size(0, 32),
                                             ),
                                             child: const Text(
@@ -1176,9 +1387,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ],
                                       ),
                                     ),
-      
+
                                     const SizedBox(height: 16),
-      
+
                                     trips != null
                                         ? Builder(
                                             builder: (context) {
@@ -1189,18 +1400,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   foundDate.year !=
                                                       selectedSearchTime.year ||
                                                   foundDate.month !=
-                                                      selectedSearchTime.month ||
+                                                      selectedSearchTime
+                                                          .month ||
                                                   foundDate.day !=
                                                       selectedSearchTime.day;
                                               final now = DateTime.now();
                                               final isToday =
                                                   foundDate.year == now.year &&
-                                                  foundDate.month == now.month &&
+                                                  foundDate.month ==
+                                                      now.month &&
                                                   foundDate.day == now.day;
                                               final displayDate = isToday
                                                   ? "Σήμερα"
                                                   : "${foundDate.day.toString().padLeft(2, '0')}/${foundDate.month.toString().padLeft(2, '0')}/${foundDate.year}";
-      
+
                                               return Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
@@ -1208,14 +1421,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   if (dateChanged) ...[
                                                     Container(
                                                       padding:
-                                                          const EdgeInsets.all(8),
+                                                          const EdgeInsets.all(
+                                                            8,
+                                                          ),
                                                       margin:
                                                           const EdgeInsets.only(
                                                             bottom: 12,
                                                           ),
                                                       decoration: BoxDecoration(
-                                                        color:
-                                                            Colors.orange.shade50,
+                                                        color: Colors
+                                                            .orange
+                                                            .shade50,
                                                         borderRadius:
                                                             BorderRadius.circular(
                                                               8,
@@ -1253,13 +1469,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       ),
                                                     ),
                                                   ],
-      
+
                                                   Text(
                                                     "Δρομολόγια για: $displayDate",
                                                     style: TextStyle(
                                                       fontSize: 14,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.blue.shade800,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          Colors.blue.shade800,
                                                     ),
                                                   ),
                                                   const SizedBox(height: 8),
@@ -1272,14 +1490,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           0.4,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.blue.shade50,
+                                                      color:
+                                                          Colors.blue.shade50,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             16,
                                                           ),
                                                       border: Border.all(
-                                                        color:
-                                                            Colors.blue.shade100,
+                                                        color: Colors
+                                                            .blue
+                                                            .shade100,
                                                       ),
                                                     ),
                                                     child: ListView.separated(
@@ -1295,8 +1515,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                 height: 24,
                                                               ),
                                                       itemBuilder: (context, index) {
-                                                        final trip = trips[index];
-      
+                                                        final trip =
+                                                            trips[index];
+
                                                         // --- CHECK IF TRIP HAS DEPARTED ---
                                                         bool isPast = false;
                                                         if (isToday) {
@@ -1308,7 +1529,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             isPast = true;
                                                           }
                                                         }
-      
+
                                                         return Opacity(
                                                           opacity: isPast
                                                               ? 0.5
@@ -1339,7 +1560,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   _buildTripDetails(
                                                                     trip,
                                                                   ),
-      
+
                                                                   // --- DEPARTED BADGE ---
                                                                   if (isPast)
                                                                     Positioned(
@@ -1361,9 +1582,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                                 4,
                                                                               ),
                                                                           border: Border.all(
-                                                                            color: Colors
-                                                                                .red
-                                                                                .shade300,
+                                                                            color:
+                                                                                Colors.red.shade300,
                                                                           ),
                                                                         ),
                                                                         child: Text(
@@ -1373,9 +1593,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                                 10,
                                                                             fontWeight:
                                                                                 FontWeight.bold,
-                                                                            color: Colors
-                                                                                .red
-                                                                                .shade800,
+                                                                            color:
+                                                                                Colors.red.shade800,
                                                                           ),
                                                                         ),
                                                                       ),
@@ -1396,9 +1615,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             padding: const EdgeInsets.all(16),
                                             decoration: BoxDecoration(
                                               color: Colors.orange.shade50,
-                                              borderRadius: BorderRadius.circular(
-                                                16,
-                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
                                             child: Row(
                                               children: [
@@ -1411,8 +1629,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   child: Text(
                                                     "Δεν βρέθηκαν δρομολόγια για αυτή την ημερομηνία.",
                                                     style: TextStyle(
-                                                      color:
-                                                          Colors.orange.shade900,
+                                                      color: Colors
+                                                          .orange
+                                                          .shade900,
                                                     ),
                                                   ),
                                                 ),
