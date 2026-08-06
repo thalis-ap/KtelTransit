@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
@@ -47,7 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final MapController mapController = MapController();
-  double mapRotation = 0.0;
+
+  // In rads
+  double mapRotation = 0;
 
   @override
   void initState() {
@@ -962,9 +962,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       initialCenter: const LatLng(38.706700, 20.713900),
                       initialZoom: 10.5,
                       onPositionChanged: (position, hasGesture) {
-                        if (position.rotation != mapRotation) {
+                        if (position.rotationRad != mapRotation) {
                           setState(() {
-                            mapRotation = position.rotation;
+                            mapRotation = position.rotationRad;
                           });
                         }
                       },
@@ -1205,10 +1205,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: IconButton(
                         icon: Transform.rotate(
-                          angle: mapRotation * (math.pi / 180),
-                          child: const Icon(
-                            Icons.navigation,
-                            color: Colors.red,
+                          angle: mapRotation,
+                          child: Image.asset(
+                            'assets/icons/compass.png',
+                            width: 26,
+                            height: 26,
                           ),
                         ),
                         tooltip: "Επαναφορά προσανατολισμού",
