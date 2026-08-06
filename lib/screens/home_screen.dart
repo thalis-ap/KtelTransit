@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
@@ -44,6 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Used for the drawer
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final MapController mapController = MapController();
+  double mapRotation = 0.0;
 
   @override
   void initState() {
@@ -759,9 +764,17 @@ class _HomeScreenState extends State<HomeScreen> {
             : Stack(
                 children: [
                   FlutterMap(
-                    options: const MapOptions(
-                      initialCenter: LatLng(38.706700, 20.713900),
+                    mapController: mapController,
+                    options: MapOptions(
+                      initialCenter: const LatLng(38.706700, 20.713900),
                       initialZoom: 10.5,
+                      onPositionChanged: (position, hasGesture) {
+                        if (position.rotation != mapRotation) {
+                          setState(() {
+                            mapRotation = position.rotation;
+                          });
+                        }
+                      },
                     ),
                     children: [
                       TileLayer(
@@ -973,7 +986,38 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                     ),
                   ),
-      
+
+                  // Compass icon to make map look north
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top +
+                        (startStop == null && destinationStop == null ? 120 : 160),
+                    right: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Transform.rotate(angle: mapRotation * (math.pi / 180), child: const Icon(Icons.navigation, color: Colors.red)),
+                        tooltip: "Επαναφορά προσανατολισμού",
+                        onPressed: () {
+                          // reset the map rotation back to 0 degrees (north up)
+                          setState(() {
+                            mapRotation = 0;
+                          });
+                          mapController.rotate(0);
+                          
+                        },
+                      ),
+                    ),
+                  ),
                   // Bottom sheet for trip info
                   if (startStop != null && destinationStop != null)
                     Positioned(
