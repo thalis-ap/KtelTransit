@@ -218,7 +218,9 @@ class GtfsRepository {
     /// or departs in the specific stop (Departure.departureStop). We should
     /// sort chronologically and let the user choose if a bus that arrives
     /// earlier is better than a bus that departs earlier
-    results.sort((a, b) => a.originDepartureTime.compareTo(b.originDepartureTime));
+    results.sort(
+      (a, b) => a.originDepartureTime.compareTo(b.originDepartureTime),
+    );
 
     return results;
   }
@@ -253,8 +255,9 @@ class GtfsRepository {
 
     List<OsrmTrip> dailyTrips = [];
 
-    final String originStopName = stops.firstWhere((s) => s.stopId == startStopId).name;
-    final String destinationStopName = stops.firstWhere((s) => s.stopId == destStopId).name;
+    final String destinationStopName = stops
+        .firstWhere((s) => s.stopId == destStopId)
+        .name;
 
     // Find all direct trips first (if any)
     for (StopTime stStart in startTimes) {
@@ -285,9 +288,9 @@ class GtfsRepository {
         allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
         final StopTime firstStop = allTripStops.first;
 
-        // final String originStopName = stops
-        //     .firstWhere((s) => s.stopId == firstStop.stopId)
-        //     .name;
+        final String originStopName = stops
+            .firstWhere((s) => s.stopId == firstStop.stopId)
+            .name;
 
         dailyTrips.add(
           OsrmTrip(
@@ -333,6 +336,13 @@ class GtfsRepository {
                     st.stopSequence > stStart.stopSequence,
               )
               .toList();
+
+          tripAStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
+          final StopTime firstStop = tripAStops.first;
+
+          final String originStopName = stops.firstWhere(
+            (s) => s.stopId == firstStop.stopId,
+          ).name;
 
           for (StopTime transferA in tripAStops) {
             final int tArrivalMins = TimeFormat.gtfsTimeToMinutes(
@@ -454,7 +464,8 @@ class GtfsRepository {
     // Format the target date to match the gtfs date format which is typically
     // yyyymmdd so that we can easily compare it as an integer against the
     // start and end dates provided in the calendar file
-    final int targetDateInt = targetDateTime.year * 10000 +
+    final int targetDateInt =
+        targetDateTime.year * 10000 +
         targetDateTime.month * 100 +
         targetDateTime.day;
 
@@ -533,7 +544,7 @@ class GtfsRepository {
         'Πέμπτη',
         'Παρασκευή',
         'Σάββατο',
-        'Κυριακή'
+        'Κυριακή',
       ];
 
       // If every single day is marked as true we can immediately return
@@ -563,9 +574,13 @@ class GtfsRepository {
           if (startIndex == endIndex) {
             formattedBlocks.add(dayNames[startIndex]);
           } else if (endIndex == startIndex + 1) {
-            formattedBlocks.add("${dayNames[startIndex]} & ${dayNames[endIndex]}");
+            formattedBlocks.add(
+              "${dayNames[startIndex]} & ${dayNames[endIndex]}",
+            );
           } else {
-            formattedBlocks.add("${dayNames[startIndex]} - ${dayNames[endIndex]}");
+            formattedBlocks.add(
+              "${dayNames[startIndex]} - ${dayNames[endIndex]}",
+            );
           }
         } else {
           currentIndex++;
