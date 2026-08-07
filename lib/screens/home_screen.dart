@@ -996,6 +996,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           } else if (stop.stopId == destinationStop?.stopId) {
                             iconData = Icons.place;
                             iconColor = Colors.red;
+                          } else if (stop.stopId == transferStop?.stopId) {
+                            iconData = Icons.transfer_within_a_station;
+                            iconColor = Colors.orange.shade800;
                           } else {
                             iconData = Icons.directions_bus;
                             iconColor = Colors.blueGrey;
@@ -1007,7 +1010,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 40,
                             child: GestureDetector(
                               onTap: () => _showDepartureBoard(stop),
-                              child: Icon(iconData, color: iconColor, size: 32),
+                              child: Icon(iconData, color: iconColor, size: 30),
                             ),
                           );
                         }).toList(),
