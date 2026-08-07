@@ -21,6 +21,11 @@ class RouteDetailsSheet extends StatelessWidget {
   // Helper widget to build the list of departures so we don't repeat code
   Widget _buildDeparturesList(List<Departure> deps, ThemeData theme) {
     return ListView.separated(
+      // these two properties are CRITICAL: they disable the internal scrolling
+      // of this list so that when the user swipes, the entire bottom sheet
+      // drags up and down naturally instead of trapping their finger in a tiny box
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: deps.length,
       separatorBuilder: (context, index) => Divider(color: Colors.grey.shade200),
       itemBuilder: (context, index) {
@@ -107,121 +112,151 @@ class RouteDetailsSheet extends StatelessWidget {
       }
     }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(top: 12.0, left: 24.0, right: 24.0, bottom: 24.0),
-      height: 400, // Slightly taller to fit the warning text
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2)
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Drag handle
-          Center(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(context).pop(),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.45,
+        minChildSize: 0.25, // limits how far down you can swipe so the title and buttons are always visible
+        maxChildSize: 0.85,
+        snap: true,
+        snapSizes: const [0.45], // explicitly tell it to snap at the middle position
+        builder: (context, scrollController) {
+          return GestureDetector(
+            onTap: () {},
             child: Container(
-              width: 40,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 12.0, left: 24.0, right: 24.0, bottom: 24.0),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                boxShadow: [
+                  BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2)
+                ],
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          Text(
-            stop.name,
-            style: theme.textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-
-          // Start / Destination Selection
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () {
-                    onSetStart();
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.my_location, size: 20),
-                  label: const Text('Αφετηρία'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.green.shade50,
-                    foregroundColor: Colors.green.shade700,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () {
-                    onSetDestination();
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(Icons.place, size: 20),
-                  label: const Text('Προορισμός'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.blue.shade50,
-                    foregroundColor: Colors.blue.shade700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Dynamic departures logic
-          Expanded(
-            child: todayDepartures.isNotEmpty
-            // SCENARIO A: We have buses today
-                ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ', style: theme.textTheme.labelSmall),
-                const SizedBox(height: 12),
-                Expanded(child: _buildDeparturesList(todayDepartures, theme)),
-              ],
-            )
-                : nextDepartures.isNotEmpty
-            // SCENARIO B: No buses today, show next available day
-                ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // ensures it doesn't try to take up infinite space
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: Colors.orange.shade800, size: 20),
-                    const SizedBox(width: 8),
+                    // Clean gray drag handle matching the home screen
+                    Center(
+                      child: Container(
+                        width: 48,
+                        height: 6,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+
                     Text(
-                      'Δεν υπάρχουν άλλες αναχωρήσεις σήμερα.',
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.orange.shade900,
-                          fontWeight: FontWeight.w600
+                      stop.name,
+                      style: theme.textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Start / Destination Selection
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              onSetStart();
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.my_location, size: 20),
+                            label: const Text('Αφετηρία'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.green.shade50,
+                              foregroundColor: Colors.green.shade700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              onSetDestination();
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.place, size: 20),
+                            label: const Text('Προορισμός'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.blue.shade50,
+                              foregroundColor: Colors.blue.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Dynamic departures logic
+                    todayDepartures.isNotEmpty
+                    // SCENARIO A: We have buses today
+                        ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ', style: theme.textTheme.labelSmall),
+                        const SizedBox(height: 12),
+                        _buildDeparturesList(todayDepartures, theme),
+                      ],
+                    )
+                        : nextDepartures.isNotEmpty
+                    // SCENARIO B: No buses today, show next available day
+                        ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.orange.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.orange.shade800, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Δεν υπάρχουν άλλες αναχωρήσεις σήμερα.',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.orange.shade900,
+                                      fontWeight: FontWeight.w600
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text('ΑΝΑΧΩΡΗΣΕΙΣ $nextDayLabel', style: theme.textTheme.labelSmall),
+                        const SizedBox(height: 12),
+                        _buildDeparturesList(nextDepartures, theme),
+                      ],
+                    )
+                    // SCENARIO C: Complete dead end
+                        : Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: Center(
+                        child: Text(
+                          'Δεν υπάρχουν προγραμματισμένες αναχωρήσεις.',
+                          style: TextStyle(fontSize: 15, color: Colors.grey, fontStyle: FontStyle.italic),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24), // Big space as requested
-                Text('ΑΝΑΧΩΡΗΣΕΙΣ $nextDayLabel', style: theme.textTheme.labelSmall),
-                const SizedBox(height: 12),
-                Expanded(child: _buildDeparturesList(nextDepartures, theme)),
-              ],
-            )
-            // SCENARIO C: Complete dead end (e.g. stop isn't serviced anymore)
-                : const Center(
-              child: Text(
-                'Δεν υπάρχουν προγραμματισμένες αναχωρήσεις.',
-                style: TextStyle(fontSize: 15, color: Colors.grey, fontStyle: FontStyle.italic),
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
