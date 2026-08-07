@@ -13,11 +13,16 @@ class SideDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue),
-            child: Text(
-              'ΚΤΕΛ Λευκάδας',
-              style: TextStyle(color: Colors.white, fontSize: 24),
+          DrawerHeader(
+            decoration: BoxDecoration(color: Colors.blue.shade300),
+            child: Column(
+              children: [
+                const Text(
+                  'Τοπικά ΚΤΕΛ',
+                  style: TextStyle(color: Colors.white, fontSize: 24),
+                ),
+                Expanded(child: Image.asset("assets/icons/appicon.png")),
+              ],
             ),
             // TODO add the logo
           ),
