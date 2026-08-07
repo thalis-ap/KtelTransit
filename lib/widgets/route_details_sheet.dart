@@ -84,10 +84,10 @@ class RouteDetailsSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final now = DateTime.now();
 
-    // 1. Try fetching for today (right now)
+    // Try fetching for today (right now)
     final List<Departure> todayDepartures = repository.getDeparturesForStop(stop.stopId, selectedTime: now);
 
-    // 2. Search ahead if today is empty
+    // Search ahead if today is empty
     List<Departure> nextDepartures = [];
     String nextDayLabel = '';
 

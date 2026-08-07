@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true, // Enables the sleek, modern Material 3 defaults
 
-        // 1. Global Button Style
+        // Global Button Style
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // 2. Global Text Styles
+        // Global Text Styles
         textTheme: TextTheme(
           // Used for main titles (like the Stop Name)
           titleLarge: const TextStyle(
