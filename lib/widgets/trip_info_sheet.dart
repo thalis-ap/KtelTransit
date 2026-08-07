@@ -64,6 +64,7 @@ class TripInfoSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Gray bar-handle for the scrollable bottom sheet
                   Center(
                     child: Container(
                       width: 48,
@@ -108,6 +109,7 @@ class TripInfoSheet extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: Colors.blue.shade200),
                           ),
+                          // Trip details card for the selected trip
                           child: TripDetailsCard(
                             osrmTrip: trips![selectedTripIndex!],
                             startStop: startStop,
@@ -123,6 +125,7 @@ class TripInfoSheet extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Date time picker widget
                         TimeSelectionBar(
                           selectedSearchTime: selectedSearchTime,
                           onChangeTime: onChangeTime,
@@ -147,7 +150,7 @@ class TripInfoSheet extends StatelessWidget {
                                   final displayDate = isToday
                                       ? "Σήμερα"
                                       : "${foundDate.day.toString().padLeft(2, '0')}/${foundDate.month.toString().padLeft(2, '0')}/${foundDate.year}";
-
+                                  // All trips' detail cards
                                   return Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -330,8 +333,6 @@ class TripDetailsCard extends StatelessWidget {
         : "${estimatedFare.toStringAsFixed(2)}€";
   }
 
-  // --- SHARED UI COMPONENT ---
-  // This completely eliminates the duplicated 50-line cost analysis blocks!
   Widget _buildFareAnalysis({
     required double totalFare,
     required String leg1Text,
