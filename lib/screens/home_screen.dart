@@ -109,66 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Opens a date time picker dialog for the user to select a different date
-  /// and time for their trip. Saves the selected date time in
-  /// selectedSearchTime variable
-  Future<void> _pickDateTime() async {
-    final DateTime? date = await showDatePicker(
-      context: context,
-      initialDate: selectedSearchTime,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 30)),
-    );
-    if (date == null) return;
-
-    // Mount check to see if we have exited the page we were in (context)
-    if (!mounted) return;
-
-    final TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(selectedSearchTime),
-    );
-    if (time == null) return;
-
-    // Set selectedSearchTime after selecting BOTH date AND time
-    setState(() {
-      selectedSearchTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
-  }
-
-  /// Helper to open search and assign the result to either start or destination
-  Future<void> _searchAndSetStop({required bool isStart}) async {
-    final Stop? selectedStop = await showSearch<Stop?>(
-      context: context,
-      delegate: StopSearchDelegate(repository.stops),
-    );
-
-    if (selectedStop != null) {
-      setState(() {
-        if (isStart) {
-          if (destinationStop?.stopId != selectedStop.stopId) {
-            startStop = selectedStop;
-            lastChosenStopIsStart = true;
-          }
-        } else {
-          if (startStop?.stopId != selectedStop.stopId) {
-            destinationStop = selectedStop;
-            lastChosenStopIsStart = false;
-          }
-        }
-        selectedSearchTime = DateTime.now();
-        selectedTripIndex = null;
-        routeTrips.clear();
-      });
-    }
-  }
-
   /// Returns a list of OsrmTrip objects (or null if not found) that cover the
   /// trip between the selected startStop and destinationStop after
   /// selectedSearchTime.
@@ -235,31 +175,64 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
   }
 
-  Future<void> _showExitDialog() async {
-    return showDialog<void>(
+  /// Opens a date time picker dialog for the user to select a different date
+  /// and time for their trip. Saves the selected date time in
+  /// selectedSearchTime variable
+  Future<void> _pickDateTime() async {
+    final DateTime? date = await showDatePicker(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Έξοδος'),
-          content: const Text('Θέλετε σίγουρα να κλείσετε την εφαρμογή;'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Ακύρωση'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Closes the dialog
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Έξοδος'),
-              onPressed: () {
-                SystemNavigator.pop(); // Exits the app gracefully
-              },
-            ),
-          ],
-        );
-      },
+      initialDate: selectedSearchTime,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
     );
+    if (date == null) return;
+
+    // Mount check to see if we have exited the page we were in (context)
+    if (!mounted) return;
+
+    final TimeOfDay? time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedSearchTime),
+    );
+    if (time == null) return;
+
+    // Set selectedSearchTime after selecting BOTH date AND time
+    setState(() {
+      selectedSearchTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+    });
+  }
+
+  /// Helper to open search and assign the result to either start or destination
+  Future<void> _searchAndSetStop({required bool isStart}) async {
+    final Stop? selectedStop = await showSearch<Stop?>(
+      context: context,
+      delegate: StopSearchDelegate(repository.stops),
+    );
+
+    if (selectedStop != null) {
+      setState(() {
+        if (isStart) {
+          if (destinationStop?.stopId != selectedStop.stopId) {
+            startStop = selectedStop;
+            lastChosenStopIsStart = true;
+          }
+        } else {
+          if (startStop?.stopId != selectedStop.stopId) {
+            destinationStop = selectedStop;
+            lastChosenStopIsStart = false;
+          }
+        }
+        selectedSearchTime = DateTime.now();
+        selectedTripIndex = null;
+        routeTrips.clear();
+      });
+    }
   }
 
   /// Handle a 'back' action either from a gesture or from an app's button
@@ -295,6 +268,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Shows the departure board upon clicking on a stop
+  /// This board contains all departures from/to this stop
   void _showDepartureBoard(Stop stop) {
     isDepartureBoardOpen = true;
 
@@ -330,6 +305,32 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _showExitDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Έξοδος'),
+          content: const Text('Θέλετε σίγουρα να κλείσετε την εφαρμογή;'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ακύρωση'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Closes the dialog
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Έξοδος'),
+              onPressed: () {
+                SystemNavigator.pop(); // Exits the app gracefully
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
