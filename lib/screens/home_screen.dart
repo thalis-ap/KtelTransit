@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/route_details_sheet.dart';
 import 'package:ktel_transit/widgets/side_drawer.dart';
+import 'package:ktel_transit/widgets/trip_search_bar.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/stop.dart';
@@ -382,8 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Estimated fare in transfer trips is the sum of the 2 trips
       double? fare1, fare2, estimatedFare;
-      if (startStop != null &&
-          destinationStop != null) {
+      if (startStop != null && destinationStop != null) {
         fare1 = _estimateFare(startStop!, transferStop);
         fare2 = _estimateFare(transferStop, destinationStop!);
         estimatedFare = fare1 + fare2;
@@ -643,9 +644,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Συνολικό κόστος εισιτηρίων",
-                        ),
+                        Text("Συνολικό κόστος εισιτηρίων"),
                         Row(
                           children: [
                             Icon(
@@ -669,7 +668,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ],
-            )
+            ),
         ],
       );
     } else {
@@ -850,9 +849,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Συνολικό κόστος εισιτηρίων",
-                        ),
+                        Text("Συνολικό κόστος εισιτηρίων"),
                         Row(
                           children: [
                             Icon(
@@ -876,7 +873,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ],
-            )
+            ),
         ],
       );
     }
@@ -894,7 +891,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (activeTrip.isTransfer) {
         try {
           activeTransferStop = repository.stops.firstWhere(
-                (s) => s.name == activeTrip.transferStopName,
+            (s) => s.name == activeTrip.transferStopName,
           );
         } catch (e) {
           // fail silently if the data name doesn't perfectly match a stop
@@ -958,7 +955,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           } else if (stop.stopId == destinationStop?.stopId) {
                             iconData = Icons.place;
                             iconColor = Colors.red;
-                          } else if (stop.stopId == activeTransferStop?.stopId) {
+                          } else if (stop.stopId ==
+                              activeTransferStop?.stopId) {
                             iconData = Icons.transfer_within_a_station;
                             iconColor = Colors.orange.shade800;
                           } else {
@@ -985,166 +983,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     top: MediaQuery.of(context).padding.top + 16,
                     left: 16,
                     right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: (startStop == null && destinationStop == null)
-                          // Split 2 cases: 0 or 1 stops selected
-                          // 0 stops selected
-                          ? InkWell(
-                              onTap: () => _searchAndSetStop(
-                                isStart: false,
-                              ), // Default to destination
-                              borderRadius: BorderRadius.circular(20),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                  horizontal: 4,
-                                ),
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.menu),
-                                      onPressed: () {
-                                        FocusScope.of(context).unfocus();
-                                        _scaffoldKey.currentState?.openDrawer();
-                                      }, // Drawer/Menu placeholder if needed
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        "Αναζήτηση προορισμού...",
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.search,
-                                      color: Colors.blue,
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                ),
-                              ),
-                            )
-                          // 1 stop selected
-                          : Row(
-                              children: [
-                                // Back / Clear all button
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_back),
-                                  onPressed: _onBackPressed,
-                                ),
-                                const SizedBox(width: 4),
-                                // Inputs Column (Start & Destination)
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      // Start Stop Input Row
-                                      SizedBox(height: 8),
-                                      InkWell(
-                                        onTap: () =>
-                                            _searchAndSetStop(isStart: true),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.my_location,
-                                              color: Colors.green,
-                                              size: 18,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                startStop?.name ??
-                                                    "Επιλέξτε αφετηρία...",
-                                                style: TextStyle(
-                                                  fontSize: 18,
-                                                  color: startStop != null
-                                                      ? Colors.black87
-                                                      : Colors.grey.shade500,
-                                                  fontWeight: startStop != null
-                                                      ? FontWeight.w500
-                                                      : FontWeight.normal,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const Divider(height: 20, thickness: 1),
-                                      // Destination Stop Input Row
-                                      InkWell(
-                                        onTap: () =>
-                                            _searchAndSetStop(isStart: false),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.place,
-                                              color: Colors.red,
-                                              size: 18,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                destinationStop?.name ??
-                                                    "Επιλέξτε προορισμό...",
-                                                style: TextStyle(
-                                                  fontSize: 18,
-                                                  color: destinationStop != null
-                                                      ? Colors.black87
-                                                      : Colors.grey.shade500,
-                                                  fontWeight:
-                                                      destinationStop != null
-                                                      ? FontWeight.w500
-                                                      : FontWeight.normal,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                // Swap Button
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.swap_vert,
-                                    color: Colors.blue,
-                                  ),
-                                  tooltip: "Αλλαγή κατεύθυνσης",
-                                  onPressed: () {
-                                    setState(() {
-                                      final temp = startStop;
-                                      startStop = destinationStop;
-                                      destinationStop = temp;
-                                      selectedTripIndex = null;
-                                      routeTrips.clear();
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
+                    child: TripSearchBar(
+                      startStop: startStop,
+                      destinationStop: destinationStop,
+                      onMenuPressed: () {
+                        FocusScope.of(context).unfocus();
+                        _scaffoldKey.currentState?.openDrawer();
+                      },
+                      onBackPressed: _onBackPressed,
+                      onSwap: () {
+                        setState(() {
+                          final temp = startStop;
+                          startStop = destinationStop;
+                          destinationStop = temp;
+                          selectedTripIndex = null;
+                          routeTrips.clear();
+                        });
+                      },
+                      onSearch: (isStart) =>
+                          _searchAndSetStop(isStart: isStart),
                     ),
                   ),
 
@@ -1194,8 +1051,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (startStop != null && destinationStop != null)
                     DraggableScrollableSheet(
                       initialChildSize: 0.45,
-                      minChildSize: 0.10, // just enough to see the curved edges and the green handle
-                      maxChildSize: 0.85, // stops slightly below the top of the screen
+                      minChildSize:
+                          0.10, // just enough to see the curved edges and the green handle
+                      maxChildSize:
+                          0.85, // stops slightly below the top of the screen
                       snap: true,
                       snapSizes: const [0.45],
                       builder: (context, scrollController) {
@@ -1243,15 +1102,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
 
-                                  if (selectedTripIndex != null && trips != null)
-                                  // minimized view when a specific trip is selected
+                                  if (selectedTripIndex != null &&
+                                      trips != null)
+                                    // minimized view when a specific trip is selected
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             TextButton.icon(
                                               onPressed: () {
@@ -1283,7 +1144,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   destinationStop = null;
                                                   lastChosenStopIsStart = null;
                                                   routeTrips.clear();
-                                                  selectedSearchTime = DateTime.now();
+                                                  selectedSearchTime =
+                                                      DateTime.now();
                                                   selectedTripIndex = null;
                                                 });
                                               },
@@ -1295,7 +1157,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           padding: const EdgeInsets.all(16),
                                           decoration: BoxDecoration(
                                             color: Colors.blue.shade50,
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
                                             border: Border.all(
                                               color: Colors.blue.shade200,
                                             ),
@@ -1308,10 +1172,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ],
                                     )
                                   else
-                                  // expanded view showing all available trips
+                                    // expanded view showing all available trips
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         // date and time picker section
                                         Container(
@@ -1321,7 +1186,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: Colors.grey.shade100,
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: Row(
                                             children: [
@@ -1344,12 +1211,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 onPressed: _pickDateTime,
                                                 style: TextButton.styleFrom(
                                                   backgroundColor:
-                                                  Colors.blue.shade50,
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 0,
+                                                      Colors.blue.shade50,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 0,
+                                                      ),
+                                                  minimumSize: const Size(
+                                                    0,
+                                                    32,
                                                   ),
-                                                  minimumSize: const Size(0, 32),
                                                 ),
                                                 child: const Text(
                                                   "ΑΛΛΑΓΗ",
@@ -1367,179 +1238,261 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                         trips != null
                                             ? Builder(
-                                          builder: (context) {
-                                            final foundDate = trips
-                                                .first
-                                                .originDepartureDateTime;
-                                            final dateChanged =
-                                                foundDate.year != selectedSearchTime.year ||
-                                                    foundDate.month != selectedSearchTime.month ||
-                                                    foundDate.day != selectedSearchTime.day;
-                                            final now = DateTime.now();
-                                            final isToday =
-                                                foundDate.year == now.year &&
-                                                    foundDate.month == now.month &&
-                                                    foundDate.day == now.day;
-                                            final displayDate = isToday
-                                                ? "Σήμερα"
-                                                : "${foundDate.day.toString().padLeft(2, '0')}/${foundDate.month.toString().padLeft(2, '0')}/${foundDate.year}";
+                                                builder: (context) {
+                                                  final foundDate = trips
+                                                      .first
+                                                      .originDepartureDateTime;
+                                                  final dateChanged =
+                                                      foundDate.year !=
+                                                          selectedSearchTime
+                                                              .year ||
+                                                      foundDate.month !=
+                                                          selectedSearchTime
+                                                              .month ||
+                                                      foundDate.day !=
+                                                          selectedSearchTime
+                                                              .day;
+                                                  final now = DateTime.now();
+                                                  final isToday =
+                                                      foundDate.year ==
+                                                          now.year &&
+                                                      foundDate.month ==
+                                                          now.month &&
+                                                      foundDate.day == now.day;
+                                                  final displayDate = isToday
+                                                      ? "Σήμερα"
+                                                      : "${foundDate.day.toString().padLeft(2, '0')}/${foundDate.month.toString().padLeft(2, '0')}/${foundDate.year}";
 
-                                            return Column(
-                                              crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                              children: [
-                                                if (dateChanged) ...[
-                                                  Container(
-                                                    padding: const EdgeInsets.all(8),
-                                                    margin: const EdgeInsets.only(bottom: 12),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.orange.shade50,
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      border: Border.all(
-                                                        color: Colors.orange.shade200,
-                                                      ),
-                                                    ),
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons.info_outline,
-                                                          color: Colors.orange.shade800,
-                                                          size: 20,
-                                                        ),
-                                                        const SizedBox(width: 8),
-                                                        Expanded(
-                                                          child: Text(
-                                                            "Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.",
-                                                            style: TextStyle(
-                                                              color: Colors.orange.shade900,
-                                                              fontSize: 12,
+                                                  return Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      if (dateChanged) ...[
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                8,
+                                                              ),
+                                                          margin:
+                                                              const EdgeInsets.only(
+                                                                bottom: 12,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors
+                                                                .orange
+                                                                .shade50,
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  8,
+                                                                ),
+                                                            border: Border.all(
+                                                              color: Colors
+                                                                  .orange
+                                                                  .shade200,
                                                             ),
+                                                          ),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .info_outline,
+                                                                color: Colors
+                                                                    .orange
+                                                                    .shade800,
+                                                                size: 20,
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                              Expanded(
+                                                                child: Text(
+                                                                  "Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.",
+                                                                  style: TextStyle(
+                                                                    color: Colors
+                                                                        .orange
+                                                                        .shade900,
+                                                                    fontSize:
+                                                                        12,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
                                                       ],
-                                                    ),
-                                                  ),
-                                                ],
 
-                                                Text(
-                                                  "Δρομολόγια για: $displayDate",
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.blue.shade800,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.blue.shade50,
-                                                    borderRadius: BorderRadius.circular(16),
-                                                    border: Border.all(
-                                                      color: Colors.blue.shade100,
-                                                    ),
-                                                  ),
-                                                  child: ListView.separated(
-                                                    shrinkWrap: true,
-                                                    // we disable the internal scrolling of this list and remove
-                                                    // its height limits so that when the user swipes up, the entire
-                                                    // bottom sheet pulls up naturally instead of getting stuck inside
-                                                    // a tiny scrollable box
-                                                    physics: const NeverScrollableScrollPhysics(),
-                                                    padding: const EdgeInsets.all(12),
-                                                    itemCount: trips.length,
-                                                    separatorBuilder: (context, index) => const Divider(height: 24),
-                                                    itemBuilder: (context, index) {
-                                                      final trip = trips[index];
-
-                                                      // check if trip has departed
-                                                      bool isPast = false;
-                                                      if (isToday) {
-                                                        final tripTime = trip.startDepartureDateTime;
-                                                        if (tripTime.isBefore(now)) {
-                                                          isPast = true;
-                                                        }
-                                                      }
-
-                                                      return Opacity(
-                                                        opacity: isPast ? 0.5 : 1.0,
-                                                        child: InkWell(
-                                                          onTap: isPast
-                                                              ? null
-                                                              : () {
-                                                            setState(() {
-                                                              selectedTripIndex = index;
-                                                            });
-                                                            _fetchRouteForSelectedTrip(trip);
-                                                          },
-                                                          borderRadius: BorderRadius.circular(12),
-                                                          child: Container(
-                                                            padding: const EdgeInsets.all(8),
-                                                            child: Stack(
-                                                              children: [
-                                                                _buildTripDetails(trip),
-
-                                                                if (isPast)
-                                                                  Positioned(
-                                                                    top: 0,
-                                                                    right: 0,
-                                                                    child: Container(
-                                                                      padding: const EdgeInsets.symmetric(
-                                                                        horizontal: 6,
-                                                                        vertical: 2,
-                                                                      ),
-                                                                      decoration: BoxDecoration(
-                                                                        color: Colors.red.shade100,
-                                                                        borderRadius: BorderRadius.circular(4),
-                                                                        border: Border.all(
-                                                                          color: Colors.red.shade300,
-                                                                        ),
-                                                                      ),
-                                                                      child: Text(
-                                                                        "Αναχώρησε",
-                                                                        style: TextStyle(
-                                                                          fontSize: 10,
-                                                                          fontWeight: FontWeight.bold,
-                                                                          color: Colors.red.shade800,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                              ],
-                                                            ),
+                                                      Text(
+                                                        "Δρομολόγια για: $displayDate",
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors
+                                                              .blue
+                                                              .shade800,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Container(
+                                                        decoration: BoxDecoration(
+                                                          color: Colors
+                                                              .blue
+                                                              .shade50,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                16,
+                                                              ),
+                                                          border: Border.all(
+                                                            color: Colors
+                                                                .blue
+                                                                .shade100,
                                                           ),
                                                         ),
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        )
+                                                        child: ListView.separated(
+                                                          shrinkWrap: true,
+                                                          // we disable the internal scrolling of this list and remove
+                                                          // its height limits so that when the user swipes up, the entire
+                                                          // bottom sheet pulls up naturally instead of getting stuck inside
+                                                          // a tiny scrollable box
+                                                          physics:
+                                                              const NeverScrollableScrollPhysics(),
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                12,
+                                                              ),
+                                                          itemCount:
+                                                              trips.length,
+                                                          separatorBuilder:
+                                                              (
+                                                                context,
+                                                                index,
+                                                              ) =>
+                                                                  const Divider(
+                                                                    height: 24,
+                                                                  ),
+                                                          itemBuilder: (context, index) {
+                                                            final trip =
+                                                                trips[index];
+
+                                                            // check if trip has departed
+                                                            bool isPast = false;
+                                                            if (isToday) {
+                                                              final tripTime = trip
+                                                                  .startDepartureDateTime;
+                                                              if (tripTime
+                                                                  .isBefore(
+                                                                    now,
+                                                                  )) {
+                                                                isPast = true;
+                                                              }
+                                                            }
+
+                                                            return Opacity(
+                                                              opacity: isPast
+                                                                  ? 0.5
+                                                                  : 1.0,
+                                                              child: InkWell(
+                                                                onTap: isPast
+                                                                    ? null
+                                                                    : () {
+                                                                        setState(() {
+                                                                          selectedTripIndex =
+                                                                              index;
+                                                                        });
+                                                                        _fetchRouteForSelectedTrip(
+                                                                          trip,
+                                                                        );
+                                                                      },
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      12,
+                                                                    ),
+                                                                child: Container(
+                                                                  padding:
+                                                                      const EdgeInsets.all(
+                                                                        8,
+                                                                      ),
+                                                                  child: Stack(
+                                                                    children: [
+                                                                      _buildTripDetails(
+                                                                        trip,
+                                                                      ),
+
+                                                                      if (isPast)
+                                                                        Positioned(
+                                                                          top:
+                                                                              0,
+                                                                          right:
+                                                                              0,
+                                                                          child: Container(
+                                                                            padding: const EdgeInsets.symmetric(
+                                                                              horizontal: 6,
+                                                                              vertical: 2,
+                                                                            ),
+                                                                            decoration: BoxDecoration(
+                                                                              color: Colors.red.shade100,
+                                                                              borderRadius: BorderRadius.circular(
+                                                                                4,
+                                                                              ),
+                                                                              border: Border.all(
+                                                                                color: Colors.red.shade300,
+                                                                              ),
+                                                                            ),
+                                                                            child: Text(
+                                                                              "Αναχώρησε",
+                                                                              style: TextStyle(
+                                                                                fontSize: 10,
+                                                                                fontWeight: FontWeight.bold,
+                                                                                color: Colors.red.shade800,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              )
                                             : Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.shade50,
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.warning_amber_rounded,
-                                                color: Colors.orange.shade800,
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Text(
-                                                  "Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.",
-                                                  style: TextStyle(
-                                                    color: Colors.orange.shade900,
-                                                  ),
+                                                padding: const EdgeInsets.all(
+                                                  16,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.orange.shade50,
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .warning_amber_rounded,
+                                                      color: Colors
+                                                          .orange
+                                                          .shade800,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.",
+                                                        style: TextStyle(
+                                                          color: Colors
+                                                              .orange
+                                                              .shade900,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
                                       ],
                                     ),
                                 ],
