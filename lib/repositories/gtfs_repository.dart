@@ -354,8 +354,9 @@ class GtfsRepository {
               final tDepartMins = TimeFormat.gtfsTimeToMinutes(
                 st.departureTime,
               );
+              // Allow up to 24 hours of wait time between transfer trips
               return tDepartMins >= tArrivalMins &&
-                  tDepartMins <= tArrivalMins + 600;
+                  tDepartMins <= tArrivalMins + 1440;
             }).toList();
 
             for (StopTime stTransB in potentialLeg2) {
