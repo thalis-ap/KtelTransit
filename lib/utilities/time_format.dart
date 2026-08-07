@@ -14,9 +14,8 @@ class TimeFormat {
     if (mins >= 60) {
       int h = mins ~/ 60;
       int m = mins % 60;
-      String hStr = h.toString().padLeft(2, '0');
       String mStr = m.toString().padLeft(2, '0');
-      return m > 0 ? "$hStr ώρ. $mStr λεπ." : "$hStr ώρες";
+      return m > 0 ? "$h ώρ. $mStr λεπ." : "$h ${h > 1 ? "ώρες" : "ώρα"}";
     } else {
       return "$mins λεπτά";
     }
