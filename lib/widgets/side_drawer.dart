@@ -29,8 +29,10 @@ class SideDrawer extends StatelessWidget {
                 Expanded(child: Image.asset("assets/icons/appicon.png")),
               ],
             ),
-            // TODO add the logo
           ),
+          // Use ValueListenableBuilder because the the region title shown
+          // depends on the GtfsRepository's currentRegion attribute
+          // Read more on GtfsRepository() class
           ValueListenableBuilder<Region>(
             valueListenable: repository.currentRegionNotifier,
             builder: (context, currentRegion, child) {

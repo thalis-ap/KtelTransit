@@ -28,8 +28,17 @@ class GtfsRepository {
   factory GtfsRepository() => _instance;
   GtfsRepository._internal();
 
+  /// Make use of a ValueNotifier. Possible widgets that depend on currentRegion's
+  /// attributes should make use of a ValueListenableBuilder(). This way, when
+  /// currentRegion changes value, all widgets in the tree (inside the
+  /// ValueListenableBuilder) will get rebuilt automatically
   final ValueNotifier<Region> currentRegionNotifier = ValueNotifier(availableRegions.first);
 
+  /// This is a globally shared variable across all files. If one wants to see
+  /// the current region, all they have to do is initialize an instance of this
+  /// class (remains the same across multiple initializations) and get the region
+  /// GtfsRepository repository = GtfsRepository();
+  /// ... = repository.currentRegion;
   Region get currentRegion => currentRegionNotifier.value;
 
   Future<void> init() async {

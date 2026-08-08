@@ -4,6 +4,7 @@ class Region {
   final String id;
   final String name;
   final LatLng center;
+  // depends on how large the area is bigger area -> smaller zoom
   final double defaultZoom;
 
   const Region({
@@ -14,6 +15,7 @@ class Region {
   });
 }
 
+// To add a new region, simply add it in the following list - id is unique
 const List<Region> availableRegions = [
   Region(
     id: 'lefkada',

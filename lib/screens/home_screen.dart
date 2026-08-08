@@ -53,18 +53,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    // Add the listener so that _onRegionChanged runs when GtfsRepository's
+    // region changes. This way all the widgets that depend on the region are
+    // updated automatically
     repository.currentRegionNotifier.addListener(_onRegionChanged);
     _loadData();
   }
 
   @override
   void dispose() {
+    // Remove the listener
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
     super.dispose();
   }
 
   // Asynchronously load GTFS repository data
   Future<void> _loadData() async {
+    // Call init so that the repository loads user's last saved region
+    // (if present) and its data
     await repository.init();
     setState(() {
       isLoading = false;
@@ -295,14 +301,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // Check if GPS is turned on in the phone settings
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return; // You could show a SnackBar here
+    if (!serviceEnabled) return; // show snackbar here
 
     // Check app permissions
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        return; // Permission denied, do nothing
+        return; // Permission denied, maybe prompt user to allow through dialog
       }
     }
 
@@ -441,6 +447,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: SideDrawer(),
+        // Use ValueListenableBuilder because the map depends on the
+        // GtfsRepository's currentRegion attribute
+        // Read more on GtfsRepository() class
         body: ValueListenableBuilder<Region>(
           valueListenable: repository.currentRegionNotifier,
           builder: (context, activeRegion, child) {
