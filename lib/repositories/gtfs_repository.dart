@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' hide Route;
 import 'package:flutter/services.dart';
 import 'package:ktel_transit/models/calendar.dart';
 import 'package:ktel_transit/models/departure.dart';
@@ -10,6 +11,8 @@ import 'package:ktel_transit/models/stop_time.dart';
 import 'package:csv/csv.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 
+import '../models/region.dart';
+
 /// This class handles the gtfs data from the txt files
 class GtfsRepository {
   List<Stop> stops = [];
@@ -18,11 +21,34 @@ class GtfsRepository {
   List<StopTime> stopTimes = [];
   List<Calendar> calendars = [];
 
-  GtfsRepository();
+  static final GtfsRepository _instance = GtfsRepository._internal();
+  factory GtfsRepository() => _instance;
+  GtfsRepository._internal();
+
+  final ValueNotifier<Region> currentRegionNotifier = ValueNotifier(availableRegions.first);
+
+  Region get currentRegion => currentRegionNotifier.value;
+
+  Future<void> changeRegion(Region newRegion) async {
+    // Update to new region, the re-load data
+    currentRegionNotifier.value = newRegion;
+    await loadData();
+  }
 
   /// Asynchronously load route/trip/stop data from txt files
   Future<void> loadData() async {
-    String stopsString = await rootBundle.loadString("assets/gtfs/stops.txt");
+    // Set to current region
+    String regionId = currentRegion.id;
+
+    // Clear old region data
+    stops.clear();
+    routes.clear();
+    trips.clear();
+    stopTimes.clear();
+    calendars.clear();
+
+    // Use the region id to find the specific txt files inside the correct dir
+    String stopsString = await rootBundle.loadString("assets/gtfs/$regionId/stops.txt");
 
     List<List<dynamic>> stopsGrid = csv.decode(stopsString);
 
@@ -38,7 +64,7 @@ class GtfsRepository {
       }
     }
 
-    String routesString = await rootBundle.loadString("assets/gtfs/routes.txt");
+    String routesString = await rootBundle.loadString("assets/gtfs/$regionId/routes.txt");
 
     List<List<dynamic>> routesGrid = csv.decode(routesString);
 
@@ -54,7 +80,7 @@ class GtfsRepository {
       }
     }
 
-    String tripsString = await rootBundle.loadString("assets/gtfs/trips.txt");
+    String tripsString = await rootBundle.loadString("assets/gtfs/$regionId/trips.txt");
 
     List<List<dynamic>> tripsGrid = csv.decode(tripsString);
 
@@ -71,7 +97,7 @@ class GtfsRepository {
     }
 
     String stopTimesString = await rootBundle.loadString(
-      "assets/gtfs/stop_times.txt",
+      "assets/gtfs/$regionId/stop_times.txt",
     );
 
     List<List<dynamic>> stopTimesGrid = csv.decode(stopTimesString);
@@ -89,7 +115,7 @@ class GtfsRepository {
     }
 
     String calendarString = await rootBundle.loadString(
-      "assets/gtfs/calendar.txt",
+      "assets/gtfs/$regionId/calendar.txt",
     );
 
     List<List<dynamic>> calendarGrid = csv.decode(calendarString);
