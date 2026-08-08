@@ -78,6 +78,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() {
       isLoading = false;
     });
+
+    _loadUserLocation();
+  }
+
+  Future<void> _loadUserLocation() async {
+    if (!await _handleLocationPermissions()) return;
+
+    final lastPosition = await Geolocator.getLastKnownPosition();
+    if (lastPosition != null && mounted) {
+      setState(() {
+        userLocation = LatLng(lastPosition.latitude, lastPosition.longitude);
+      });
+    }
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+      );
+      if (mounted) {
+        setState(() {
+          userLocation = LatLng(position.latitude, position.longitude);
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<bool> _handleLocationPermissions() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// This function fetches a route through the OSRM service for the selected
@@ -299,32 +337,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _goToMyLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    if (!await _handleLocationPermissions()) return;
 
-    // Check if GPS is turned on in the phone settings
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return; // show snackbar here
-
-    // Check app permissions
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        return; // Permission denied, maybe prompt user to allow through dialog
+    // If we already preloaded a location, fly to it instantly
+    if (userLocation != null) {
+      _animatedMapMove(userLocation!, 15.0);
+    } else {
+      final lastPosition = await Geolocator.getLastKnownPosition();
+      if (lastPosition != null) {
+        setState(() {
+          userLocation = LatLng(lastPosition.latitude, lastPosition.longitude);
+        });
+        _animatedMapMove(userLocation!, 15.0);
       }
     }
 
-    // Get the exact physical location
-    final position = await Geolocator.getCurrentPosition();
+    // Fetch fresh high-accuracy position
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
 
-    // Save it to state so the map can draw it
-    setState(() {
-      userLocation = LatLng(position.latitude, position.longitude);
-    });
+      final actualLocation = LatLng(position.latitude, position.longitude);
 
-    // Fly the camera there with a tight zoom!
-    _animatedMapMove(userLocation!, 15.0);
+      if (userLocation == null ||
+          userLocation!.latitude != actualLocation.latitude ||
+          userLocation!.longitude != actualLocation.longitude) {
+        setState(() {
+          userLocation = actualLocation;
+        });
+        _animatedMapMove(userLocation!, 15.0);
+      }
+    } catch (_) {}
   }
 
   /// Animated map move when changing regions
@@ -471,8 +515,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     options: MapOptions(
                       initialCenter: activeRegion.center,
                       initialZoom: activeRegion.defaultZoom,
-                      minZoom: 9.0,
-                      maxZoom: 18.0,
+                      minZoom: 6.0,
+                      maxZoom: 20.0,
                       onPositionChanged: (position, hasGesture) {
                         if (position.rotationRad != mapRotation) {
                           setState(() {
