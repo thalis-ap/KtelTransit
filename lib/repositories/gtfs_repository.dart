@@ -61,13 +61,19 @@ class GtfsRepository {
   }
 
   Future<void> changeRegion(Region newRegion) async {
+    final bool didActuallyChange = currentRegionNotifier.value.id != newRegion.id;
+
     currentRegionNotifier.value = newRegion;
 
     // Save the new choice to the phone's storage
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('saved_region_id', newRegion.id);
 
-    await loadData();
+    if (didActuallyChange) {
+      await loadData();
+    } else {
+      currentRegionNotifier.notifyListeners();
+    }
   }
 
 
