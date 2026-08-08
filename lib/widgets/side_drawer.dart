@@ -55,7 +55,7 @@ class SideDrawer extends StatelessWidget {
                   );
 
                   // If they picked a new region, update it
-                  if (selectedRegion != null && selectedRegion.id != currentRegion.id) {
+                  if (selectedRegion != null) {
                     await repository.changeRegion(selectedRegion);
                   }
                 },
