@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import '../models/region.dart';
 import '../screens/routes_screen.dart';
 import '../screens/info_screen.dart';
 import '../screens/tickets_screen.dart';
 
 class SideDrawer extends StatelessWidget {
-  const SideDrawer({super.key});
+  final GtfsRepository repository = GtfsRepository();
+
+  SideDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +29,36 @@ class SideDrawer extends StatelessWidget {
               ],
             ),
             // TODO add the logo
+          ),
+          ValueListenableBuilder<Region>(
+            valueListenable: repository.currentRegionNotifier,
+            builder: (context, currentRegion, child) {
+              return ExpansionTile(
+                leading: const Icon(Icons.map_outlined),
+                title: const Text("Περιοχή"),
+                subtitle: Text(currentRegion.name),
+                children: availableRegions.map((region) {
+                  return ListTile(
+                    contentPadding: const EdgeInsets.only(left: 72.0, right: 16.0),
+                    title: Text(
+                      region.name,
+                      style: TextStyle(
+                        fontWeight: currentRegion.id == region.id
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    trailing: currentRegion.id == region.id
+                        ? const Icon(Icons.check, color: Colors.blue)
+                        : null,
+                    onTap: () async {
+                      await repository.changeRegion(region);
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.directions_bus),
