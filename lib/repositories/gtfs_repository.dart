@@ -22,6 +22,8 @@ class GtfsRepository {
   List<StopTime> stopTimes = [];
   List<Calendar> calendars = [];
 
+  // Make this class, once initializable. This way multiple files can access
+  // the same instance of the class, sharing its region, and other data
   static final GtfsRepository _instance = GtfsRepository._internal();
   factory GtfsRepository() => _instance;
   GtfsRepository._internal();
