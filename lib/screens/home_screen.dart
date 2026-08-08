@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final GtfsRepository repository = GtfsRepository();
 
   bool isLoading = true;
-  bool isDepartureBoardOpen = false, isBottomSheetOpen = false;
+  bool isDepartureBoardOpen = false;
 
   Stop? startStop, destinationStop;
 
