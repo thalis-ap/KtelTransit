@@ -1,8 +1,8 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
+import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
@@ -23,7 +23,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final GtfsRepository repository = GtfsRepository();
 
   bool isLoading = true;
@@ -53,7 +53,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    repository.currentRegionNotifier.addListener(_onRegionChanged);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    repository.currentRegionNotifier.removeListener(_onRegionChanged);
+    super.dispose();
   }
 
   // Asynchronously load GTFS repository data
@@ -270,6 +277,74 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Called everytime the region changes through ValueListener
+  void _onRegionChanged() {
+    final Region region = repository.currentRegion;
+    _animatedMapMove(region.center, region.defaultZoom);
+
+    setState(() {
+      startStop = null;
+      destinationStop = null;
+      routeTrips.clear();
+    });
+  }
+
+  Future<void> _goToMyLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if GPS is turned on in the phone settings
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return; // You could show a SnackBar here
+
+    // Check app permissions
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        return; // Permission denied, do nothing
+      }
+    }
+
+    // Get the exact physical location
+    final position = await Geolocator.getCurrentPosition();
+
+    // Fly the camera there with a tight zoom!
+    _animatedMapMove(LatLng(position.latitude, position.longitude), 15.0);
+  }
+
+  /// Animated map move when changing regions
+  void _animatedMapMove(LatLng destLocation, double destZoom) {
+    // Get the current camera position
+    final latTween = Tween<double>(begin: mapController.camera.center.latitude, end: destLocation.latitude);
+    final lngTween = Tween<double>(begin: mapController.camera.center.longitude, end: destLocation.longitude);
+    final zoomTween = Tween<double>(begin: mapController.camera.zoom, end: destZoom);
+
+    // Create a new animation controller
+    final animationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+
+    // Give it a smooth curve (speeds up, then slows down at the end)
+    final Animation<double> animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
+
+    // Every frame of the animation, move the map slightly
+    animationController.addListener(() {
+      mapController.move(
+        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+        zoomTween.evaluate(animation),
+      );
+    });
+
+    // Clean up the controller when the animation finishes
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
+        animationController.dispose();
+      }
+    });
+
+    // Start the animation
+    animationController.forward();
+  }
+
   /// Shows the departure board upon clicking on a stop
   /// This board contains all departures from/to this stop
   void _showDepartureBoard(Stop stop) {
@@ -365,16 +440,20 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const SideDrawer(),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Stack(
+        drawer: SideDrawer(),
+        body: ValueListenableBuilder<Region>(
+          valueListenable: repository.currentRegionNotifier,
+          builder: (context, activeRegion, child) {
+            return
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Stack(
                 children: [
                   FlutterMap(
                     mapController: mapController,
                     options: MapOptions(
-                      initialCenter: const LatLng(38.706700, 20.713900),
-                      initialZoom: 10.5,
+                      initialCenter: activeRegion.center,
+                      initialZoom: activeRegion.defaultZoom,
                       minZoom: 9.0,
                       maxZoom: 18.0,
                       onPositionChanged: (position, hasGesture) {
@@ -386,7 +465,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       interactionOptions: const InteractionOptions(
                         // Use these flags to avoid a bug on quick zooming out
-                        flags: InteractiveFlag.all & ~InteractiveFlag.flingAnimation,
+                        flags: InteractiveFlag.all & ~InteractiveFlag
+                            .flingAnimation,
                         enableMultiFingerGestureRace: true,
                         rotationThreshold: 10.0,
                         pinchZoomThreshold: 0.2,
@@ -396,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       TileLayer(
                         urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.symplyapps.ktel_transit',
                       ),
                       if (routeTrips.isNotEmpty)
@@ -445,7 +525,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Search bar to enter start and destination stops
                   Positioned(
-                    top: MediaQuery.of(context).padding.top + 16,
+                    top: MediaQuery
+                        .of(context)
+                        .padding
+                        .top + 16,
                     left: 16,
                     right: 16,
                     child: TripSearchBar(
@@ -473,7 +556,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Compass icon to make map look north
                   Positioned(
                     top:
-                        MediaQuery.of(context).padding.top +
+                    MediaQuery
+                        .of(context)
+                        .padding
+                        .top +
                         (startStop == null && destinationStop == null
                             ? 120
                             : 160),
@@ -546,7 +632,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                 ],
-              ),
+              );
+          }
+        ),
+        // locate me button
+        floatingActionButton: FloatingActionButton(
+          onPressed: _goToMyLocation,
+          backgroundColor: Colors.white,
+          child: const Icon(Icons.my_location, color: Colors.blue),
+        ),
       ),
     );
   }
