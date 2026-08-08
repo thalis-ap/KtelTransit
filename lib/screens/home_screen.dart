@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
@@ -373,6 +375,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     options: MapOptions(
                       initialCenter: const LatLng(38.706700, 20.713900),
                       initialZoom: 10.5,
+                      minZoom: 9.0,
+                      maxZoom: 18.0,
                       onPositionChanged: (position, hasGesture) {
                         if (position.rotationRad != mapRotation) {
                           setState(() {
@@ -380,12 +384,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                         }
                       },
+                      interactionOptions: const InteractionOptions(
+                        // Use these flags to avoid a bug on quick zooming out
+                        flags: InteractiveFlag.all & ~InteractiveFlag.flingAnimation,
+                        enableMultiFingerGestureRace: true,
+                        rotationThreshold: 10.0,
+                        pinchZoomThreshold: 0.2,
+                        pinchMoveThreshold: 20.0,
+                      ),
                     ),
                     children: [
                       TileLayer(
                         urlTemplate:
                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.lefkada_transit',
+                        userAgentPackageName: 'com.symplyapps.ktel_transit',
                       ),
                       if (routeTrips.isNotEmpty)
                         PolylineLayer(
