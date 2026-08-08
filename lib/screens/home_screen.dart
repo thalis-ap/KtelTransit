@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final GtfsRepository repository = GtfsRepository();
 
   bool isLoading = true;
-  bool isDepartureBoardOpen = false;
+  bool isDepartureBoardOpen = false, isBottomSheetOpen = false;
 
   Stop? startStop, destinationStop;
 
@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Asynchronously load GTFS repository data
   Future<void> _loadData() async {
-    await repository.loadData();
+    await repository.init();
     setState(() {
       isLoading = false;
     });
@@ -636,11 +636,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           }
         ),
         // locate me button
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: startStop == null || destinationStop == null ? FloatingActionButton(
           onPressed: _goToMyLocation,
           backgroundColor: Colors.white,
           child: const Icon(Icons.my_location, color: Colors.blue),
-        ),
+        ) : null,
       ),
     );
   }

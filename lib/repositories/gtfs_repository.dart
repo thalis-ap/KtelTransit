@@ -10,6 +10,7 @@ import 'package:ktel_transit/models/stop_time.dart';
 
 import 'package:csv/csv.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/region.dart';
 
@@ -29,11 +30,35 @@ class GtfsRepository {
 
   Region get currentRegion => currentRegionNotifier.value;
 
-  Future<void> changeRegion(Region newRegion) async {
-    // Update to new region, the re-load data
-    currentRegionNotifier.value = newRegion;
+  Future<void> init() async {
+    // First check to see if we have a saved region
+    // We will use this to center the map on the user's last chosen region
+    final prefs = await SharedPreferences.getInstance();
+    final savedRegionId = prefs.getString('saved_region_id');
+
+    if (savedRegionId != null) {
+      // Find the saved region, fallback to the first if something goes wrong
+      final savedRegion = availableRegions.firstWhere(
+            (region) => region.id == savedRegionId,
+        orElse: () => availableRegions.first,
+      );
+      currentRegionNotifier.value = savedRegion;
+    }
+
+    // Now load the text files for whichever region we settled on
     await loadData();
   }
+
+  Future<void> changeRegion(Region newRegion) async {
+    currentRegionNotifier.value = newRegion;
+
+    // Save the new choice to the phone's storage
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('saved_region_id', newRegion.id);
+
+    await loadData();
+  }
+
 
   /// Asynchronously load route/trip/stop data from txt files
   Future<void> loadData() async {
