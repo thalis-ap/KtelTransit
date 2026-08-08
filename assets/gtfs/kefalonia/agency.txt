@@ -1,2 +1,2 @@
 agency_id,agency_name,agency_url,agency_timezone
-KTEL-LEF,KTEL Lefkadas,https://ktel-lefkadas.gr,Europe/Athens
+KTEL-KEF,KTEL Kefalonias,https://ktelkefalonias.gr,Europe/Athens
