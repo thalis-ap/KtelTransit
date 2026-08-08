@@ -50,6 +50,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // In rads
   double mapRotation = 0;
 
+  // Save user's location to show marker on the map
+  LatLng? userLocation;
+
   @override
   void initState() {
     super.initState();
@@ -315,8 +318,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Get the exact physical location
     final position = await Geolocator.getCurrentPosition();
 
+    // Save it to state so the map can draw it
+    setState(() {
+      userLocation = LatLng(position.latitude, position.longitude);
+    });
+
     // Fly the camera there with a tight zoom!
-    _animatedMapMove(LatLng(position.latitude, position.longitude), 15.0);
+    _animatedMapMove(userLocation!, 15.0);
   }
 
   /// Animated map move when changing regions
@@ -495,6 +503,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               points: _getRoutePointsFromTripsList(),
                               color: Colors.blue,
                               strokeWidth: 4.0,
+                            ),
+                          ],
+                        ),
+                      // Only draw the blue dot if we have a saved location
+                      if (userLocation != null)
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: userLocation!,
+                              width: 20,
+                              height: 20,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 3),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black38,
+                                      blurRadius: 4,
+                                    )
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         ),
