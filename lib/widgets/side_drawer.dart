@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import '../delegates/region_search_delegate.dart';
 import '../models/region.dart';
 import '../screens/routes_screen.dart';
 import '../screens/info_screen.dart';
@@ -33,30 +34,29 @@ class SideDrawer extends StatelessWidget {
           ValueListenableBuilder<Region>(
             valueListenable: repository.currentRegionNotifier,
             builder: (context, currentRegion, child) {
-              return ExpansionTile(
+              return ListTile(
                 leading: const Icon(Icons.map_outlined),
                 title: const Text("Περιοχή"),
                 subtitle: Text(currentRegion.name),
-                children: availableRegions.map((region) {
-                  return ListTile(
-                    contentPadding: const EdgeInsets.only(left: 72.0, right: 16.0),
-                    title: Text(
-                      region.name,
-                      style: TextStyle(
-                        fontWeight: currentRegion.id == region.id
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
+                trailing: const Icon(Icons.search), // Hint that this opens a search
+                onTap: () async {
+                  // Close the drawer first
+                  Navigator.pop(context);
+
+                  // Open the full-screen search delegate
+                  final selectedRegion = await showSearch<Region?>(
+                    context: context,
+                    delegate: RegionSearchDelegate(
+                      regions: availableRegions,
+                      currentRegion: currentRegion,
                     ),
-                    trailing: currentRegion.id == region.id
-                        ? const Icon(Icons.check, color: Colors.blue)
-                        : null,
-                    onTap: () async {
-                      await repository.changeRegion(region);
-                      Navigator.pop(context);
-                    },
                   );
-                }).toList(),
+
+                  // If they picked a new region, update it
+                  if (selectedRegion != null && selectedRegion.id != currentRegion.id) {
+                    await repository.changeRegion(selectedRegion);
+                  }
+                },
               );
             },
           ),
