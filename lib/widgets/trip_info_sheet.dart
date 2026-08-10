@@ -11,6 +11,7 @@ class TripInfoSheet extends StatelessWidget {
   final int? selectedTripIndex;
   final DateTime selectedSearchTime;
   final List<Stop> allStops;
+  final DraggableScrollableController controller;
 
   // Callbacks to interact with the HomeScreen state
   final VoidCallback onBackToAllTrips;
@@ -30,11 +31,13 @@ class TripInfoSheet extends StatelessWidget {
     required this.onClose,
     required this.onChangeTime,
     required this.onTripSelected,
+    required this.controller
   });
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
+      controller: controller,
       initialChildSize: 0.45,
       minChildSize: 0.10,
       maxChildSize: 0.85,

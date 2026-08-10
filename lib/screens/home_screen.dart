@@ -31,6 +31,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Stop? startStop, destinationStop;
 
+  // Used to control the draggable widget
+  final DraggableScrollableController _sheetController = DraggableScrollableController();
+
   // This boolean variable represents whether the user chose the startStop last
   // We keep users' last selection so that we can navigate
   // correctly and clear out appropriate fields in the case of a back event
@@ -67,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     // Remove the listener
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
+    _sheetController.dispose();
     super.dispose();
   }
 
@@ -272,23 +276,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
 
     if (selectedStop != null) {
-      setState(() {
-        if (isStart) {
-          if (destinationStop?.stopId != selectedStop.stopId) {
-            startStop = selectedStop;
-            lastChosenStopIsStart = true;
-          }
-        } else {
-          if (startStop?.stopId != selectedStop.stopId) {
-            destinationStop = selectedStop;
-            lastChosenStopIsStart = false;
-          }
+      if (isStart) {
+        if (destinationStop?.stopId != selectedStop.stopId) {
+          _onSetStartStop(selectedStop);
         }
-        selectedSearchTime = DateTime.now();
-        selectedTripIndex = null;
-        routeTrips.clear();
-      });
+      } else {
+        if (startStop?.stopId != selectedStop.stopId) {
+          _onSetDestinationStop(selectedStop);
+        }
+      }
     }
+  }
+
+  void _onSetStartStop(Stop stop) {
+    setState(() {
+      startStop = stop;
+      lastChosenStopIsStart = true;
+      selectedSearchTime = DateTime.now();
+      selectedTripIndex = null; // Clear selection
+      routeTrips.clear();
+    });
+    _showTripSheet();
+  }
+
+  void _onSetDestinationStop(Stop stop) {
+    setState(() {
+      destinationStop = stop;
+      lastChosenStopIsStart = false;
+      selectedSearchTime = DateTime.now();
+      selectedTripIndex = null; // Clear selection
+      routeTrips.clear();
+    });
+    _showTripSheet();
   }
 
   /// Handle a 'back' action either from a gesture or from an app's button
@@ -416,28 +435,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       builder: (context) => RouteDetailsSheet(
         stop: stop,
         repository: repository,
-        onSetStart: () {
-          setState(() {
-            startStop = stop;
-            lastChosenStopIsStart = true;
-            selectedSearchTime = DateTime.now();
-            selectedTripIndex = null; // Clear selection
-            routeTrips.clear();
-          });
-        },
-        onSetDestination: () {
-          setState(() {
-            destinationStop = stop;
-            lastChosenStopIsStart = false;
-            selectedSearchTime = DateTime.now();
-            selectedTripIndex = null; // Clear selection
-            routeTrips.clear();
-          });
-        },
+        onSetStart: () => _onSetStartStop(stop),
+        onSetDestination: () => _onSetDestinationStop(stop),
       ),
     ).whenComplete(() {
       isDepartureBoardOpen = false;
     });
+  }
+
+  void _showTripSheet() {
+    // Only open if both stops are selected
+    if (startStop == null || destinationStop == null) return;
+
+    _sheetController.animateTo(
+      0.45,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Future<void> _showExitDialog() async {
@@ -686,6 +700,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   // up and down to see the map or the routes without being locked in a fixed size container
                   if (startStop != null && destinationStop != null)
                     TripInfoSheet(
+                      controller: _sheetController,
                       startStop: startStop!,
                       destinationStop: destinationStop!,
                       trips: trips,
