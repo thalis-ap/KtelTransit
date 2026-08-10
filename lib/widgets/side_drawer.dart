@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
-import '../delegates/region_search_delegate.dart';
 import '../models/region.dart';
 import '../screens/routes_screen.dart';
 import '../screens/info_screen.dart';
 import '../screens/tickets_screen.dart';
+import '../utilities/region_utils.dart';
 
 class SideDrawer extends StatelessWidget {
   final GtfsRepository repository = GtfsRepository();
@@ -40,24 +40,15 @@ class SideDrawer extends StatelessWidget {
                 leading: const Icon(Icons.map_outlined),
                 title: const Text("Περιοχή"),
                 subtitle: Text(currentRegion.name),
-                trailing: const Icon(Icons.search), // Hint that this opens a search
-                onTap: () async {
-                  // Close the drawer first
-                  Navigator.pop(context);
-
-                  // Open the full-screen search delegate
-                  final selectedRegion = await showSearch<Region?>(
-                    context: context,
-                    delegate: RegionSearchDelegate(
-                      regions: availableRegions,
-                      currentRegion: currentRegion,
-                    ),
+                trailing: const Icon(
+                  Icons.search,
+                ), // Hint that this opens a search
+                onTap: () {
+                  RegionUtils.promptRegionChange(
+                    context,
+                    repository,
+                    availableRegions,
                   );
-
-                  // If they picked a new region, update it
-                  if (selectedRegion != null) {
-                    await repository.changeRegion(selectedRegion);
-                  }
                 },
               );
             },
