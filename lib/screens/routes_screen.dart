@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart' hide Route;
+import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/models/trip.dart';
+import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../models/route.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
+
+import '../utilities/region_utils.dart';
 
 class RoutesScreen extends StatefulWidget {
   const RoutesScreen({super.key});
@@ -41,7 +45,9 @@ class _RoutesScreenState extends State<RoutesScreen> {
 
       // find all stop times for this specific trip so we can find out
       // exactly when it departs from the very first stop
-      final tripStops = repository.stopTimes.where((st) => st.tripId == trip.tripId).toList();
+      final tripStops = repository.stopTimes
+          .where((st) => st.tripId == trip.tripId)
+          .toList();
       if (tripStops.isEmpty) continue;
 
       // sort them by their sequence to guarantee we are looking at the
@@ -51,7 +57,8 @@ class _RoutesScreenState extends State<RoutesScreen> {
       // grab the raw departure time and format it cleanly to hours and minutes
       final rawTime = tripStops.first.departureTime;
       final parts = rawTime.split(':');
-      final formattedTime = "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
+      final formattedTime =
+          "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
 
       // safely add the time to our map making sure we do not create duplicates
       // in case multiple trips start at the exact same time on the same days
@@ -99,7 +106,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
                     runSpacing: 8.0,
                     children: entry.value.map((time) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(16),
@@ -127,35 +137,60 @@ class _RoutesScreenState extends State<RoutesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Δρομολόγια'),
-      ),
+      appBar: AppBar(title: const Text('Δρομολόγια')),
       // A simple list view to scroll through the routes
-      body: isLoading ? Center(child: CircularProgressIndicator()) : ListView.builder(
-        padding: const EdgeInsets.all(8.0),
-        itemCount: repository.routes.length,
-        itemBuilder: (context, index) {
-          final Route route = repository.routes[index];
-          final List<Trip> trips = repository.trips.where((t) => t.routeId == route.routeId).toList();
-          final List<Trip> going = trips.where((t) => t.directionId == 0).toList();
-          final List<Trip> returning = trips.where((t) => t.directionId == 1).toList();
+      body: Column(
+        children: [
+          RegionInfoBanner(
+            regionName: repository.currentRegion.name,
+            onChangeTap: () => RegionUtils.promptRegionChange(context, repository, availableRegions),
+          ),
+          Expanded(
+            child: isLoading
+                ? Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: repository.routes.length,
+                    itemBuilder: (context, index) {
+                      final Route route = repository.routes[index];
+                      final List<Trip> trips = repository.trips
+                          .where((t) => t.routeId == route.routeId)
+                          .toList();
+                      final List<Trip> going = trips
+                          .where((t) => t.directionId == 0)
+                          .toList();
+                      final List<Trip> returning = trips
+                          .where((t) => t.directionId == 1)
+                          .toList();
 
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-            elevation: 2,
-            child: ExpansionTile(
-              leading: const Icon(Icons.directions_bus),
-              title: Text(route.longName),
-              children: [
-                _buildDirectionSection("${going.first.getShortDisplayName(route.longName)} (Μετάβαση)", going),
-                if (going.isNotEmpty && returning.isNotEmpty)
-                  const Divider(height: 32),
-                _buildDirectionSection("${returning.first.getShortDisplayName(route.longName)} (Επιστροφή)", returning),
-                const SizedBox(height: 8),
-              ],
-            ),
-          );
-        },
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 6.0,
+                          horizontal: 8.0,
+                        ),
+                        elevation: 2,
+                        child: ExpansionTile(
+                          leading: const Icon(Icons.directions_bus),
+                          title: Text(route.longName),
+                          children: [
+                            _buildDirectionSection(
+                              "${going.first.getShortDisplayName(route.longName)} (Μετάβαση)",
+                              going,
+                            ),
+                            if (going.isNotEmpty && returning.isNotEmpty)
+                              const Divider(height: 32),
+                            _buildDirectionSection(
+                              "${returning.first.getShortDisplayName(route.longName)} (Επιστροφή)",
+                              returning,
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
