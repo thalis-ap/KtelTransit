@@ -162,8 +162,7 @@ class TripInfoSheet extends StatelessWidget {
                                         TripWarningBanner(
                                           message:
                                               "Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.",
-                                          icon: Icons.info_outline,
-                                          isCompact: true,
+                                          icon: Icons.warning_rounded,
                                         ),
                                       ],
                                       Text(
@@ -280,7 +279,7 @@ class TripInfoSheet extends StatelessWidget {
                             : const TripWarningBanner(
                                 message:
                                     "Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.",
-                                icon: Icons.warning_amber_rounded,
+                                icon: Icons.warning_rounded,
                                 isCompact: false,
                               ),
                       ],
@@ -836,23 +835,23 @@ class TripWarningBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(isCompact ? 8.0 : 16.0),
-      margin: isCompact ? const EdgeInsets.only(bottom: 12.0) : EdgeInsets.zero,
+      padding: EdgeInsets.all(isCompact ? 12.0 : 20.0),
+      margin: const EdgeInsets.only(bottom: 12.0),
       decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(isCompact ? 8.0 : 16.0),
-        border: isCompact ? Border.all(color: Colors.orange.shade200) : null,
+        color: Colors.red.shade100,
+        borderRadius: BorderRadius.circular(isCompact ? 12.0 : 20.0),
+        border: isCompact ? Border.all(width: 2.0, color: Colors.red.shade400) : null,
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.orange.shade800, size: isCompact ? 20 : 24),
+          Icon(icon, color: Colors.red.shade800, size: isCompact ? 24 : 26),
           SizedBox(width: isCompact ? 8.0 : 12.0),
           Expanded(
             child: Text(
               message,
               style: TextStyle(
-                color: Colors.orange.shade900,
-                fontSize: isCompact ? 12.0 : 14.0,
+                color: Colors.red.shade900,
+                fontSize: isCompact ? 14.0 : 16.0,
               ),
             ),
           ),
