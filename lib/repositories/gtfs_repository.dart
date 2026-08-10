@@ -72,9 +72,6 @@ class GtfsRepository {
     if (didActuallyChange) {
       await loadData();
     }
-
-    currentRegionNotifier.notifyListeners();
-
   }
 
 
