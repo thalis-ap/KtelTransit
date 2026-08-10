@@ -6,6 +6,7 @@ import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/route_details_sheet.dart';
 import 'package:ktel_transit/widgets/side_drawer.dart';
 import 'package:ktel_transit/widgets/trip_search_bar.dart';
@@ -32,7 +33,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Stop? startStop, destinationStop;
 
   // Used to control the draggable widget
-  final DraggableScrollableController _sheetController = DraggableScrollableController();
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
 
   // This boolean variable represents whether the user chose the startStop last
   // We keep users' last selection so that we can navigate
@@ -98,7 +100,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
       );
       if (mounted) {
         setState(() {
@@ -115,7 +119,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
         return false;
       }
     }
@@ -272,7 +277,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _searchAndSetStop({required bool isStart}) async {
     final Stop? selectedStop = await showSearch<Stop?>(
       context: context,
-      delegate: StopSearchDelegate(repository.stops),
+      delegate: StopSearchDelegate(
+        repository.stops,
+        currentRegionName: repository.currentRegion.name,
+        onChangeRegionTap: () => RegionUtils.promptRegionChange(
+          context,
+          repository,
+          availableRegions,
+        ),
+      ),
     );
 
     if (selectedStop != null) {
@@ -374,7 +387,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Fetch fresh high-accuracy position
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       final actualLocation = LatLng(position.latitude, position.longitude);
@@ -393,15 +408,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Animated map move when changing regions
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     // Get the current camera position
-    final latTween = Tween<double>(begin: mapController.camera.center.latitude, end: destLocation.latitude);
-    final lngTween = Tween<double>(begin: mapController.camera.center.longitude, end: destLocation.longitude);
-    final zoomTween = Tween<double>(begin: mapController.camera.zoom, end: destZoom);
+    final latTween = Tween<double>(
+      begin: mapController.camera.center.latitude,
+      end: destLocation.latitude,
+    );
+    final lngTween = Tween<double>(
+      begin: mapController.camera.center.longitude,
+      end: destLocation.longitude,
+    );
+    final zoomTween = Tween<double>(
+      begin: mapController.camera.zoom,
+      end: destZoom,
+    );
 
     // Create a new animation controller
-    final animationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
+    final animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
 
     // Give it a smooth curve (speeds up, then slows down at the end)
-    final Animation<double> animation = CurvedAnimation(parent: animationController, curve: Curves.fastOutSlowIn);
+    final Animation<double> animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.fastOutSlowIn,
+    );
 
     // Every frame of the animation, move the map slightly
     animationController.addListener(() {
@@ -413,7 +443,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // Clean up the controller when the animation finishes
     animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
         animationController.dispose();
       }
     });
@@ -519,228 +550,232 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         body: ValueListenableBuilder<Region>(
           valueListenable: repository.currentRegionNotifier,
           builder: (context, activeRegion, child) {
-            return
-              isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : Stack(
-                children: [
-                  FlutterMap(
-                    mapController: mapController,
-                    options: MapOptions(
-                      initialCenter: activeRegion.center,
-                      initialZoom: activeRegion.defaultZoom,
-                      minZoom: 6.0,
-                      maxZoom: 20.0,
-                      onPositionChanged: (position, hasGesture) {
-                        if (position.rotationRad != mapRotation) {
-                          setState(() {
-                            mapRotation = position.rotationRad;
-                          });
-                        }
-                      },
-                      interactionOptions: const InteractionOptions(
-                        // Use these flags to avoid a bug on quick zooming out
-                        flags: InteractiveFlag.all & ~InteractiveFlag
-                            .flingAnimation,
-                        enableMultiFingerGestureRace: true,
-                        rotationThreshold: 10.0,
-                        pinchZoomThreshold: 0.2,
-                        pinchMoveThreshold: 20.0,
-                      ),
-                    ),
+            return isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Stack(
                     children: [
-                      TileLayer(
-                        urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.symplyapps.ktel_transit',
-                      ),
-                      if (routeTrips.isNotEmpty)
-                        PolylineLayer(
-                          polylines: [
-                            Polyline(
-                              points: _getRoutePointsFromTripsList(),
-                              color: Colors.blue,
-                              strokeWidth: 4.0,
-                            ),
-                          ],
+                      FlutterMap(
+                        mapController: mapController,
+                        options: MapOptions(
+                          initialCenter: activeRegion.center,
+                          initialZoom: activeRegion.defaultZoom,
+                          minZoom: 6.0,
+                          maxZoom: 20.0,
+                          onPositionChanged: (position, hasGesture) {
+                            if (position.rotationRad != mapRotation) {
+                              setState(() {
+                                mapRotation = position.rotationRad;
+                              });
+                            }
+                          },
+                          interactionOptions: const InteractionOptions(
+                            // Use these flags to avoid a bug on quick zooming out
+                            flags:
+                                InteractiveFlag.all &
+                                ~InteractiveFlag.flingAnimation,
+                            enableMultiFingerGestureRace: true,
+                            rotationThreshold: 10.0,
+                            pinchZoomThreshold: 0.2,
+                            pinchMoveThreshold: 20.0,
+                          ),
                         ),
-                      // Only draw the blue dot if we have a saved location
-                      if (userLocation != null)
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: userLocation!,
-                              width: 20,
-                              height: 20,
-                              child: Container(
-                                decoration: BoxDecoration(
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.symplyapps.ktel_transit',
+                          ),
+                          if (routeTrips.isNotEmpty)
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: _getRoutePointsFromTripsList(),
                                   color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 3),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black38,
-                                      blurRadius: 4,
-                                    )
-                                  ],
+                                  strokeWidth: 4.0,
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      MarkerLayer(
-                        markers: repository.stops.map((stop) {
-                          IconData iconData;
-                          Color iconColor;
-
-                          if (stop.stopId == startStop?.stopId) {
-                            iconData = Icons.my_location;
-                            iconColor = Colors.green;
-                          } else if (stop.stopId == destinationStop?.stopId) {
-                            iconData = Icons.place;
-                            iconColor = Colors.red;
-                          } else if (stop.stopId ==
-                              activeTransferStop?.stopId) {
-                            iconData = Icons.transfer_within_a_station;
-                            iconColor = Colors.orange.shade800;
-                          } else {
-                            iconData = Icons.directions_bus;
-                            iconColor = Colors.blueGrey;
-                          }
-
-                          return Marker(
-                            point: LatLng(stop.latitude, stop.longitude),
-                            width: 40,
-                            height: 40,
-                            child: GestureDetector(
-                              onTap: () => _showDepartureBoard(stop),
-                              child: Icon(iconData, color: iconColor, size: 30),
+                          // Only draw the blue dot if we have a saved location
+                          if (userLocation != null)
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: userLocation!,
+                                  width: 20,
+                                  height: 20,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 3,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black38,
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
+                          MarkerLayer(
+                            markers: repository.stops.map((stop) {
+                              IconData iconData;
+                              Color iconColor;
 
-                  // Search bar to enter start and destination stops
-                  Positioned(
-                    top: MediaQuery
-                        .of(context)
-                        .padding
-                        .top + 16,
-                    left: 16,
-                    right: 16,
-                    child: TripSearchBar(
-                      startStop: startStop,
-                      destinationStop: destinationStop,
-                      onMenuPressed: () {
-                        FocusScope.of(context).unfocus();
-                        _scaffoldKey.currentState?.openDrawer();
-                      },
-                      onBackPressed: _onBackPressed,
-                      onSwap: () {
-                        setState(() {
-                          final temp = startStop;
-                          startStop = destinationStop;
-                          destinationStop = temp;
-                          selectedTripIndex = null;
-                          routeTrips.clear();
-                        });
-                      },
-                      onSearch: (isStart) =>
-                          _searchAndSetStop(isStart: isStart),
-                    ),
-                  ),
+                              if (stop.stopId == startStop?.stopId) {
+                                iconData = Icons.my_location;
+                                iconColor = Colors.green;
+                              } else if (stop.stopId ==
+                                  destinationStop?.stopId) {
+                                iconData = Icons.place;
+                                iconColor = Colors.red;
+                              } else if (stop.stopId ==
+                                  activeTransferStop?.stopId) {
+                                iconData = Icons.transfer_within_a_station;
+                                iconColor = Colors.orange.shade800;
+                              } else {
+                                iconData = Icons.directions_bus;
+                                iconColor = Colors.blueGrey;
+                              }
 
-                  // Compass icon to make map look north
-                  Positioned(
-                    top:
-                    MediaQuery
-                        .of(context)
-                        .padding
-                        .top +
-                        (startStop == null && destinationStop == null
-                            ? 120
-                            : 160),
-                    right: 16,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
+                              return Marker(
+                                point: LatLng(stop.latitude, stop.longitude),
+                                width: 40,
+                                height: 40,
+                                child: GestureDetector(
+                                  onTap: () => _showDepartureBoard(stop),
+                                  child: Icon(
+                                    iconData,
+                                    color: iconColor,
+                                    size: 30,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
-                      child: IconButton(
-                        icon: Transform.rotate(
-                          angle: mapRotation,
-                          child: Image.asset(
-                            'assets/icons/compass.png',
-                            width: 26,
-                            height: 26,
+
+                      // Search bar to enter start and destination stops
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 16,
+                        left: 16,
+                        right: 16,
+                        child: TripSearchBar(
+                          startStop: startStop,
+                          destinationStop: destinationStop,
+                          onMenuPressed: () {
+                            FocusScope.of(context).unfocus();
+                            _scaffoldKey.currentState?.openDrawer();
+                          },
+                          onBackPressed: _onBackPressed,
+                          onSwap: () {
+                            setState(() {
+                              final temp = startStop;
+                              startStop = destinationStop;
+                              destinationStop = temp;
+                              selectedTripIndex = null;
+                              routeTrips.clear();
+                            });
+                          },
+                          onSearch: (isStart) =>
+                              _searchAndSetStop(isStart: isStart),
+                        ),
+                      ),
+
+                      // Compass icon to make map look north
+                      Positioned(
+                        top:
+                            MediaQuery.of(context).padding.top +
+                            (startStop == null && destinationStop == null
+                                ? 120
+                                : 160),
+                        right: 16,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: Transform.rotate(
+                              angle: mapRotation,
+                              child: Image.asset(
+                                'assets/icons/compass.png',
+                                width: 26,
+                                height: 26,
+                              ),
+                            ),
+                            tooltip: "Επαναφορά προσανατολισμού",
+                            onPressed: () {
+                              // reset the map rotation back to 0 degrees (north up)
+                              setState(() {
+                                mapRotation = 0;
+                              });
+                              mapController.rotate(0);
+                            },
                           ),
                         ),
-                        tooltip: "Επαναφορά προσανατολισμού",
-                        onPressed: () {
-                          // reset the map rotation back to 0 degrees (north up)
-                          setState(() {
-                            mapRotation = 0;
-                          });
-                          mapController.rotate(0);
-                        },
                       ),
-                    ),
-                  ),
-                  // Bottom sheet for trip info
-                  // we use a draggable scrollable sheet so the user can freely swipe the bottom panel
-                  // up and down to see the map or the routes without being locked in a fixed size container
-                  if (startStop != null && destinationStop != null)
-                    TripInfoSheet(
-                      controller: _sheetController,
-                      startStop: startStop!,
-                      destinationStop: destinationStop!,
-                      trips: trips,
-                      selectedTripIndex: selectedTripIndex,
-                      selectedSearchTime: selectedSearchTime,
-                      allStops: repository.stops,
-                      onBackToAllTrips: () {
-                        setState(() {
-                          selectedTripIndex = null;
-                          routeTrips.clear();
-                        });
-                      },
-                      onClose: () {
-                        setState(() {
-                          startStop = null;
-                          destinationStop = null;
-                          lastChosenStopIsStart = null;
-                          routeTrips.clear();
-                          selectedSearchTime = DateTime.now();
-                          selectedTripIndex = null;
-                        });
-                      },
-                      onChangeTime: _pickDateTime,
-                      onTripSelected: (index, trip) {
-                        setState(() {
-                          selectedTripIndex = index;
-                        });
-                        _fetchRouteForSelectedTrip(trip);
-                      },
-                    ),
-                ],
-              );
-          }
+                      // Bottom sheet for trip info
+                      // we use a draggable scrollable sheet so the user can freely swipe the bottom panel
+                      // up and down to see the map or the routes without being locked in a fixed size container
+                      if (startStop != null && destinationStop != null)
+                        TripInfoSheet(
+                          controller: _sheetController,
+                          startStop: startStop!,
+                          destinationStop: destinationStop!,
+                          trips: trips,
+                          selectedTripIndex: selectedTripIndex,
+                          selectedSearchTime: selectedSearchTime,
+                          allStops: repository.stops,
+                          onBackToAllTrips: () {
+                            setState(() {
+                              selectedTripIndex = null;
+                              routeTrips.clear();
+                            });
+                          },
+                          onClose: () {
+                            setState(() {
+                              startStop = null;
+                              destinationStop = null;
+                              lastChosenStopIsStart = null;
+                              routeTrips.clear();
+                              selectedSearchTime = DateTime.now();
+                              selectedTripIndex = null;
+                            });
+                          },
+                          onChangeTime: _pickDateTime,
+                          onTripSelected: (index, trip) {
+                            setState(() {
+                              selectedTripIndex = index;
+                            });
+                            _fetchRouteForSelectedTrip(trip);
+                          },
+                        ),
+                    ],
+                  );
+          },
         ),
         // locate me button
-        floatingActionButton: startStop == null || destinationStop == null ? FloatingActionButton(
-          onPressed: _goToMyLocation,
-          backgroundColor: Colors.white,
-          child: const Icon(Icons.my_location, color: Colors.blue),
-        ) : null,
+        floatingActionButton: startStop == null || destinationStop == null
+            ? FloatingActionButton(
+                onPressed: _goToMyLocation,
+                backgroundColor: Colors.white,
+                child: const Icon(Icons.my_location, color: Colors.blue),
+              )
+            : null,
       ),
     );
   }
