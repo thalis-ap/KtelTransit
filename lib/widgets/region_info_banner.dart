@@ -47,7 +47,7 @@ class RegionInfoBanner extends StatelessWidget {
                       text: TextSpan(
                         style: TextStyle(
                           color: colorScheme.onSecondaryContainer,
-                          fontSize: 14,
+                          fontSize: 16,
                         ),
                         children: [
                           const TextSpan(text: 'Περιοχή: '),

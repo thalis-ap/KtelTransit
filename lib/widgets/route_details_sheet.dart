@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/models/departure.dart';
+import 'package:ktel_transit/widgets/trip_info_sheet.dart';
 import '../models/stop.dart';
 import '../repositories/gtfs_repository.dart';
 import '../utilities/time_format.dart';
@@ -18,19 +19,21 @@ class RouteDetailsSheet extends StatelessWidget {
     required this.onSetDestination,
   });
 
-  // Helper widget to build the list of departures so we don't repeat code
   Widget _buildDeparturesList(List<Departure> deps, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return ListView.separated(
-      // these two properties are CRITICAL: they disable the internal scrolling
-      // of this list so that when the user swipes, the entire bottom sheet
-      // drags up and down naturally instead of trapping their finger in a tiny box
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: deps.length,
-      separatorBuilder: (context, index) => Divider(color: Colors.grey.shade200),
+      separatorBuilder: (context, index) => Divider(
+        color: isDark ? Colors.white12 : Colors.grey.shade200,
+      ),
       itemBuilder: (context, index) {
         final Departure dep = deps[index];
-        final String mainTime = TimeFormat.dateTimeToFormattedString(dep.originDepartureTime);
+        final String mainTime =
+        TimeFormat.dateTimeToFormattedString(dep.originDepartureTime);
         final String route = dep.routeName;
         final String subtitle = dep.getSubtitle();
 
@@ -42,21 +45,32 @@ class RouteDetailsSheet extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: isDark
+                          ? colorScheme.primary.withValues(alpha: 0.18)
+                          : colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       mainTime,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: isDark ? colorScheme.primary : colorScheme.onSecondaryContainer,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       route,
-                      style: theme.textTheme.bodyLarge,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -67,7 +81,7 @@ class RouteDetailsSheet extends StatelessWidget {
                   subtitle,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -82,32 +96,41 @@ class RouteDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final now = DateTime.now();
+    final List<Departure> todayDepartures =
+    repository.getDeparturesForStop(stop.stopId, selectedTime: now);
 
-    // Try fetching for today (right now)
-    final List<Departure> todayDepartures = repository.getDeparturesForStop(stop.stopId, selectedTime: now);
-
-    // Search ahead if today is empty
     List<Departure> nextDepartures = [];
     String nextDayLabel = '';
 
     if (todayDepartures.isEmpty) {
-      // Loop up to 7 days ahead to find the next available schedule
       for (int i = 1; i <= 7; i++) {
         final nextDate = now.add(Duration(days: i));
-        // Start checking from 00:00 on that future day
-        final startOfDay = DateTime(nextDate.year, nextDate.month, nextDate.day, 4, 0);
+        final startOfDay =
+        DateTime(nextDate.year, nextDate.month, nextDate.day, 4, 0);
 
-        final List<Departure> deps = repository.getDeparturesForStop(stop.stopId, selectedTime: startOfDay);
+        final List<Departure> deps = repository
+            .getDeparturesForStop(stop.stopId, selectedTime: startOfDay);
         if (deps.isNotEmpty) {
           nextDepartures = deps;
           if (i == 1) {
             nextDayLabel = 'ΑΥΡΙΟ';
           } else {
-            const days = ['ΔΕΥΤΕΡΑ', 'ΤΡΙΤΗ', 'ΤΕΤΑΡΤΗ', 'ΠΕΜΠΤΗ', 'ΠΑΡΑΣΚΕΥΗ', 'ΣΑΒΒΑΤΟ', 'ΚΥΡΙΑΚΗ'];
+            const days = [
+              'ΔΕΥΤΕΡΑ',
+              'ΤΡΙΤΗ',
+              'ΤΕΤΑΡΤΗ',
+              'ΠΕΜΠΤΗ',
+              'ΠΑΡΑΣΚΕΥΗ',
+              'ΣΑΒΒΑΤΟ',
+              'ΚΥΡΙΑΚΗ',
+            ];
             nextDayLabel = days[nextDate.weekday - 1];
           }
-          break; // Stop searching once we find a day with buses
+          break;
         }
       }
     }
@@ -117,37 +140,50 @@ class RouteDetailsSheet extends StatelessWidget {
       onTap: () => Navigator.of(context).pop(),
       child: DraggableScrollableSheet(
         initialChildSize: 0.45,
-        minChildSize: 0.25, // limits how far down you can swipe so the title and buttons are always visible
+        minChildSize: 0.25,
         maxChildSize: 0.85,
         snap: true,
-        snapSizes: const [0.45], // explicitly tell it to snap at the middle position
+        snapSizes: const [0.45],
         builder: (context, scrollController) {
           return GestureDetector(
             onTap: () {},
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(top: 12.0, left: 24.0, right: 24.0, bottom: 24.0),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                boxShadow: [
-                  BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2)
+              padding: const EdgeInsets.only(
+                top: 12.0,
+                left: 24.0,
+                right: 24.0,
+                bottom: 24.0,
+              ),
+              decoration: BoxDecoration(
+                // Elevated slate background in dark mode gives depth over the map
+                color: isDark ? const Color(0xFF232428) : Colors.white,
+                borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    blurRadius: 16,
+                    spreadRadius: 2,
+                  ),
                 ],
               ),
               child: SingleChildScrollView(
                 controller: scrollController,
                 child: Column(
-                  mainAxisSize: MainAxisSize.min, // ensures it doesn't try to take up infinite space
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Clean gray drag handle matching the home screen
+                    // Adaptive drag handle
                     Center(
                       child: Container(
                         width: 48,
-                        height: 6,
+                        height: 5,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade400,
+                          color: isDark
+                              ? Colors.white24
+                              : Colors.grey.shade400,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -155,11 +191,13 @@ class RouteDetailsSheet extends StatelessWidget {
 
                     Text(
                       stop.name,
-                      style: theme.textTheme.titleLarge,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
-                    // Start / Destination Selection
+                    // Adaptive Start / Destination buttons
                     Row(
                       children: [
                         Expanded(
@@ -171,8 +209,12 @@ class RouteDetailsSheet extends StatelessWidget {
                             icon: const Icon(Icons.my_location, size: 20),
                             label: const Text('Αφετηρία'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: Colors.green.shade50,
-                              foregroundColor: Colors.green.shade700,
+                              backgroundColor: isDark
+                                  ? Colors.green.shade900.withValues(alpha: 0.35)
+                                  : Colors.green.shade50,
+                              foregroundColor: isDark
+                                  ? Colors.green.shade300
+                                  : Colors.green.shade700,
                             ),
                           ),
                         ),
@@ -186,8 +228,12 @@ class RouteDetailsSheet extends StatelessWidget {
                             icon: const Icon(Icons.place, size: 20),
                             label: const Text('Προορισμός'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: Colors.blue.shade50,
-                              foregroundColor: Colors.blue.shade700,
+                              backgroundColor: isDark
+                                  ? Colors.blue.shade900.withValues(alpha: 0.35)
+                                  : Colors.blue.shade50,
+                              foregroundColor: isDark
+                                  ? Colors.blue.shade300
+                                  : Colors.blue.shade700,
                             ),
                           ),
                         ),
@@ -195,61 +241,44 @@ class RouteDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Dynamic departures logic
                     todayDepartures.isNotEmpty
-                    // SCENARIO A: We have buses today
                         ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ', style: theme.textTheme.labelSmall),
+                        Text(
+                          'ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         _buildDeparturesList(todayDepartures, theme),
                       ],
                     )
                         : nextDepartures.isNotEmpty
-                    // SCENARIO B: No buses today, show next available day
                         ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.orange.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline, color: Colors.orange.shade800, size: 20),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Δεν υπάρχουν άλλες αναχωρήσεις σήμερα.',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.orange.shade900,
-                                      fontWeight: FontWeight.w600
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        const TripWarningBanner(
+                          message:
+                          "Δεν υπάρχουν αναχωρήσεις σήμερα",
+                          icon: Icons.warning_rounded,
                         ),
                         const SizedBox(height: 24),
-                        Text('ΑΝΑΧΩΡΗΣΕΙΣ $nextDayLabel', style: theme.textTheme.labelSmall),
+                        Text(
+                          'ΑΝΑΧΩΡΗΣΕΙΣ $nextDayLabel',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         _buildDeparturesList(nextDepartures, theme),
                       ],
                     )
-                    // SCENARIO C: Complete dead end
-                        : Padding(
-                      padding: const EdgeInsets.only(top: 24.0),
-                      child: Center(
-                        child: Text(
-                          'Δεν υπάρχουν προγραμματισμένες αναχωρήσεις.',
-                          style: TextStyle(fontSize: 15, color: Colors.grey, fontStyle: FontStyle.italic),
-                        ),
-                      ),
+                        : const TripWarningBanner(
+                      message:
+                      "Δεν υπάρχουν προγραμματισμένες αναχωρήσεις",
+                      icon: Icons.warning_rounded,
                     ),
                   ],
                 ),

@@ -13,33 +13,35 @@ class SideDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Drawer(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue.shade300),
             child: Column(
               children: [
                 const Text(
                   'Τοπικά ΚΤΕΛ',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
+                  style: TextStyle(fontSize: 24),
                 ),
-                Expanded(child: Image.asset("assets/icons/appicon.png")),
+                Expanded(child: Image.asset(isDark ? "assets/icons/appicondark.png": "assets/icons/appicon.png")),
               ],
             ),
           ),
+
           // Use ValueListenableBuilder because the the region title shown
           // depends on the GtfsRepository's currentRegion attribute
           // Read more on GtfsRepository() class
-          ValueListenableBuilder<Region>(
+          ValueListenableBuilder<Region?>(
             valueListenable: repository.currentRegionNotifier,
             builder: (context, currentRegion, child) {
               return ListTile(
                 leading: const Icon(Icons.map_outlined),
                 title: const Text("Περιοχή"),
-                subtitle: Text(currentRegion.name),
+                subtitle: Text(currentRegion!.name),
                 trailing: const Icon(
                   Icons.search,
                 ), // Hint that this opens a search

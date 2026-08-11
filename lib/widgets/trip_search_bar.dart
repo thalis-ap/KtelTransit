@@ -21,13 +21,16 @@ class TripSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
         vertical: 8,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
@@ -59,14 +62,14 @@ class TripSearchBar extends StatelessWidget {
                 child: Text(
                   "Αναζήτηση προορισμού...",
                   style: TextStyle(
-                    color: Colors.grey.shade600,
+                    color: theme.hintColor,
                     fontSize: 16,
                   ),
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.search,
-                color: Colors.blue,
+                color: colorScheme.primary,
               ),
               const SizedBox(width: 8),
             ],
@@ -102,8 +105,8 @@ class TripSearchBar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             color: startStop != null
-                                ? Colors.black87
-                                : Colors.grey.shade500,
+                                ? colorScheme.onSurface
+                                : theme.hintColor,
                             fontWeight: startStop != null
                                 ? FontWeight.w500
                                 : FontWeight.normal,
@@ -131,8 +134,8 @@ class TripSearchBar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             color: destinationStop != null
-                                ? Colors.black87
-                                : Colors.grey.shade500,
+                                ? colorScheme.onSurface
+                                : theme.hintColor,
                             fontWeight: destinationStop != null
                                 ? FontWeight.w500
                                 : FontWeight.normal,
@@ -149,9 +152,9 @@ class TripSearchBar extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.swap_vert,
-              color: Colors.blue,
+              color: colorScheme.primary,
             ),
             tooltip: "Αλλαγή κατεύθυνσης",
             onPressed: onSwap,
