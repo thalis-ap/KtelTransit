@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // In rads
   double mapRotation = 0;
+  bool isMapReady = false;
 
   // Save user's location to show marker on the map
   LatLng? userLocation;
@@ -279,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context: context,
       delegate: StopSearchDelegate(
         repository.stops,
-        currentRegionName: repository.currentRegion.name,
+        currentRegionName: repository.currentRegion!.name,
         onChangeRegionTap: () => RegionUtils.promptRegionChange(
           context,
           repository,
@@ -358,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Called everytime the region changes through ValueListener
   void _onRegionChanged() {
-    final Region region = repository.currentRegion;
+    final Region region = repository.currentRegion!;
     _animatedMapMove(region.center, region.defaultZoom);
 
     setState(() {
@@ -407,6 +408,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Animated map move when changing regions
   void _animatedMapMove(LatLng destLocation, double destZoom) {
+    if (!isMapReady || !mounted) return;
+
     // Get the current camera position
     final latTween = Tween<double>(
       begin: mapController.camera.center.latitude,
@@ -478,11 +481,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Only open if both stops are selected
     if (startStop == null || destinationStop == null) return;
 
-    _sheetController.animateTo(
-      0.45,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOutCubic,
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_sheetController.isAttached) {
+        _sheetController.animateTo(
+          0.45,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
   }
 
   Future<void> _showExitDialog() async {
@@ -514,6 +521,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     final List<OsrmTrip>? trips = _getTripInfo();
 
     // Figure out if we need to show a transfer marker on the map by looking
@@ -547,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         // Use ValueListenableBuilder because the map depends on the
         // GtfsRepository's currentRegion attribute
         // Read more on GtfsRepository() class
-        body: ValueListenableBuilder<Region>(
+        body: ValueListenableBuilder<Region?>(
           valueListenable: repository.currentRegionNotifier,
           builder: (context, activeRegion, child) {
             return isLoading
@@ -555,12 +564,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 : Stack(
                     children: [
                       FlutterMap(
+
                         mapController: mapController,
                         options: MapOptions(
-                          initialCenter: activeRegion.center,
+                          initialCenter: activeRegion!.center,
                           initialZoom: activeRegion.defaultZoom,
                           minZoom: 6.0,
                           maxZoom: 20.0,
+                          onMapReady: () {
+                            setState(() {
+                              isMapReady = true;
+                            });
+                          },
                           onPositionChanged: (position, hasGesture) {
                             if (position.rotationRad != mapRotation) {
                               setState(() {
@@ -584,6 +599,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             urlTemplate:
                                 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.symplyapps.ktel_transit',
+                            tileBuilder: isDark ? darkModeTileBuilder : null,
                           ),
                           if (routeTrips.isNotEmpty)
                             PolylineLayer(
@@ -608,7 +624,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       color: Colors.blue,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white,
                                         width: 3,
                                       ),
                                       boxShadow: const [
@@ -698,7 +713,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         right: 16,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.surface,
                             shape: BoxShape.circle,
                             boxShadow: const [
                               BoxShadow(
@@ -772,7 +787,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         floatingActionButton: startStop == null || destinationStop == null
             ? FloatingActionButton(
                 onPressed: _goToMyLocation,
-                backgroundColor: Colors.white,
+                backgroundColor: colorScheme.surface,
                 child: const Icon(Icons.my_location, color: Colors.blue),
               )
             : null,
