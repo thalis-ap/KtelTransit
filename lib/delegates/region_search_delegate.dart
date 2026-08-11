@@ -4,7 +4,7 @@ import 'base_search_delegate.dart'; // Import your new base class
 
 class RegionSearchDelegate extends BaseSearchDelegate<Region> {
   final List<Region> regions;
-  final Region currentRegion;
+  final Region? currentRegion;
 
   RegionSearchDelegate({required this.regions, required this.currentRegion})
     : super(searchFieldLabel: 'Αναζήτηση περιοχής...');
@@ -27,7 +27,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         final region = suggestions[index];
-        final isSelected = region.id == currentRegion.id;
+        final isSelected = region.id == currentRegion?.id;
         return ListTile(
           leading: const Icon(Icons.map_outlined, color: Colors.blueGrey),
           title: Text(

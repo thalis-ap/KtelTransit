@@ -32,14 +32,14 @@ class GtfsRepository {
   /// attributes should make use of a ValueListenableBuilder(). This way, when
   /// currentRegion changes value, all widgets in the tree (inside the
   /// ValueListenableBuilder) will get rebuilt automatically
-  final ValueNotifier<Region> currentRegionNotifier = ValueNotifier(availableRegions.first);
+  final ValueNotifier<Region?> currentRegionNotifier = ValueNotifier(null);
 
   /// This is a globally shared variable across all files. If one wants to see
   /// the current region, all they have to do is initialize an instance of this
   /// class (remains the same across multiple initializations) and get the region
   /// GtfsRepository repository = GtfsRepository();
   /// ... = repository.currentRegion;
-  Region get currentRegion => currentRegionNotifier.value;
+  Region? get currentRegion => currentRegionNotifier.value;
 
   Future<void> init() async {
     // First check to see if we have a saved region
@@ -61,7 +61,7 @@ class GtfsRepository {
   }
 
   Future<void> changeRegion(Region newRegion) async {
-    final bool didActuallyChange = currentRegionNotifier.value.id != newRegion.id;
+    final bool didActuallyChange = currentRegionNotifier.value?.id != newRegion.id;
 
     currentRegionNotifier.value = newRegion;
 
@@ -77,8 +77,10 @@ class GtfsRepository {
 
   /// Asynchronously load route/trip/stop data from txt files
   Future<void> loadData() async {
+    if (currentRegion == null) return;
+
     // Set to current region
-    String regionId = currentRegion.id;
+    String regionId = currentRegion!.id;
 
     // Clear old region data
     stops.clear();

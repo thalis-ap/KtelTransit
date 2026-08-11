@@ -142,7 +142,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
       body: Column(
         children: [
           RegionInfoBanner(
-            regionName: repository.currentRegion.name,
+            regionName: repository.currentRegion!.name,
             onChangeTap: () => RegionUtils.promptRegionChange(context, repository, availableRegions),
           ),
           Expanded(
