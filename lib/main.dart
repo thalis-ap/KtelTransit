@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/screens/welcome_screen.dart';
+import 'package:ktel_transit/services/settings_controller.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,7 +10,10 @@ void main() async {
 
   final bool hasSavedRegion = await checkSavedRegion();
 
-  runApp(MyApp(hasSavedRegion: hasSavedRegion));
+  final settingsController = SettingsController();
+  await settingsController.loadSettings();
+
+  runApp(MyApp(settingsController: settingsController, hasSavedRegion: hasSavedRegion));
 }
 
 Future<bool> checkSavedRegion() async {
@@ -18,18 +22,28 @@ Future<bool> checkSavedRegion() async {
 }
 
 class MyApp extends StatelessWidget {
+  final SettingsController settingsController;
   final bool hasSavedRegion;
 
-  const MyApp({super.key, required this.hasSavedRegion});
+  const MyApp({super.key, required this.settingsController, required this.hasSavedRegion});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Τοπικά ΚΤΕΛ',
-      themeMode: ThemeMode.system,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      home: hasSavedRegion ? const HomeScreen() : const WelcomeScreen(),
+    return ListenableBuilder(
+      listenable: settingsController,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'Τοπικά ΚΤΕΛ',
+          debugShowCheckedModeBanner: false,
+          locale: settingsController.locale,
+          themeMode: settingsController.themeMode,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          home: hasSavedRegion
+              ? HomeScreen(settingsController: settingsController)
+              : WelcomeScreen(settingsController: settingsController),
+        );
+      },
     );
   }
 }

@@ -15,10 +15,13 @@ import 'package:latlong2/latlong.dart';
 import '../models/stop.dart';
 import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
+import '../services/settings_controller.dart';
 import '../widgets/trip_info_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final SettingsController settingsController;
+
+  const HomeScreen({super.key, required this.settingsController});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -552,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: SideDrawer(),
+        drawer: SideDrawer(settingsController: widget.settingsController),
         // Use ValueListenableBuilder because the map depends on the
         // GtfsRepository's currentRegion attribute
         // Read more on GtfsRepository() class
@@ -564,7 +567,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 : Stack(
                     children: [
                       FlutterMap(
-
                         mapController: mapController,
                         options: MapOptions(
                           initialCenter: activeRegion!.center,
@@ -623,9 +625,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     decoration: BoxDecoration(
                                       color: Colors.blue,
                                       shape: BoxShape.circle,
-                                      border: Border.all(
-                                        width: 3,
-                                      ),
+                                      border: Border.all(width: 3),
                                       boxShadow: const [
                                         BoxShadow(
                                           color: Colors.black38,

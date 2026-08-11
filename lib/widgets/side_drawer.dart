@@ -3,13 +3,17 @@ import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import '../models/region.dart';
 import '../screens/routes_screen.dart';
 import '../screens/info_screen.dart';
+import '../screens/settings_screen.dart';
 import '../screens/tickets_screen.dart';
+import '../services/settings_controller.dart';
 import '../utilities/region_utils.dart';
 
 class SideDrawer extends StatelessWidget {
+  final SettingsController settingsController;
+
   final GtfsRepository repository = GtfsRepository();
 
-  SideDrawer({super.key});
+  SideDrawer({super.key, required this.settingsController});
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +89,21 @@ class SideDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const TicketsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: const Text('Ρυθμίσεις'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(
+                    settingsController: settingsController,
+                  ),
+                ),
               );
             },
           ),
