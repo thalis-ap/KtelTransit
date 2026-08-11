@@ -44,106 +44,114 @@
   "info": "Πληροφορίες",
   "tickets": "Εισιτήρια",
   "allTrips": "Όλα τα δρομολόγια",
-    "today": "Σήμερα",
-    "noTripsForDateShowingNext": "Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.",
-    "tripsForDate": "Δρομολόγια για: {date}",
-    "@tripsForDate": {
-      "placeholders": {
-        "date": {
-          "type": "String"
-        }
+  "today": "Σήμερα",
+  "noTripsForDateShowingNext": "Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.",
+  "tripsForDate": "Δρομολόγια για: {date}",
+  "@tripsForDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
       }
-    },
-    "departed": "Αναχώρησε",
-    "noTripsForRoute": "Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.",
-    "costBreakdown": "Ανάλυση κόστους",
-    "totalTicketCost": "Συνολικό κόστος εισιτηρίων",
-    "transfer": "ΜΕΤΕΠΙΒΙΒΑΣΗ",
-    "departureFrom": "Αναχώρηση από {stop}:",
-    "@departureFrom": {
-      "placeholders": {
-        "stop": {
-          "type": "String"
-        }
+    }
+  },
+  "departed": "Αναχώρησε",
+  "noTripsForRoute": "Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.",
+  "costBreakdown": "Ανάλυση κόστους",
+  "totalTicketCost": "Συνολικό κόστος εισιτηρίων",
+  "transfer": "ΜΕΤΕΠΙΒΙΒΑΣΗ",
+  "departureFrom": "Αναχώρηση από {stop}:",
+  "@departureFrom": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
       }
-    },
-    "arrivalAt": "Άφιξη σε {stop}:",
-    "@arrivalAt": {
-      "placeholders": {
-        "stop": {
-          "type": "String"
-        }
+    }
+  },
+  "arrivalAt": "Άφιξη σε {stop}:",
+  "@arrivalAt": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
       }
-    },
-    "estimatedArrivalAt": "Εκτιμώμενη άφιξη σε {stop}:",
-    "@estimatedArrivalAt": {
-      "placeholders": {
-        "stop": {
-          "type": "String"
-        }
+    }
+  },
+  "estimatedArrivalAt": "Εκτιμώμενη άφιξη σε {stop}:",
+  "@estimatedArrivalAt": {
+    "placeholders": {
+      "stop": {
+        "type": "String"
       }
-    },
-    "waitingTime": "Αναμονή: {time}",
-    "@waitingTime": {
-      "placeholders": {
-        "time": {
-          "type": "String"
-        }
+    }
+  },
+  "waitingTime": "Αναμονή: {time}",
+  "@waitingTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
       }
-    },
-    "hoursMinutesFormat": "{hours}ω {minutes}λ",
-    "@hoursMinutesFormat": {
-      "placeholders": {
-        "hours": {
-          "type": "int"
-        },
-        "minutes": {
-          "type": "int"
-        }
+    }
+  },
+  "hoursMinutesFormat": "{hours}ω {minutes}λ",
+  "@hoursMinutesFormat": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
       }
-    },
-    "minutesFormat": "{minutes}λ",
-    "@minutesFormat": {
-      "placeholders": {
-        "minutes": {
-          "type": "int"
-        }
+    }
+  },
+  "minutesFormat": "{minutes}λ",
+  "@minutesFormat": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
       }
-    },
-    "departureLabel": "Αναχώρηση: {time}",
-    "@departureLabel": {
-      "placeholders": {
-        "time": {
-          "type": "String"
-        }
+    }
+  },
+  "departureLabel": "Αναχώρηση: {time}",
+  "@departureLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
       }
-    },
-    "changeButton": "ΑΛΛΑΓΗ",
-    "daily": "Καθημερινά",
-      "unknownDays": "Άγνωστες ημέρες",
-      "searchRegionHint": "Αναζήτηση περιοχής...",
-        "noRegionFound": "Δεν βρέθηκε περιοχή.",
-        "searchStopHint": "Αναζήτηση στάσης...",
-        "noStopFound": "Δεν βρέθηκε στάση.",
-        "durationHoursMinutes": "{hours} ώρ. {minutes} λεπ.",
-          "@durationHoursMinutes": {
-            "placeholders": {
-              "hours": { "type": "int" },
-              "minutes": { "type": "String" }
-            }
-          },
-          "durationHours": "{count, plural, =1{1 ώρα} other{{count} ώρες}}",
-          "@durationHours": {
-            "placeholders": {
-              "count": { "type": "int" }
-            }
-          },
-          "durationMinutes": "{count, plural, =1{1 λεπτό} other{{count} λεπτά}}",
-          "@durationMinutes": {
-            "placeholders": {
-              "count": { "type": "int" }
-            }
-          },
-          "outbound": "Μετάβαση",
-            "returnTrip": "Επιστροφή"
+    }
+  },
+  "changeButton": "ΑΛΛΑΓΗ",
+  "daily": "Καθημερινά",
+  "unknownDays": "Άγνωστες ημέρες",
+  "searchRegionHint": "Αναζήτηση περιοχής...",
+  "noRegionFound": "Δεν βρέθηκε περιοχή.",
+  "searchStopHint": "Αναζήτηση στάσης...",
+  "noStopFound": "Δεν βρέθηκε στάση.",
+  "durationHoursMinutes": "{hours} ώρ. {minutes} λεπ.",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "durationHours": "{count, plural, =1{1 ώρα} other{{count} ώρες}}",
+  "@durationHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMinutes": "{count, plural, =1{1 λεπτό} other{{count} λεπτά}}",
+  "@durationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "outbound": "Μετάβαση",
+  "returnTrip": "Επιστροφή"
 }
