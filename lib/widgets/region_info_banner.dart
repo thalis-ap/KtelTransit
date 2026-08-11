@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Warns the user about the region they have selecting while allowing them to
+import '../l10n/app_localizations.dart';
+
+/// Warns the user about the region they have selected while allowing them to
 /// change it.
 class RegionInfoBanner extends StatelessWidget {
   final String regionName;
@@ -14,6 +16,7 @@ class RegionInfoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -50,7 +53,7 @@ class RegionInfoBanner extends StatelessWidget {
                           fontSize: 16,
                         ),
                         children: [
-                          const TextSpan(text: 'Περιοχή: '),
+                          TextSpan(text: l10n.regionPrefix),
                           TextSpan(
                             text: regionName,
                             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -60,7 +63,7 @@ class RegionInfoBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Πατήστε για αλλαγή',
+                      l10n.tapToChange,
                       style: TextStyle(
                         color: colorScheme.secondary,
                         fontSize: 12,

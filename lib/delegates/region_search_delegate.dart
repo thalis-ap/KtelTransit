@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/region.dart';
-import 'base_search_delegate.dart'; // Import your new base class
+import 'base_search_delegate.dart';
 
 class RegionSearchDelegate extends BaseSearchDelegate<Region> {
   final List<Region> regions;
   final Region? currentRegion;
 
-  RegionSearchDelegate({required this.regions, required this.currentRegion})
-    : super(searchFieldLabel: 'Αναζήτηση περιοχής...');
+  RegionSearchDelegate({
+    required this.regions,
+    required this.currentRegion,
+    super.searchFieldLabel,
+  });
 
   Widget _buildSuggestionsList(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final normalizedSearch = normalizeGreek(query);
 
     final suggestions = regions.where((region) {
@@ -18,8 +23,11 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
     }).toList();
 
     if (suggestions.isEmpty) {
-      return const Center(
-        child: Text("Δεν βρέθηκε περιοχή.", style: TextStyle(color: Colors.grey)),
+      return Center(
+        child: Text(
+          l10n.noRegionFound,
+          style: const TextStyle(color: Colors.grey),
+        ),
       );
     }
 
@@ -49,5 +57,6 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
   Widget buildResults(BuildContext context) => _buildSuggestionsList(context);
 
   @override
-  Widget buildSuggestions(BuildContext context) => _buildSuggestionsList(context);
+  Widget buildSuggestions(BuildContext context) =>
+      _buildSuggestionsList(context);
 }

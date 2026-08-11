@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/screens/welcome_screen.dart';
 import 'package:ktel_transit/services/settings_controller.dart';
@@ -33,8 +35,15 @@ class MyApp extends StatelessWidget {
       listenable: settingsController,
       builder: (context, child) {
         return MaterialApp(
-          title: 'Τοπικά ΚΤΕΛ',
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
           locale: settingsController.locale,
           themeMode: settingsController.themeMode,
           theme: AppTheme.lightTheme,

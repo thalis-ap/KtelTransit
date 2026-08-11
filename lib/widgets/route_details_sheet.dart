@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:ktel_transit/models/departure.dart';
 import 'package:ktel_transit/widgets/trip_info_sheet.dart';
+import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import '../repositories/gtfs_repository.dart';
 import '../utilities/time_format.dart';
@@ -60,7 +62,9 @@ class RouteDetailsSheet extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: isDark ? colorScheme.primary : colorScheme.onSecondaryContainer,
+                        color: isDark
+                            ? colorScheme.primary
+                            : colorScheme.onSecondaryContainer,
                       ),
                     ),
                   ),
@@ -95,6 +99,7 @@ class RouteDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -107,6 +112,8 @@ class RouteDetailsSheet extends StatelessWidget {
     String nextDayLabel = '';
 
     if (todayDepartures.isEmpty) {
+      final currentLocale = Localizations.localeOf(context).languageCode;
+
       for (int i = 1; i <= 7; i++) {
         final nextDate = now.add(Duration(days: i));
         final startOfDay =
@@ -117,18 +124,12 @@ class RouteDetailsSheet extends StatelessWidget {
         if (deps.isNotEmpty) {
           nextDepartures = deps;
           if (i == 1) {
-            nextDayLabel = 'ΑΥΡΙΟ';
+            nextDayLabel = l10n.tomorrow;
           } else {
-            const days = [
-              'ΔΕΥΤΕΡΑ',
-              'ΤΡΙΤΗ',
-              'ΤΕΤΑΡΤΗ',
-              'ΠΕΜΠΤΗ',
-              'ΠΑΡΑΣΚΕΥΗ',
-              'ΣΑΒΒΑΤΟ',
-              'ΚΥΡΙΑΚΗ',
-            ];
-            nextDayLabel = days[nextDate.weekday - 1];
+            // Automatically formats day name in Greek or English (e.g., ΔΕΥΤΕΡΑ or MONDAY)
+            nextDayLabel = DateFormat('EEEE', currentLocale)
+                .format(nextDate)
+                .toUpperCase();
           }
           break;
         }
@@ -156,7 +157,6 @@ class RouteDetailsSheet extends StatelessWidget {
                 bottom: 24.0,
               ),
               decoration: BoxDecoration(
-                // Elevated slate background in dark mode gives depth over the map
                 color: isDark ? const Color(0xFF232428) : Colors.white,
                 borderRadius:
                 const BorderRadius.vertical(top: Radius.circular(28)),
@@ -174,7 +174,6 @@ class RouteDetailsSheet extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Adaptive drag handle
                     Center(
                       child: Container(
                         width: 48,
@@ -197,7 +196,6 @@ class RouteDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Adaptive Start / Destination buttons
                     Row(
                       children: [
                         Expanded(
@@ -207,7 +205,7 @@ class RouteDetailsSheet extends StatelessWidget {
                               Navigator.pop(context);
                             },
                             icon: const Icon(Icons.my_location, size: 20),
-                            label: const Text('Αφετηρία'),
+                            label: Text(l10n.originLabel),
                             style: FilledButton.styleFrom(
                               backgroundColor: isDark
                                   ? Colors.green.shade900.withValues(alpha: 0.35)
@@ -226,7 +224,7 @@ class RouteDetailsSheet extends StatelessWidget {
                               Navigator.pop(context);
                             },
                             icon: const Icon(Icons.place, size: 20),
-                            label: const Text('Προορισμός'),
+                            label: Text(l10n.destinationLabel),
                             style: FilledButton.styleFrom(
                               backgroundColor: isDark
                                   ? Colors.blue.shade900.withValues(alpha: 0.35)
@@ -246,7 +244,7 @@ class RouteDetailsSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ',
+                          l10n.upcomingDeparturesToday,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -259,14 +257,13 @@ class RouteDetailsSheet extends StatelessWidget {
                         ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const TripWarningBanner(
-                          message:
-                          "Δεν υπάρχουν αναχωρήσεις σήμερα",
+                        TripWarningBanner(
+                          message: l10n.noDeparturesToday,
                           icon: Icons.warning_rounded,
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'ΑΝΑΧΩΡΗΣΕΙΣ $nextDayLabel',
+                          l10n.departuresOnDay(nextDayLabel),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -275,9 +272,8 @@ class RouteDetailsSheet extends StatelessWidget {
                         _buildDeparturesList(nextDepartures, theme),
                       ],
                     )
-                        : const TripWarningBanner(
-                      message:
-                      "Δεν υπάρχουν προγραμματισμένες αναχωρήσεις",
+                        : TripWarningBanner(
+                      message: l10n.noScheduledDepartures,
                       icon: Icons.warning_rounded,
                     ),
                   ],

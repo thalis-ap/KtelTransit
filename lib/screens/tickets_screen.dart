@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/l10n/app_localizations.dart';
 
 class TicketsScreen extends StatelessWidget {
   const TicketsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Εισιτήρια'),
+        title: Text(l10n.tickets),
       ),
       body: const Padding(
         padding: EdgeInsets.all(16.0),

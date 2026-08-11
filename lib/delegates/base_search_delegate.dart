@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-// Custom class that all delegates should derive from
 abstract class BaseSearchDelegate<T> extends SearchDelegate<T?> {
-  BaseSearchDelegate({required super.searchFieldLabel});
+  BaseSearchDelegate({super.searchFieldLabel});
 
-  // Unified normalization method for all search delegates
   String normalizeGreek(String input) {
     const withAccents = 'άέήίϊΐόύϋΰώ';
     const withoutAccents = 'αεηιιιουυυω';

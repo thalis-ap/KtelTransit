@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ktel_transit/services/settings_controller.dart';
+import '../l10n/app_localizations.dart';
+import '../services/settings_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
   final SettingsController settingsController;
@@ -11,12 +12,13 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ρυθμίσεις'),
+        title: Text(l10n.settingsTitle),
         centerTitle: true,
       ),
       body: ListenableBuilder(
@@ -25,9 +27,9 @@ class SettingsScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              // --- Theme Section ---
+              // Appearance Section
               Text(
-                'ΕΜΦΑΝΙΣΗ',
+                l10n.appearanceSection,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -46,23 +48,23 @@ class SettingsScreen extends StatelessWidget {
                       settingsController.updateThemeMode(val);
                     }
                   },
-                  child: const Column(
+                  child: Column(
                     children: [
                       RadioListTile<ThemeMode>(
-                        title: Text('Προεπιλογή συστήματος'),
-                        secondary: Icon(Icons.brightness_auto_outlined),
+                        title: Text(l10n.systemDefaultTheme),
+                        secondary: const Icon(Icons.brightness_auto_outlined),
                         value: ThemeMode.system,
                       ),
-                      Divider(height: 1, indent: 56),
+                      const Divider(height: 1, indent: 56),
                       RadioListTile<ThemeMode>(
-                        title: Text('Φωτεινό'),
-                        secondary: Icon(Icons.light_mode_outlined),
+                        title: Text(l10n.lightTheme),
+                        secondary: const Icon(Icons.light_mode_outlined),
                         value: ThemeMode.light,
                       ),
-                      Divider(height: 1, indent: 56),
+                      const Divider(height: 1, indent: 56),
                       RadioListTile<ThemeMode>(
-                        title: Text('Σκοτεινό'),
-                        secondary: Icon(Icons.dark_mode_outlined),
+                        title: Text(l10n.darkTheme),
+                        secondary: const Icon(Icons.dark_mode_outlined),
                         value: ThemeMode.dark,
                       ),
                     ],
@@ -72,9 +74,9 @@ class SettingsScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // --- Language Section ---
+              // Language Section
               Text(
-                'ΓΛΩΣΣΑ / LANGUAGE',
+                l10n.languageSection,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

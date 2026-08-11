@@ -12,6 +12,7 @@ import 'package:ktel_transit/widgets/side_drawer.dart';
 import 'package:ktel_transit/widgets/trip_search_bar.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
@@ -35,55 +36,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Stop? startStop, destinationStop;
 
-  // Used to control the draggable widget
   final DraggableScrollableController _sheetController =
-      DraggableScrollableController();
+  DraggableScrollableController();
 
-  // This boolean variable represents whether the user chose the startStop last
-  // We keep users' last selection so that we can navigate
-  // correctly and clear out appropriate fields in the case of a back event
   bool? lastChosenStopIsStart;
 
-  // This list contains all the trips needed to reach the destination
   List<OsrmTrip> routeTrips = [];
 
   DateTime selectedSearchTime = DateTime.now();
   int? selectedTripIndex;
 
-  // Used for the drawer
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final MapController mapController = MapController();
 
-  // In rads
   double mapRotation = 0;
   bool isMapReady = false;
 
-  // Save user's location to show marker on the map
   LatLng? userLocation;
 
   @override
   void initState() {
     super.initState();
-    // Add the listener so that _onRegionChanged runs when GtfsRepository's
-    // region changes. This way all the widgets that depend on the region are
-    // updated automatically
     repository.currentRegionNotifier.addListener(_onRegionChanged);
     _loadData();
   }
 
   @override
   void dispose() {
-    // Remove the listener
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
     _sheetController.dispose();
     super.dispose();
   }
 
-  // Asynchronously load GTFS repository data
   Future<void> _loadData() async {
-    // Call init so that the repository loads user's last saved region
-    // (if present) and its data
     await repository.init();
     setState(() {
       isLoading = false;
@@ -131,11 +117,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return true;
   }
 
-  /// This function fetches a route through the OSRM service for the selected
-  /// start and destination. Given a semi-complete OsrmTrip object it fetches
-  /// the route (points) and duration (safeDuration) info through the call of
-  /// OsrmTrip.getRoute() function. It can handle both transfer and non-transfer
-  /// trips, as long as the startStop and destinationStop are not-null.
   Future<void> _fetchRouteForSelectedTrip(OsrmTrip osrmTrip) async {
     if (startStop == null || destinationStop == null) return;
 
@@ -146,9 +127,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         destinationStop!.longitude,
       );
       if (osrmTrip.isTransfer) {
-        // Route through the transfer stop
         final Stop trStop = repository.stops.firstWhere(
-          (s) => s.name == osrmTrip.transferStopName,
+              (s) => s.name == osrmTrip.transferStopName,
         );
         final transfer = LatLng(trStop.latitude, trStop.longitude);
 
@@ -167,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           routeTrips = [leg1, leg2];
         });
       } else {
-        // Direct route
         final OsrmTrip leg = await OsrmService.getRoute(start, dest, osrmTrip);
         setState(() {
           routeTrips = [leg];
@@ -178,9 +157,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Returns a list of OsrmTrip objects (or null if not found) that cover the
-  /// trip between the selected startStop and destinationStop after
-  /// selectedSearchTime.
   List<OsrmTrip>? _getTripInfo() {
     if (startStop == null || destinationStop == null) return null;
 
@@ -190,16 +166,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedTime: selectedSearchTime,
     );
 
-    // If no trips found for today, try searching for the next 7 days
     if (tripsFound.isEmpty) {
-      // Gtfs-stuff: 4:00 AM on 30/07 is actually a trip on the 29/07
-      // If the search is before 4:00 AM, the "next" morning is actually TODAY.
       DateTime baseDate = selectedSearchTime.hour < 4
           ? selectedSearchTime.subtract(const Duration(days: 1))
           : selectedSearchTime;
 
-      // Call the findAllTripsBetween() function at most 7 times until we find
-      // the next available route in the following week
       for (int i = 1; i <= 7; i++) {
         final nextDate = baseDate.add(Duration(days: i));
         final startOfDay = DateTime(
@@ -223,30 +194,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
     }
 
-    // If not trips were found at all, then return null
     return tripsFound.isNotEmpty ? tripsFound : null;
   }
 
-  /// Helper function to retrieve a list of all points in a route
-  /// through the OsrmTrip list
   List<LatLng> _getRoutePointsFromTripsList() {
-    // List<LatLng> points = [];
-    // for (OsrmTrip trip in routeTrips) {
-    //   if (trip.points != null) {
-    //     points.addAll(trip.points!);
-    //   }
-    // }
-    // return points;
-
-    // The following line does the same as the above
     return routeTrips
         .expand((trip) => trip.points ?? [] as List<LatLng>)
         .toList();
   }
 
-  /// Opens a date time picker dialog for the user to select a different date
-  /// and time for their trip. Saves the selected date time in
-  /// selectedSearchTime variable
   Future<void> _pickDateTime() async {
     final DateTime? date = await showDatePicker(
       context: context,
@@ -256,7 +212,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     if (date == null) return;
 
-    // Mount check to see if we have exited the page we were in (context)
     if (!mounted) return;
 
     final TimeOfDay? time = await showTimePicker(
@@ -265,7 +220,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
     if (time == null) return;
 
-    // Set selectedSearchTime after selecting BOTH date AND time
     setState(() {
       selectedSearchTime = DateTime(
         date.year,
@@ -277,13 +231,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  /// Helper to open search and assign the result to either start or destination
   Future<void> _searchAndSetStop({required bool isStart}) async {
+    final l10n = AppLocalizations.of(context)!;
+
     final Stop? selectedStop = await showSearch<Stop?>(
       context: context,
       delegate: StopSearchDelegate(
         repository.stops,
         currentRegionName: repository.currentRegion!.name,
+        searchFieldLabel: l10n.searchStopHint,
         onChangeRegionTap: () => RegionUtils.promptRegionChange(
           context,
           repository,
@@ -310,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       startStop = stop;
       lastChosenStopIsStart = true;
       selectedSearchTime = DateTime.now();
-      selectedTripIndex = null; // Clear selection
+      selectedTripIndex = null;
       routeTrips.clear();
     });
     _showTripSheet();
@@ -321,27 +277,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       destinationStop = stop;
       lastChosenStopIsStart = false;
       selectedSearchTime = DateTime.now();
-      selectedTripIndex = null; // Clear selection
+      selectedTripIndex = null;
       routeTrips.clear();
     });
     _showTripSheet();
   }
 
-  /// Handle a 'back' action either from a gesture or from an app's button
   void _onBackPressed() {
     setState(() {
-      // Close the departure board if it's open and return
       if (isDepartureBoardOpen) {
         Navigator.pop(context);
         return;
       }
       if (startStop == null && destinationStop == null) {
-        // Nothing is selected, ask the user for confirmation to exit
         _showExitDialog();
       } else if (startStop != null && destinationStop != null) {
-        // If user has selected both stops, make the last one chosen null
         if (lastChosenStopIsStart == null) {
-          // Handle null case - clear both (this should not happen)
           startStop = destinationStop = null;
         } else if (lastChosenStopIsStart == true) {
           startStop = null;
@@ -353,14 +304,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       } else {
         destinationStop = null;
       }
-      // In each case onBackPressed we should clear the routes and trip info
       routeTrips.clear();
       selectedTripIndex = null;
       selectedSearchTime = DateTime.now();
     });
   }
 
-  /// Called everytime the region changes through ValueListener
   void _onRegionChanged() {
     final Region region = repository.currentRegion!;
     _animatedMapMove(region.center, region.defaultZoom);
@@ -375,7 +324,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _goToMyLocation() async {
     if (!await _handleLocationPermissions()) return;
 
-    // If we already preloaded a location, fly to it instantly
     if (userLocation != null) {
       _animatedMapMove(userLocation!, 15.0);
     } else {
@@ -388,7 +336,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
     }
 
-    // Fetch fresh high-accuracy position
     try {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -409,11 +356,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (_) {}
   }
 
-  /// Animated map move when changing regions
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     if (!isMapReady || !mounted) return;
 
-    // Get the current camera position
     final latTween = Tween<double>(
       begin: mapController.camera.center.latitude,
       end: destLocation.latitude,
@@ -427,19 +372,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       end: destZoom,
     );
 
-    // Create a new animation controller
     final animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    // Give it a smooth curve (speeds up, then slows down at the end)
     final Animation<double> animation = CurvedAnimation(
       parent: animationController,
       curve: Curves.fastOutSlowIn,
     );
 
-    // Every frame of the animation, move the map slightly
     animationController.addListener(() {
       mapController.move(
         LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
@@ -447,7 +389,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
     });
 
-    // Clean up the controller when the animation finishes
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed ||
           status == AnimationStatus.dismissed) {
@@ -455,12 +396,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
     });
 
-    // Start the animation
     animationController.forward();
   }
 
-  /// Shows the departure board upon clicking on a stop
-  /// This board contains all departures from/to this stop
   void _showDepartureBoard(Stop stop) {
     isDepartureBoardOpen = true;
 
@@ -481,7 +419,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showTripSheet() {
-    // Only open if both stops are selected
     if (startStop == null || destinationStop == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -496,24 +433,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _showExitDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Έξοδος'),
-          content: const Text('Θέλετε σίγουρα να κλείσετε την εφαρμογή;'),
+          title: Text(l10n.exitDialogTitle),
+          content: Text(l10n.exitDialogMessage),
           actions: <Widget>[
             TextButton(
-              child: const Text('Ακύρωση'),
+              child: Text(l10n.cancel),
               onPressed: () {
-                Navigator.of(context).pop(); // Closes the dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Έξοδος'),
+              child: Text(l10n.exit),
               onPressed: () {
-                SystemNavigator.pop(); // Exits the app gracefully
+                SystemNavigator.pop();
               },
             ),
           ],
@@ -524,272 +463,253 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
     final List<OsrmTrip>? trips = _getTripInfo();
 
-    // Figure out if we need to show a transfer marker on the map by looking
-    // strictly at the trip the user currently has open and selected
     Stop? activeTransferStop;
     if (selectedTripIndex != null && trips != null) {
       final activeTrip = trips[selectedTripIndex!];
       if (activeTrip.isTransfer) {
         try {
           activeTransferStop = repository.stops.firstWhere(
-            (s) => s.name == activeTrip.transferStopName,
+                (s) => s.name == activeTrip.transferStopName,
           );
-        } catch (e) {
-          // fail silently if the data name doesn't perfectly match a stop
-        }
+        } catch (_) {}
       }
     }
 
-    // Handle on back pressed gesture
     return PopScope(
-      // Make it always false, and let the exit dialog do the job
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
-
         _onBackPressed();
       },
       child: Scaffold(
         key: _scaffoldKey,
         drawer: SideDrawer(settingsController: widget.settingsController),
-        // Use ValueListenableBuilder because the map depends on the
-        // GtfsRepository's currentRegion attribute
-        // Read more on GtfsRepository() class
         body: ValueListenableBuilder<Region?>(
           valueListenable: repository.currentRegionNotifier,
           builder: (context, activeRegion, child) {
             return isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : Stack(
-                    children: [
-                      FlutterMap(
-                        mapController: mapController,
-                        options: MapOptions(
-                          initialCenter: activeRegion!.center,
-                          initialZoom: activeRegion.defaultZoom,
-                          minZoom: 6.0,
-                          maxZoom: 20.0,
-                          onMapReady: () {
-                            setState(() {
-                              isMapReady = true;
-                            });
-                          },
-                          onPositionChanged: (position, hasGesture) {
-                            if (position.rotationRad != mapRotation) {
-                              setState(() {
-                                mapRotation = position.rotationRad;
-                              });
-                            }
-                          },
-                          interactionOptions: const InteractionOptions(
-                            // Use these flags to avoid a bug on quick zooming out
-                            flags:
-                                InteractiveFlag.all &
-                                ~InteractiveFlag.flingAnimation,
-                            enableMultiFingerGestureRace: true,
-                            rotationThreshold: 10.0,
-                            pinchZoomThreshold: 0.2,
-                            pinchMoveThreshold: 20.0,
-                          ),
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.symplyapps.ktel_transit',
-                            tileBuilder: isDark ? darkModeTileBuilder : null,
-                          ),
-                          if (routeTrips.isNotEmpty)
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: _getRoutePointsFromTripsList(),
-                                  color: Colors.blue,
-                                  strokeWidth: 4.0,
-                                ),
-                              ],
-                            ),
-                          // Only draw the blue dot if we have a saved location
-                          if (userLocation != null)
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: userLocation!,
-                                  width: 20,
-                                  height: 20,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(width: 3),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black38,
-                                          blurRadius: 4,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          MarkerLayer(
-                            markers: repository.stops.map((stop) {
-                              IconData iconData;
-                              Color iconColor;
-
-                              if (stop.stopId == startStop?.stopId) {
-                                iconData = Icons.my_location;
-                                iconColor = Colors.green;
-                              } else if (stop.stopId ==
-                                  destinationStop?.stopId) {
-                                iconData = Icons.place;
-                                iconColor = Colors.red;
-                              } else if (stop.stopId ==
-                                  activeTransferStop?.stopId) {
-                                iconData = Icons.transfer_within_a_station;
-                                iconColor = Colors.orange.shade800;
-                              } else {
-                                iconData = Icons.directions_bus;
-                                iconColor = Colors.blueGrey;
-                              }
-
-                              return Marker(
-                                point: LatLng(stop.latitude, stop.longitude),
-                                width: 40,
-                                height: 40,
-                                child: GestureDetector(
-                                  onTap: () => _showDepartureBoard(stop),
-                                  child: Icon(
-                                    iconData,
-                                    color: iconColor,
-                                    size: 30,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+              children: [
+                FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    initialCenter: activeRegion!.center,
+                    initialZoom: activeRegion.defaultZoom,
+                    minZoom: 6.0,
+                    maxZoom: 20.0,
+                    onMapReady: () {
+                      setState(() {
+                        isMapReady = true;
+                      });
+                    },
+                    onPositionChanged: (position, hasGesture) {
+                      if (position.rotationRad != mapRotation) {
+                        setState(() {
+                          mapRotation = position.rotationRad;
+                        });
+                      }
+                    },
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.all &
+                      ~InteractiveFlag.flingAnimation,
+                      enableMultiFingerGestureRace: true,
+                      rotationThreshold: 10.0,
+                      pinchZoomThreshold: 0.2,
+                      pinchMoveThreshold: 20.0,
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.symplyapps.ktel_transit',
+                      tileBuilder: isDark ? darkModeTileBuilder : null,
+                    ),
+                    if (routeTrips.isNotEmpty)
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: _getRoutePointsFromTripsList(),
+                            color: Colors.blue,
+                            strokeWidth: 4.0,
                           ),
                         ],
                       ),
-
-                      // Search bar to enter start and destination stops
-                      Positioned(
-                        top: MediaQuery.of(context).padding.top + 16,
-                        left: 16,
-                        right: 16,
-                        child: TripSearchBar(
-                          startStop: startStop,
-                          destinationStop: destinationStop,
-                          onMenuPressed: () {
-                            FocusScope.of(context).unfocus();
-                            _scaffoldKey.currentState?.openDrawer();
-                          },
-                          onBackPressed: _onBackPressed,
-                          onSwap: () {
-                            setState(() {
-                              final temp = startStop;
-                              startStop = destinationStop;
-                              destinationStop = temp;
-                              selectedTripIndex = null;
-                              routeTrips.clear();
-                            });
-                          },
-                          onSearch: (isStart) =>
-                              _searchAndSetStop(isStart: isStart),
-                        ),
-                      ),
-
-                      // Compass icon to make map look north
-                      Positioned(
-                        top:
-                            MediaQuery.of(context).padding.top +
-                            (startStop == null && destinationStop == null
-                                ? 120
-                                : 160),
-                        right: 16,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: Transform.rotate(
-                              angle: mapRotation,
-                              child: Image.asset(
-                                'assets/icons/compass.png',
-                                width: 26,
-                                height: 26,
+                    if (userLocation != null)
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: userLocation!,
+                            width: 20,
+                            height: 20,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                                border: Border.all(width: 3),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black38,
+                                    blurRadius: 4,
+                                  ),
+                                ],
                               ),
                             ),
-                            tooltip: "Επαναφορά προσανατολισμού",
-                            onPressed: () {
-                              // reset the map rotation back to 0 degrees (north up)
-                              setState(() {
-                                mapRotation = 0;
-                              });
-                              mapController.rotate(0);
-                            },
                           ),
+                        ],
+                      ),
+                    MarkerLayer(
+                      markers: repository.stops.map((stop) {
+                        IconData iconData;
+                        Color iconColor;
+
+                        if (stop.stopId == startStop?.stopId) {
+                          iconData = Icons.my_location;
+                          iconColor = Colors.green;
+                        } else if (stop.stopId ==
+                            destinationStop?.stopId) {
+                          iconData = Icons.place;
+                          iconColor = Colors.red;
+                        } else if (stop.stopId ==
+                            activeTransferStop?.stopId) {
+                          iconData = Icons.transfer_within_a_station;
+                          iconColor = Colors.orange.shade800;
+                        } else {
+                          iconData = Icons.directions_bus;
+                          iconColor = Colors.blueGrey;
+                        }
+
+                        return Marker(
+                          point: LatLng(stop.latitude, stop.longitude),
+                          width: 40,
+                          height: 40,
+                          child: GestureDetector(
+                            onTap: () => _showDepartureBoard(stop),
+                            child: Icon(
+                              iconData,
+                              color: iconColor,
+                              size: 30,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 16,
+                  left: 16,
+                  right: 16,
+                  child: TripSearchBar(
+                    startStop: startStop,
+                    destinationStop: destinationStop,
+                    onMenuPressed: () {
+                      FocusScope.of(context).unfocus();
+                      _scaffoldKey.currentState?.openDrawer();
+                    },
+                    onBackPressed: _onBackPressed,
+                    onSwap: () {
+                      setState(() {
+                        final temp = startStop;
+                        startStop = destinationStop;
+                        destinationStop = temp;
+                        selectedTripIndex = null;
+                        routeTrips.clear();
+                      });
+                    },
+                    onSearch: (isStart) =>
+                        _searchAndSetStop(isStart: isStart),
+                  ),
+                ),
+
+                Positioned(
+                  top: MediaQuery.of(context).padding.top +
+                      (startStop == null && destinationStop == null
+                          ? 120
+                          : 160),
+                  right: 16,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      shape: BoxShape.circle,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Transform.rotate(
+                        angle: mapRotation,
+                        child: Image.asset(
+                          'assets/icons/compass.png',
+                          width: 26,
+                          height: 26,
                         ),
                       ),
-                      // Bottom sheet for trip info
-                      // we use a draggable scrollable sheet so the user can freely swipe the bottom panel
-                      // up and down to see the map or the routes without being locked in a fixed size container
-                      if (startStop != null && destinationStop != null)
-                        TripInfoSheet(
-                          controller: _sheetController,
-                          startStop: startStop!,
-                          destinationStop: destinationStop!,
-                          trips: trips,
-                          selectedTripIndex: selectedTripIndex,
-                          selectedSearchTime: selectedSearchTime,
-                          allStops: repository.stops,
-                          onBackToAllTrips: () {
-                            setState(() {
-                              selectedTripIndex = null;
-                              routeTrips.clear();
-                            });
-                          },
-                          onClose: () {
-                            setState(() {
-                              startStop = null;
-                              destinationStop = null;
-                              lastChosenStopIsStart = null;
-                              routeTrips.clear();
-                              selectedSearchTime = DateTime.now();
-                              selectedTripIndex = null;
-                            });
-                          },
-                          onChangeTime: _pickDateTime,
-                          onTripSelected: (index, trip) {
-                            setState(() {
-                              selectedTripIndex = index;
-                            });
-                            _fetchRouteForSelectedTrip(trip);
-                          },
-                        ),
-                    ],
-                  );
+                      tooltip: l10n.resetOrientationTooltip,
+                      onPressed: () {
+                        setState(() {
+                          mapRotation = 0;
+                        });
+                        mapController.rotate(0);
+                      },
+                    ),
+                  ),
+                ),
+
+                if (startStop != null && destinationStop != null)
+                  TripInfoSheet(
+                    controller: _sheetController,
+                    startStop: startStop!,
+                    destinationStop: destinationStop!,
+                    trips: trips,
+                    selectedTripIndex: selectedTripIndex,
+                    selectedSearchTime: selectedSearchTime,
+                    allStops: repository.stops,
+                    onBackToAllTrips: () {
+                      setState(() {
+                        selectedTripIndex = null;
+                        routeTrips.clear();
+                      });
+                    },
+                    onClose: () {
+                      setState(() {
+                        startStop = null;
+                        destinationStop = null;
+                        lastChosenStopIsStart = null;
+                        routeTrips.clear();
+                        selectedSearchTime = DateTime.now();
+                        selectedTripIndex = null;
+                      });
+                    },
+                    onChangeTime: _pickDateTime,
+                    onTripSelected: (index, trip) {
+                      setState(() {
+                        selectedTripIndex = index;
+                      });
+                      _fetchRouteForSelectedTrip(trip);
+                    },
+                  ),
+              ],
+            );
           },
         ),
-        // locate me button
         floatingActionButton: startStop == null || destinationStop == null
             ? FloatingActionButton(
-                onPressed: _goToMyLocation,
-                backgroundColor: colorScheme.surface,
-                child: const Icon(Icons.my_location, color: Colors.blue),
-              )
+          onPressed: _goToMyLocation,
+          backgroundColor: colorScheme.surface,
+          child: const Icon(Icons.my_location, color: Colors.blue),
+        )
             : null,
       ),
     );

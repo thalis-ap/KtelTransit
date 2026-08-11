@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 
 class TripSearchBar extends StatelessWidget {
@@ -21,6 +22,7 @@ class TripSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -60,7 +62,7 @@ class TripSearchBar extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  "Αναζήτηση προορισμού...",
+                  l10n.searchDestinationHint,
                   style: TextStyle(
                     color: theme.hintColor,
                     fontSize: 16,
@@ -86,7 +88,7 @@ class TripSearchBar extends StatelessWidget {
           const SizedBox(width: 4),
           Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min, // Prevents layout errors
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 8),
                 InkWell(
@@ -101,7 +103,7 @@ class TripSearchBar extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          startStop?.name ?? "Επιλέξτε αφετηρία...",
+                          startStop?.name ?? l10n.selectStartHint,
                           style: TextStyle(
                             fontSize: 18,
                             color: startStop != null
@@ -130,7 +132,8 @@ class TripSearchBar extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          destinationStop?.name ?? "Επιλέξτε προορισμό...",
+                          destinationStop?.name ??
+                              l10n.selectDestinationHint,
                           style: TextStyle(
                             fontSize: 18,
                             color: destinationStop != null
@@ -156,7 +159,7 @@ class TripSearchBar extends StatelessWidget {
               Icons.swap_vert,
               color: colorScheme.primary,
             ),
-            tooltip: "Αλλαγή κατεύθυνσης",
+            tooltip: l10n.swapDirectionTooltip,
             onPressed: onSwap,
           ),
         ],

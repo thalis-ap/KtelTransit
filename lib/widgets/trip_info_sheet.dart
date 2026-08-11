@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import '../models/osrm_trip.dart';
 import '../utilities/time_format.dart';
@@ -13,7 +14,6 @@ class TripInfoSheet extends StatelessWidget {
   final List<Stop> allStops;
   final DraggableScrollableController controller;
 
-  // Callbacks to interact with the HomeScreen state
   final VoidCallback onBackToAllTrips;
   final VoidCallback onClose;
   final VoidCallback onChangeTime;
@@ -31,11 +31,14 @@ class TripInfoSheet extends StatelessWidget {
     required this.onClose,
     required this.onChangeTime,
     required this.onTripSelected,
-    required this.controller
+    required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return DraggableScrollableSheet(
       controller: controller,
       initialChildSize: 0.45,
@@ -51,10 +54,10 @@ class TripInfoSheet extends StatelessWidget {
             right: 24.0,
             bottom: 16.0,
           ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: [
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF232428) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: const [
               BoxShadow(color: Colors.black26, blurRadius: 15, spreadRadius: 2),
             ],
           ),
@@ -67,14 +70,13 @@ class TripInfoSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Gray bar-handle for the scrollable bottom sheet
                   Center(
                     child: Container(
                       width: 48,
-                      height: 6,
+                      height: 5,
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade400,
+                        color: isDark ? Colors.white24 : Colors.grey.shade400,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -90,9 +92,9 @@ class TripInfoSheet extends StatelessWidget {
                             TextButton.icon(
                               onPressed: onBackToAllTrips,
                               icon: const Icon(Icons.arrow_back, size: 20),
-                              label: const Text(
-                                "Όλα τα δρομολόγια",
-                                style: TextStyle(
+                              label: Text(
+                                l10n.allTrips,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -108,11 +110,16 @@ class TripInfoSheet extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
+                            color: isDark
+                                ? Colors.blue.shade900.withValues(alpha: 0.2)
+                                : Colors.blue.shade50,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.blue.shade200),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.blue.shade700.withValues(alpha: 0.4)
+                                  : Colors.blue.shade200,
+                            ),
                           ),
-                          // Trip details card for the selected trip
                           child: TripDetailsCard(
                             osrmTrip: trips![selectedTripIndex!],
                             startStop: startStop,
@@ -128,7 +135,6 @@ class TripInfoSheet extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Date time picker widget
                         TimeSelectionBar(
                           selectedSearchTime: selectedSearchTime,
                           onChangeTime: onChangeTime,
@@ -136,152 +142,156 @@ class TripInfoSheet extends StatelessWidget {
                         const SizedBox(height: 16),
                         trips != null
                             ? Builder(
-                                builder: (context) {
-                                  final foundDate =
-                                      trips!.first.originDepartureDateTime;
-                                  final dateChanged =
-                                      foundDate.year !=
-                                          selectedSearchTime.year ||
-                                      foundDate.month !=
-                                          selectedSearchTime.month ||
-                                      foundDate.day != selectedSearchTime.day;
-                                  final now = DateTime.now();
-                                  final isToday =
-                                      foundDate.year == now.year &&
-                                      foundDate.month == now.month &&
-                                      foundDate.day == now.day;
-                                  final displayDate = isToday
-                                      ? "Σήμερα"
-                                      : "${foundDate.day.toString().padLeft(2, '0')}/${foundDate.month.toString().padLeft(2, '0')}/${foundDate.year}";
-                                  // All trips' detail cards
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      if (dateChanged) ...[
-                                        TripWarningBanner(
-                                          message:
-                                              "Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.",
-                                          icon: Icons.warning_rounded,
-                                        ),
-                                      ],
-                                      Text(
-                                        "Δρομολόγια για: $displayDate",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue.shade800,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.shade50,
-                                          borderRadius: BorderRadius.circular(
-                                            16,
+                          builder: (context) {
+                            final foundDate =
+                                trips!.first.originDepartureDateTime;
+                            final dateChanged =
+                                foundDate.year !=
+                                    selectedSearchTime.year ||
+                                    foundDate.month !=
+                                        selectedSearchTime.month ||
+                                    foundDate.day != selectedSearchTime.day;
+                            final now = DateTime.now();
+                            final isToday =
+                                foundDate.year == now.year &&
+                                    foundDate.month == now.month &&
+                                    foundDate.day == now.day;
+                            final displayDate = isToday
+                                ? l10n.today
+                                : "${foundDate.day.toString().padLeft(2, '0')}/${foundDate.month.toString().padLeft(2, '0')}/${foundDate.year}";
+
+                            return Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                if (dateChanged) ...[
+                                  TripWarningBanner(
+                                    message: l10n.noTripsForDateShowingNext,
+                                    icon: Icons.warning_rounded,
+                                  ),
+                                ],
+                                Text(
+                                  l10n.tripsForDate(displayDate),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue.shade800,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.blue.shade900.withValues(alpha: 0.2)
+                                        : Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(
+                                      16,
+                                    ),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? Colors.blue.shade800.withValues(alpha: 0.3)
+                                          : Colors.blue.shade100,
+                                    ),
+                                  ),
+                                  child: ListView.separated(
+                                    shrinkWrap: true,
+                                    physics:
+                                    const NeverScrollableScrollPhysics(),
+                                    padding: const EdgeInsets.all(12),
+                                    itemCount: trips!.length,
+                                    separatorBuilder: (context, index) =>
+                                    const Divider(height: 24),
+                                    itemBuilder: (context, index) {
+                                      final trip = trips![index];
+                                      bool isPast = false;
+                                      if (isToday) {
+                                        if (trip.startDepartureDateTime
+                                            .isBefore(now)) {
+                                          isPast = true;
+                                        }
+                                      }
+                                      return Opacity(
+                                        opacity: isPast ? 0.5 : 1.0,
+                                        child: InkWell(
+                                          onTap: isPast
+                                              ? null
+                                              : () => onTripSelected(
+                                            index,
+                                            trip,
                                           ),
-                                          border: Border.all(
-                                            color: Colors.blue.shade100,
-                                          ),
-                                        ),
-                                        child: ListView.separated(
-                                          shrinkWrap: true,
-                                          physics:
-                                              const NeverScrollableScrollPhysics(),
-                                          padding: const EdgeInsets.all(12),
-                                          itemCount: trips!.length,
-                                          separatorBuilder: (context, index) =>
-                                              const Divider(height: 24),
-                                          itemBuilder: (context, index) {
-                                            final trip = trips![index];
-                                            bool isPast = false;
-                                            if (isToday) {
-                                              if (trip.startDepartureDateTime
-                                                  .isBefore(now)) {
-                                                isPast = true;
-                                              }
-                                            }
-                                            return Opacity(
-                                              opacity: isPast ? 0.5 : 1.0,
-                                              child: InkWell(
-                                                onTap: isPast
-                                                    ? null
-                                                    : () => onTripSelected(
-                                                        index,
-                                                        trip,
-                                                      ),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(
-                                                    8,
-                                                  ),
-                                                  child: Stack(
-                                                    children: [
-                                                      TripDetailsCard(
-                                                        osrmTrip: trip,
-                                                        startStop: startStop,
-                                                        destinationStop:
-                                                            destinationStop,
-                                                        allStops: allStops,
-                                                        extra: false,
-                                                      ),
-                                                      if (isPast)
-                                                        Positioned(
-                                                          top: 0,
-                                                          right: 0,
-                                                          child: Container(
-                                                            padding:
-                                                                const EdgeInsets.symmetric(
-                                                                  horizontal: 6,
-                                                                  vertical: 2,
-                                                                ),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors
-                                                                  .red
-                                                                  .shade100,
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    4,
-                                                                  ),
-                                                              border: Border.all(
-                                                                color: Colors
-                                                                    .red
-                                                                    .shade300,
-                                                              ),
-                                                            ),
-                                                            child: Text(
-                                                              "Αναχώρησε",
-                                                              style: TextStyle(
-                                                                fontSize: 10,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Colors
-                                                                    .red
-                                                                    .shade800,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
+                                          borderRadius:
+                                          BorderRadius.circular(12),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(
+                                              8,
+                                            ),
+                                            child: Stack(
+                                              children: [
+                                                TripDetailsCard(
+                                                  osrmTrip: trip,
+                                                  startStop: startStop,
+                                                  destinationStop:
+                                                  destinationStop,
+                                                  allStops: allStops,
+                                                  extra: false,
                                                 ),
-                                              ),
-                                            );
-                                          },
+                                                if (isPast)
+                                                  Positioned(
+                                                    top: 0,
+                                                    right: 0,
+                                                    child: Container(
+                                                      padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors
+                                                            .red
+                                                            .shade100,
+                                                        borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                        border: Border.all(
+                                                          color: Colors
+                                                              .red
+                                                              .shade300,
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        l10n.departed,
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                          FontWeight
+                                                              .bold,
+                                                          color: Colors
+                                                              .red
+                                                              .shade800,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              )
-                            : const TripWarningBanner(
-                                message:
-                                    "Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.",
-                                icon: Icons.warning_rounded,
-                                isCompact: false,
-                              ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        )
+                            : TripWarningBanner(
+                          message: l10n.noTripsForRoute,
+                          icon: Icons.warning_rounded,
+                          isCompact: false,
+                        ),
                       ],
                     ),
                 ],
@@ -310,7 +320,6 @@ class TripDetailsCard extends StatelessWidget {
     this.extra = false,
   });
 
-  /// DRAFT function to estimate the fare between 2 stops
   double _estimateFare(Stop start, Stop dest) {
     final distanceCalc = const Distance();
     final meters = distanceCalc(
@@ -327,8 +336,6 @@ class TripDetailsCard extends StatelessWidget {
     return (calculatedPrice * 10).round() / 10.0;
   }
 
-  /// Returns a string formatted version of the estimated fare (double?)
-  /// It also handles null values by returning -€
   String _estimatedFareAsString(double? estimatedFare) {
     return estimatedFare == null
         ? "-€"
@@ -336,6 +343,7 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildFareAnalysis({
+    required AppLocalizations l10n,
     required double totalFare,
     required String leg1Text,
     required double leg1Fare,
@@ -350,7 +358,7 @@ class TripDetailsCard extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  "Ανάλυση κόστους",
+                  l10n.costBreakdown,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -427,7 +435,7 @@ class TripDetailsCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Συνολικό κόστος εισιτηρίων"),
+                Text(l10n.totalTicketCost),
                 Row(
                   children: [
                     Icon(
@@ -454,9 +462,10 @@ class TripDetailsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTransferTrip(String totalStr) {
+  Widget _buildTransferTrip(BuildContext context, String totalStr) {
+    final l10n = AppLocalizations.of(context)!;
     final Stop localTransferStop = allStops.firstWhere(
-      (s) => s.name == osrmTrip.transferStopName,
+          (s) => s.name == osrmTrip.transferStopName,
     );
 
     double fare1 = _estimateFare(startStop, localTransferStop);
@@ -470,7 +479,7 @@ class TripDetailsCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "ΜΕΤΕΠΙΒΙΒΑΣΗ",
+              l10n.transfer,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -524,7 +533,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                "Αναχώρηση από ${startStop.name}:",
+                l10n.departureFrom(startStop.name),
                 style: TextStyle(color: Colors.grey.shade900, fontSize: 14),
               ),
             ),
@@ -543,7 +552,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                "Άφιξη σε ${osrmTrip.transferStopName}:",
+                l10n.arrivalAt(osrmTrip.transferStopName ?? ''),
                 style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
               ),
             ),
@@ -566,7 +575,13 @@ class TripDetailsCard extends StatelessWidget {
               Icon(Icons.schedule, size: 14, color: Colors.grey.shade600),
               const SizedBox(width: 8),
               Text(
-                "Αναμονή: ${TimeFormat.waitTimeToFormattedString(osrmTrip.transferDepartureDateTime!, osrmTrip.transferArrivalDateTime!)}",
+                l10n.waitingTime(
+                  TimeFormat.waitTimeToFormattedString(
+                    osrmTrip.transferDepartureDateTime!,
+                    osrmTrip.transferArrivalDateTime!,
+                    l10n,
+                  ),
+                ),
                 style: TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -583,7 +598,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                "Αναχώρηση από ${osrmTrip.transferStopName}:",
+                l10n.departureFrom(osrmTrip.transferStopName ?? ''),
                 style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
               ),
             ),
@@ -606,7 +621,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                "Εκτιμώμενη άφιξη σε ${destinationStop.name}:",
+                l10n.estimatedArrivalAt(destinationStop.name),
                 style: TextStyle(color: Colors.grey.shade900, fontSize: 14),
               ),
             ),
@@ -620,19 +635,21 @@ class TripDetailsCard extends StatelessWidget {
         ),
         if (extra)
           _buildFareAnalysis(
+            l10n: l10n,
             totalFare: estimatedFare,
             leg1Text:
-                "1. ${osrmTrip.originStopName} - ${osrmTrip.transferStopName}",
+            "1. ${osrmTrip.originStopName} - ${osrmTrip.transferStopName}",
             leg1Fare: fare1,
             leg2Text:
-                "2. ${osrmTrip.transferStopName} - ${osrmTrip.destinationStopName}",
+            "2. ${osrmTrip.transferStopName} - ${osrmTrip.destinationStopName}",
             leg2Fare: fare2,
           ),
       ],
     );
   }
 
-  Widget _buildDirectTrip(String totalStr) {
+  Widget _buildDirectTrip(BuildContext context, String totalStr) {
+    final l10n = AppLocalizations.of(context)!;
     double estimatedFare = _estimateFare(startStop, destinationStop);
 
     return Column(
@@ -690,7 +707,7 @@ class TripDetailsCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  "Αναχώρηση από ${osrmTrip.originStopName}:",
+                  l10n.departureFrom(osrmTrip.originStopName),
                   style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
                 ),
               ),
@@ -715,8 +732,8 @@ class TripDetailsCard extends StatelessWidget {
             Expanded(
               child: Text(
                 osrmTrip.isStartAlsoOrigin
-                    ? "Αναχώρηση από ${startStop.name}:"
-                    : "Εκτιμώμενη άφιξη σε ${startStop.name}:",
+                    ? l10n.departureFrom(startStop.name)
+                    : l10n.estimatedArrivalAt(startStop.name),
                 style: TextStyle(color: Colors.grey.shade900, fontSize: 14),
               ),
             ),
@@ -735,7 +752,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                "Εκτιμώμενη άφιξη σε ${destinationStop.name}:",
+                l10n.estimatedArrivalAt(destinationStop.name),
                 style: TextStyle(color: Colors.grey.shade900, fontSize: 14),
               ),
             ),
@@ -749,28 +766,27 @@ class TripDetailsCard extends StatelessWidget {
         ),
         if (extra)
           _buildFareAnalysis(
+            l10n: l10n,
             totalFare: estimatedFare,
             leg1Text:
-                "${osrmTrip.originStopName} - ${osrmTrip.destinationStopName}",
+            "${osrmTrip.originStopName} - ${osrmTrip.destinationStopName}",
             leg1Fare: estimatedFare,
           ),
       ],
     );
   }
 
-  /// Returns a widget that contains a single trip's details
-  /// If extra flag is true, then additional info such as ticket analysis
-  /// are provided
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     int totalMins = osrmTrip.estimatedDuration;
     String totalStr = totalMins >= 60
-        ? "${totalMins ~/ 60}ω ${totalMins % 60}λ"
-        : "$totalMinsλ";
+        ? l10n.hoursMinutesFormat(totalMins ~/ 60, totalMins % 60)
+        : l10n.minutesFormat(totalMins);
 
     return osrmTrip.isTransfer
-        ? _buildTransferTrip(totalStr)
-        : _buildDirectTrip(totalStr);
+        ? _buildTransferTrip(context, totalStr)
+        : _buildDirectTrip(context, totalStr);
   }
 }
 
@@ -786,10 +802,16 @@ class TimeSelectionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final formattedTime =
+        "${selectedSearchTime.day.toString().padLeft(2, '0')}/${selectedSearchTime.month.toString().padLeft(2, '0')} - ${selectedSearchTime.hour.toString().padLeft(2, '0')}:${selectedSearchTime.minute.toString().padLeft(2, '0')}";
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: isDark ? Colors.white10 : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -798,20 +820,26 @@ class TimeSelectionBar extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              "Αναχώρηση: ${selectedSearchTime.day.toString().padLeft(2, '0')}/${selectedSearchTime.month.toString().padLeft(2, '0')} - ${selectedSearchTime.hour.toString().padLeft(2, '0')}:${selectedSearchTime.minute.toString().padLeft(2, '0')}",
+              l10n.departureLabel(formattedTime),
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           TextButton(
             onPressed: onChangeTime,
             style: TextButton.styleFrom(
-              backgroundColor: Colors.blue.shade50,
+              backgroundColor: isDark
+                  ? Colors.blue.shade900.withValues(alpha: 0.3)
+                  : Colors.blue.shade50,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               minimumSize: const Size(0, 32),
             ),
-            child: const Text(
-              "ΑΛΛΑΓΗ",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            child: Text(
+              l10n.changeButton,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+              ),
             ),
           ),
         ],
@@ -840,7 +868,9 @@ class TripWarningBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.red.shade100,
         borderRadius: BorderRadius.circular(isCompact ? 12.0 : 20.0),
-        border: isCompact ? Border.all(width: 2.0, color: Colors.red.shade400) : null,
+        border: isCompact
+            ? Border.all(width: 2.0, color: Colors.red.shade400)
+            : null,
       ),
       child: Row(
         children: [
