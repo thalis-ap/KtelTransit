@@ -5,6 +5,7 @@ import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/screens/welcome_screen.dart';
 import 'package:ktel_transit/services/settings_controller.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
+import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -20,7 +21,7 @@ void main() async {
 
 Future<bool> checkSavedRegion() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString("saved_region_id") != null;
+  return prefs.getString(RegionUtils.savedRegionIdKey) != null;
 }
 
 class MyApp extends StatelessWidget {

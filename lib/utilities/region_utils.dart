@@ -4,6 +4,8 @@ import '../delegates/region_search_delegate.dart';
 import '../repositories/gtfs_repository.dart';
 
 class RegionUtils {
+  static const String savedRegionIdKey = "saved_region_id";
+
   static Future<void> promptRegionChange(BuildContext context, GtfsRepository repository, List<Region> availableRegions) async {
     // Capture the Scaffold and Navigator states BEFORE opening the search sheet
     final scaffold = Scaffold.maybeOf(context);
