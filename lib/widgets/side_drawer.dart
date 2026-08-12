@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
 import '../screens/routes_screen.dart';
@@ -36,8 +37,8 @@ class SideDrawer extends StatelessWidget {
                 Expanded(
                   child: Image.asset(
                     isDark
-                        ? "assets/icons/appicon_dark.png"
-                        : "assets/icons/appicon.png",
+                        ? AppTheme.darkAppIconPath
+                        : AppTheme.appIconPath,
                   ),
                 ),
               ],
