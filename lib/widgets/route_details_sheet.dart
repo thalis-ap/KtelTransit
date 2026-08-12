@@ -29,9 +29,7 @@ class RouteDetailsSheet extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: deps.length,
-      separatorBuilder: (context, index) => Divider(
-        color: isDark ? Colors.white12 : Colors.grey.shade200,
-      ),
+      separatorBuilder: (context, index) => Divider(thickness: 2,),
       itemBuilder: (context, index) {
         final Departure dep = deps[index];
         final String mainTime =
@@ -102,7 +100,6 @@ class RouteDetailsSheet extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final now = DateTime.now();
     final List<Departure> todayDepartures =
@@ -157,12 +154,11 @@ class RouteDetailsSheet extends StatelessWidget {
                 bottom: 24.0,
               ),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF232428) : Colors.white,
+                color: colorScheme.surface,
                 borderRadius:
                 const BorderRadius.vertical(top: Radius.circular(28)),
                 boxShadow: const [
                   BoxShadow(
-                    color: Colors.black38,
                     blurRadius: 16,
                     spreadRadius: 2,
                   ),
@@ -180,9 +176,7 @@ class RouteDetailsSheet extends StatelessWidget {
                         height: 5,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white24
-                              : Colors.grey.shade400,
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -207,12 +201,8 @@ class RouteDetailsSheet extends StatelessWidget {
                             icon: const Icon(Icons.my_location, size: 20),
                             label: Text(l10n.originLabel),
                             style: FilledButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? Colors.green.shade900.withValues(alpha: 0.35)
-                                  : Colors.green.shade50,
-                              foregroundColor: isDark
-                                  ? Colors.green.shade300
-                                  : Colors.green.shade700,
+                              backgroundColor: colorScheme.secondary.withAlpha(50),
+                              foregroundColor: colorScheme.secondary,
                             ),
                           ),
                         ),
@@ -226,12 +216,8 @@ class RouteDetailsSheet extends StatelessWidget {
                             icon: const Icon(Icons.place, size: 20),
                             label: Text(l10n.destinationLabel),
                             style: FilledButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? Colors.blue.shade900.withValues(alpha: 0.35)
-                                  : Colors.blue.shade50,
-                              foregroundColor: isDark
-                                  ? Colors.blue.shade300
-                                  : Colors.blue.shade700,
+                              backgroundColor: colorScheme.primary.withAlpha(50),
+                              foregroundColor: colorScheme.primary,
                             ),
                           ),
                         ),

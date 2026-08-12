@@ -4,7 +4,7 @@ class CustomSnackBar {
   static void show(
       BuildContext context, {
         required String message,
-        Color color = Colors.blue,
+        required Color color,
         Duration duration = const Duration(seconds: 3),
       }) {
     final overlay = Overlay.of(context);
@@ -48,7 +48,6 @@ class CustomSnackBar {
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: const [
                       BoxShadow(
-                        color: Colors.black26,
                         blurRadius: 10,
                         offset: Offset(0, 4),
                       ),
@@ -57,7 +56,9 @@ class CustomSnackBar {
                   child: Text(
                     message,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
+                      // only exception with colors (not using colorScheme)
+                      // since we don't know the bg color of the snackbar
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w500,

@@ -34,14 +34,6 @@ class TripSearchBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            spreadRadius: 1,
-            offset: Offset(0, 4),
-          ),
-        ],
       ),
       child: (startStop == null && destinationStop == null)
       // 0 stops selected
@@ -95,9 +87,9 @@ class TripSearchBar extends StatelessWidget {
                   onTap: () => onSearch(true),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.my_location,
-                        color: Colors.green,
+                        color: colorScheme.secondary,
                         size: 18,
                       ),
                       const SizedBox(width: 12),
@@ -124,9 +116,9 @@ class TripSearchBar extends StatelessWidget {
                   onTap: () => onSearch(false),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.place,
-                        color: Colors.red,
+                        color: colorScheme.error,
                         size: 18,
                       ),
                       const SizedBox(width: 12),

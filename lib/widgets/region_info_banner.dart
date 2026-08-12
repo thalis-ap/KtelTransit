@@ -25,10 +25,7 @@ class RegionInfoBanner extends StatelessWidget {
       color: colorScheme.secondaryContainer,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: colorScheme.secondary.withAlpha(50),
-          width: 1,
-        ),
+
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -39,7 +36,7 @@ class RegionInfoBanner extends StatelessWidget {
             children: [
               Icon(
                 Icons.map,
-                color: colorScheme.secondary,
+                color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -65,7 +62,7 @@ class RegionInfoBanner extends StatelessWidget {
                     Text(
                       l10n.tapToChange,
                       style: TextStyle(
-                        color: colorScheme.secondary,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -75,7 +72,7 @@ class RegionInfoBanner extends StatelessWidget {
               ),
               Icon(
                 Icons.swap_horiz,
-                color: colorScheme.secondary,
+                color: colorScheme.onSurfaceVariant,
               ),
             ],
           ),

@@ -30,15 +30,10 @@ class SideDrawer extends StatelessWidget {
           DrawerHeader(
             child: Column(
               children: [
-                Text(
-                  l10n.appTitle,
-                  style: const TextStyle(fontSize: 24),
-                ),
+                Text(l10n.appTitle, style: const TextStyle(fontSize: 24)),
                 Expanded(
                   child: Image.asset(
-                    isDark
-                        ? AppTheme.darkAppIconPath
-                        : AppTheme.appIconPath,
+                    isDark ? AppTheme.darkAppIconPath : AppTheme.appIconPath,
                   ),
                 ),
               ],
@@ -54,13 +49,11 @@ class SideDrawer extends StatelessWidget {
                 title: Text(l10n.region),
                 subtitle: Text(currentRegion?.name ?? l10n.notChosen),
                 trailing: const Icon(Icons.search),
-                onTap: () {
-                  RegionUtils.promptRegionChange(
-                    context,
-                    repository,
-                    availableRegions,
-                  );
-                },
+                onTap: () => RegionUtils.promptRegionChange(
+                  context,
+                  repository,
+                  availableRegions,
+                ),
               );
             },
           ),
@@ -105,9 +98,8 @@ class SideDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SettingsScreen(
-                    settingsController: settingsController,
-                  ),
+                  builder: (context) =>
+                      SettingsScreen(settingsController: settingsController),
                 ),
               );
             },

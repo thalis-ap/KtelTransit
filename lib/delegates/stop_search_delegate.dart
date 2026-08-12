@@ -36,7 +36,7 @@ class StopSearchDelegate extends BaseSearchDelegate<Stop> {
               ? Center(
             child: Text(
               l10n.noStopFound,
-              style: const TextStyle(color: Colors.grey),
+              style: const TextStyle(fontSize: 20,),
             ),
           )
               : ListView.builder(
@@ -44,7 +44,7 @@ class StopSearchDelegate extends BaseSearchDelegate<Stop> {
             itemBuilder: (context, index) {
               final stop = suggestions[index];
               return ListTile(
-                leading: const Icon(Icons.place, color: Colors.blueGrey),
+                leading: Icon(Icons.place, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 title: Text(
                   stop.name,
                   style: const TextStyle(fontWeight: FontWeight.w500),

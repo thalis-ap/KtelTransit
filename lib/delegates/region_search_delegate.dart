@@ -15,6 +15,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
 
   Widget _buildSuggestionsList(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final normalizedSearch = normalizeGreek(query);
 
     final suggestions = regions.where((region) {
@@ -26,7 +27,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
       return Center(
         child: Text(
           l10n.noRegionFound,
-          style: const TextStyle(color: Colors.grey),
+          style: const TextStyle(fontSize: 20),
         ),
       );
     }
@@ -37,7 +38,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
         final region = suggestions[index];
         final isSelected = region.id == currentRegion?.id;
         return ListTile(
-          leading: const Icon(Icons.map_outlined, color: Colors.blueGrey),
+          leading: const Icon(Icons.map_outlined),
           title: Text(
             region.name,
             style: TextStyle(
@@ -45,7 +46,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
             ),
           ),
           trailing: isSelected
-              ? const Icon(Icons.check, color: Colors.blue)
+              ? Icon(Icons.check, color: colorScheme.primary)
               : null,
           onTap: () => close(context, region),
         );

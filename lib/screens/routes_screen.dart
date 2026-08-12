@@ -37,9 +37,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
       String title,
       List<Trip> trips,
       ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (trips.isEmpty) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final Map<String, List<String>> groupedTimes = {};
 
     for (final trip in trips) {
@@ -90,7 +91,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                     entry.key,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -104,20 +105,13 @@ class _RoutesScreenState extends State<RoutesScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.blue.shade900.withValues(alpha: 0.25)
-                              : Colors.blue.shade50,
+                          color: colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.blue.shade700.withValues(alpha: 0.4)
-                                : Colors.blue.shade200,
-                          ),
                         ),
                         child: Text(
                           time,
                           style: TextStyle(
-                            color: isDark ? Colors.blue.shade200 : Colors.blue.shade900,
+                            color: colorScheme.primary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
