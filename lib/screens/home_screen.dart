@@ -6,6 +6,7 @@ import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/route_details_sheet.dart';
 import 'package:ktel_transit/widgets/side_drawer.dart';
@@ -79,7 +80,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _loadUserLocation() async {
-    if (!await _handleLocationPermissions()) return;
+    // Fails quietly when the app first opens
+    if (!await _handleLocationPermissions(showDialogs: false)) return;
 
     final lastPosition = await Geolocator.getLastKnownPosition();
     if (lastPosition != null && mounted) {
@@ -102,17 +104,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (_) {}
   }
 
-  Future<bool> _handleLocationPermissions() async {
+  Future<bool> _handleLocationPermissions({bool showDialogs = false}) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return false;
+    if (!serviceEnabled) {
+      if (showDialogs && mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        await _showLocationErrorDialog(
+          l10n.locationDisabledTitle,
+          l10n.locationDisabledMessage,
+          Geolocator.openLocationSettings,
+        );
+      }
+      return false;
+    }
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.denied) {
         return false;
       }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (showDialogs && mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        await _showLocationErrorDialog(
+          l10n.locationDeniedTitle,
+          l10n.locationDeniedMessage,
+          Geolocator.openAppSettings,
+        );
+      }
+      return false;
     }
     return true;
   }
@@ -322,7 +345,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _goToMyLocation() async {
-    if (!await _handleLocationPermissions()) return;
+    // Shows the dialog if location is disabled/denied when the user clicks the button
+    if (!await _handleLocationPermissions(showDialogs: true)) return;
 
     if (userLocation != null) {
       _animatedMapMove(userLocation!, 15.0);
@@ -406,7 +430,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black12,
       builder: (context) => RouteDetailsSheet(
         stop: stop,
         repository: repository,
@@ -432,6 +455,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  Future<void> _showLocationErrorDialog(String title, String message, VoidCallback onSettingsPressed) async {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text(l10n.settingsButton),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onSettingsPressed();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _showExitDialog() async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -449,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
               child: Text(l10n.exit),
               onPressed: () {
                 SystemNavigator.pop();
@@ -507,6 +556,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       setState(() {
                         isMapReady = true;
                       });
+
                     },
                     onPositionChanged: (position, hasGesture) {
                       if (position.rotationRad != mapRotation) {
@@ -536,7 +586,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         polylines: [
                           Polyline(
                             points: _getRoutePointsFromTripsList(),
-                            color: Colors.blue,
+                            color: colorScheme.primary,
                             strokeWidth: 4.0,
                           ),
                         ],
@@ -550,12 +600,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             height: 20,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.blue,
+                                color: colorScheme.primary,
                                 shape: BoxShape.circle,
                                 border: Border.all(width: 3),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Colors.black38,
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -571,18 +620,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                         if (stop.stopId == startStop?.stopId) {
                           iconData = Icons.my_location;
-                          iconColor = Colors.green;
+                          iconColor = colorScheme.secondary;
                         } else if (stop.stopId ==
                             destinationStop?.stopId) {
                           iconData = Icons.place;
-                          iconColor = Colors.red;
+                          iconColor = colorScheme.error;
                         } else if (stop.stopId ==
                             activeTransferStop?.stopId) {
                           iconData = Icons.transfer_within_a_station;
-                          iconColor = Colors.orange.shade800;
+                          iconColor = colorScheme.tertiary;
                         } else {
                           iconData = Icons.directions_bus;
-                          iconColor = Colors.blueGrey;
+                          iconColor = colorScheme.surfaceTint;
                         }
 
                         return Marker(
@@ -650,8 +699,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: IconButton(
                       icon: Transform.rotate(
                         angle: mapRotation,
-                        child: Image.asset(
-                          'assets/icons/compass.png',
+                        child: Image.asset(AppTheme.compassIconPath,
                           width: 26,
                           height: 26,
                         ),
@@ -700,15 +748,70 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       _fetchRouteForSelectedTrip(trip);
                     },
                   ),
+
+                ValueListenableBuilder<bool>(
+                  valueListenable: repository.isRegionLoadingNotifier,
+                  builder: (context, isLoadingRegion, child) {
+                    return AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutBack,
+                      // Slides up when loading, hides below the screen when done
+                      bottom: isLoadingRegion ? 18.0 : -100.0,
+                      left: 24,
+                      right: 100,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: isLoadingRegion ? 1.0 : 0.0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: colorScheme.tertiary,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: colorScheme.onTertiary,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                l10n.loadingStops,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ],
             );
           },
         ),
         floatingActionButton: startStop == null || destinationStop == null
             ? FloatingActionButton(
+
           onPressed: _goToMyLocation,
           backgroundColor: colorScheme.surface,
-          child: const Icon(Icons.my_location, color: Colors.blue),
+          child: Icon(Icons.my_location, color: colorScheme.primary),
         )
             : null,
       ),
