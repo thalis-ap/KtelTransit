@@ -2,9 +2,9 @@
   "@@locale": "en",
   "appTitle": "Local KTEL",
   "welcomeTitle": "Welcome!",
-  "welcomeDescription": "Find all local KTEL and urban bus schedules for every region across Greece.",
-  "readyToStart": "Ready to start?",
-  "selectRegionHint": "Select your region of interest. You can change it anytime from the side drawer menu.",
+  "welcomeDescription": "Here you will find all local KTEL and urban bus schedules for every region in Greece.",
+  "readyToStart": "Ready?",
+  "selectRegionHint": "Select your region of interest. You can change it anytime from the left side drawer menu.",
   "notChosen": "Not selected",
   "letGoButton": "Let's go",
   "regionRequiredError": "You must select a region to proceed!",
@@ -63,5 +63,11 @@
   "durationHours": "{count, plural, =1{1 hour} other{{count} hours}}",
   "durationMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
   "outbound": "Outbound",
-  "returnTrip": "Return"
+  "returnTrip": "Return",
+  "loadingStops": "Loading stops...",
+  "locationDisabledTitle": "Location disabled",
+  "locationDisabledMessage": "Please enable location services on your device to see your position.",
+  "locationDeniedTitle": "Access denied",
+  "locationDeniedMessage": "Location permission is denied. Please open app settings to enable it.",
+  "settingsButton": "Settings"
 }
