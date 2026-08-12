@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  static const String appIconPath = "assets/icons/appicon.png";
+  static const String darkAppIconPath = "assets/icons/appicondark.png";
+
+  static const String compassIconPath = "assets/icons/compass.png";
+
   static const Color seedColor = Colors.blue;
 
   static final _buttonShape = RoundedRectangleBorder(
