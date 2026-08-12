@@ -29,6 +29,7 @@ class GtfsRepository {
   GtfsRepository._internal();
 
   final ValueNotifier<Region?> currentRegionNotifier = ValueNotifier(null);
+  final ValueNotifier<bool> isRegionLoadingNotifier = ValueNotifier(false);
 
   Region? get currentRegion => currentRegionNotifier.value;
 
@@ -51,20 +52,26 @@ class GtfsRepository {
     final bool didActuallyChange =
         currentRegionNotifier.value?.id != newRegion.id;
 
-    currentRegionNotifier.value = newRegion;
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('saved_region_id', newRegion.id);
 
     if (didActuallyChange) {
-      await loadData();
+      isRegionLoadingNotifier.value = true;
+      // Maybe remove this in the future, but it's very faster than 1 second
+      await Future.delayed(Duration(seconds: 1));
+      await loadData(newRegion);
+      isRegionLoadingNotifier.value = false;
     }
+
+    currentRegionNotifier.value = newRegion;
   }
 
-  Future<void> loadData() async {
-    if (currentRegion == null) return;
+  Future<void> loadData([Region? region]) async {
+    final regionToLoad = region ?? currentRegion;
 
-    String regionId = currentRegion!.id;
+    if (regionToLoad == null) return;
+
+    String regionId = regionToLoad.id;
 
     stops.clear();
     routes.clear();
