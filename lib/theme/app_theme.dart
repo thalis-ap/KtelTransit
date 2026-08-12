@@ -30,6 +30,12 @@ class AppTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.light,
+      error: Colors.red.shade400,
+      onError: Colors.white,
+      errorContainer: Colors.red.shade100,
+      primary: Colors.blue.shade700,
+      secondary: Colors.green,
+      tertiary: Colors.orange.shade800,
     );
 
     return ThemeData(
@@ -64,6 +70,14 @@ class AppTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.dark,
+      error: Colors.red.shade700,
+      onError: Colors.white,
+      errorContainer: Colors.red.shade200,
+      primary: Colors.blue.shade300,
+      secondary: Colors.green.shade400,
+      tertiary: Colors.orange.shade400,
+
+
     );
 
     return ThemeData(
