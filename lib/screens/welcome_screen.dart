@@ -3,10 +3,12 @@ import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/services/settings_controller.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final SettingsController settingsController;
@@ -21,7 +23,6 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  static const String notChosen = "Δεν έχει επιλεγεί";
   final GtfsRepository repository = GtfsRepository();
 
   Region? selectedRegion;
@@ -48,17 +49,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Future<void> _onGoPressed() async {
+    final l10n = AppLocalizations.of(context)!;
+
     if (selectedRegion == null) {
       CustomSnackBar.show(
         context,
-        message: "Πρέπει να επιλέξεις μια περιοχή για να συνεχίσεις!",
+        message: l10n.regionRequiredError,
         color: Theme.of(context).colorScheme.error,
       );
       return;
     }
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString("saved_region_id", selectedRegion!.id);
+    await prefs.setString(RegionUtils.savedRegionIdKey, selectedRegion!.id);
 
     if (!mounted) return;
 
@@ -78,13 +81,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasSelected = selectedRegion != null;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLang = widget.settingsController.locale.languageCode.toUpperCase();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Καλώς ήλθατε!"),
+        title: Text(l10n.welcomeTitle),
         centerTitle: true,
         actions: [
           // Language Switcher Menu
@@ -125,10 +129,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           child: Center(
             child: Column(
               children: [
-                const Text(
-                  "Εδώ θα βρείτε όλα τα τοπικά δρομολόγια ΚΤΕΛ και αστικών λεωφορείων για κάθε περιοχή της Ελλάδας.",
+                Text(
+                  l10n.welcomeDescription,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 30),
                 SizedBox(
@@ -136,15 +140,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   height: 200,
                   child: Image.asset(
                     isDark
-                        ? "assets/icons/appicondark.png"
-                        : "assets/icons/appicon.png",
+                        ? AppTheme.darkAppIconPath
+                        : AppTheme.appIconPath,
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Ξεκινάμε;",
+                Text(
+                  l10n.readyToStart,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -154,14 +158,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     child: CircularProgressIndicator(),
                   )
                       : RegionInfoBanner(
-                    regionName: selectedRegion?.name ?? notChosen,
+                    regionName: selectedRegion?.name ?? l10n.notChosen,
                     onChangeTap: _changeRegion,
                   ),
                 ),
-                const Padding(
+                Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    "Επίλεξε την περιοχή που σε ενδιαφέρει. Μπορείς να την αλλάξεις ανά πάσα στιγμή από το αριστερό μενού της αρχικής σελίδας.",
+                    l10n.selectRegionHint,
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -170,9 +174,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   opacity: (!isChangingRegion && hasSelected) ? 1.0 : 0.5,
                   child: FilledButton.icon(
                     onPressed: _onGoPressed,
-                    label: const Text(
-                      'Φύγαμε',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.letGoButton,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w600,
                       ),
