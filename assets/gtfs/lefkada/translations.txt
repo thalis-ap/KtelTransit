@@ -1,0 +1,21 @@
+table_name,field_name,language,translation,record_id
+stops,stop_name,en,Lefkada,STOP-1
+stops,stop_name,en,Lygia,STOP-2
+stops,stop_name,en,Nikiana,STOP-3
+stops,stop_name,en,Nydri,STOP-4
+stops,stop_name,en,Vasiliki,STOP-5
+stops,stop_name,en,Agios Nikitas,STOP-6
+stops,stop_name,en,Kathisma Beach,STOP-7
+stops,stop_name,en,Kastro-Gyra,STOP-8
+stops,stop_name,en,Vlycho,STOP-9
+stops,stop_name,en,Kalamitsi,STOP-10
+stops,stop_name,en,Karya,STOP-11
+stops,stop_name,en,Eglouvi,STOP-12
+stops,stop_name,en,Poros,STOP-13
+stops,stop_name,en,Katochori,STOP-14
+stops,stop_name,en,Syvota,STOP-15
+stops,stop_name,en,Fterno,STOP-16
+stops,stop_name,en,Vournika,STOP-17
+stops,stop_name,en,Syvros,STOP-18
+stops,stop_name,en,Agios Ilias,STOP-19
+stops,stop_name,en,Athani,STOP-20

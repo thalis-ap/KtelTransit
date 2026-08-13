@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import 'base_search_delegate.dart';
 
+
 class StopSearchDelegate extends BaseSearchDelegate<Stop> {
   final List<Stop> stops;
   final String currentRegionName;
@@ -18,10 +19,14 @@ class StopSearchDelegate extends BaseSearchDelegate<Stop> {
 
   Widget _buildSuggestionsList(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // 1. Grab the active language from the context
+    final languageCode = Localizations.localeOf(context).languageCode;
     final normalizedQuery = normalizeGreek(query);
 
     final suggestions = stops.where((stop) {
-      final normalizedStopName = normalizeGreek(stop.name);
+      // 2. Search against the localized name instead of just the Greek one
+      final localizedName = stop.getLocalizedName(languageCode);
+      final normalizedStopName = normalizeGreek(localizedName);
       return normalizedStopName.contains(normalizedQuery);
     }).toList();
 
@@ -46,7 +51,8 @@ class StopSearchDelegate extends BaseSearchDelegate<Stop> {
               return ListTile(
                 leading: Icon(Icons.place, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 title: Text(
-                  stop.name,
+                  // 3. Display the localized name in the list
+                  stop.getLocalizedName(languageCode),
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
                 onTap: () {

@@ -95,6 +95,48 @@ class GtfsRepository {
     stopTimes.clear();
     calendars.clear();
 
+    // Load translations into a Map
+    Map<String, String> stopTranslations = {};
+    try {
+      String translationsString = await rootBundle.loadString(
+        dataPath(regionId, "translations.txt"),
+      );
+      List<List<dynamic>> translationsGrid = csv.decode(translationsString);
+
+      if (translationsGrid.isNotEmpty) {
+        final headers = {
+          for (int i = 0; i < translationsGrid[0].length; i++)
+            translationsGrid[0][i].toString(): i,
+        };
+
+        for (List<dynamic> row in translationsGrid.skip(1)) {
+          if (row.isEmpty || row.length < 2) continue;
+
+          final tableNameIdx = headers['table_name'];
+          final fieldNameIdx = headers['field_name'];
+          final languageIdx = headers['language'];
+          final translationIdx = headers['translation'];
+          final recordIdIdx = headers['record_id'];
+
+          if (languageIdx == null || translationIdx == null || recordIdIdx == null) continue;
+
+          final language = row[languageIdx].toString();
+          if (language != 'en') continue;
+
+          final tableName = tableNameIdx != null ? row[tableNameIdx].toString() : 'stops';
+          final fieldName = fieldNameIdx != null ? row[fieldNameIdx].toString() : 'stop_name';
+          final recordId = row[recordIdIdx].toString();
+          final translation = row[translationIdx].toString();
+
+          if (tableName == 'stops' && (fieldName == 'stop_name' || fieldName == 'stop_desc')) {
+            stopTranslations[recordId] = translation;
+          }
+        }
+      }
+    } catch (_) {
+      // Missing translations.txt is fine, it will just leave the Map empty
+    }
+
     String stopsString = await rootBundle.loadString(
       dataPath(regionId, "stops.txt"),
     );
@@ -108,7 +150,15 @@ class GtfsRepository {
 
       for (List<dynamic> row in stopsGrid.skip(1)) {
         if (row.isEmpty || row.length < 2) continue;
-        stops.add(Stop.fromCsv(row, headers));
+
+        // Grab the ID first so we can check our dictionary
+        final stopId = row[headers['stop_id']!].toString();
+
+        stops.add(Stop.fromCsv(
+          row,
+          headers,
+          englishName: stopTranslations[stopId],
+        ));
       }
     }
 
@@ -272,6 +322,8 @@ class GtfsRepository {
   }) {
     final DateTime targetDateTime = selectedTime ?? DateTime.now();
 
+    final currentLang = _settingsController?.locale.languageCode ?? 'el';
+
     List<String> validServiceIds = getServiceIds(targetDateTime);
 
     int startMinutes = targetDateTime.hour * 60 + targetDateTime.minute;
@@ -292,7 +344,7 @@ class GtfsRepository {
 
     final String destinationStopName = stops
         .firstWhere((s) => s.stopId == destStopId)
-        .name;
+        .getLocalizedName(currentLang);
 
     for (StopTime stStart in startTimes) {
       try {
@@ -322,7 +374,7 @@ class GtfsRepository {
 
         final String originStopName = stops
             .firstWhere((s) => s.stopId == firstStop.stopId)
-            .name;
+            .getLocalizedName(currentLang);
 
         dailyTrips.add(
           OsrmTrip(
@@ -372,7 +424,7 @@ class GtfsRepository {
 
           final String originStopName = stops
               .firstWhere((s) => s.stopId == firstStop.stopId)
-              .name;
+              .getLocalizedName(currentLang);
 
           for (StopTime transferA in tripAStops) {
             final int tArrivalMins = TimeFormat.gtfsTimeToMinutes(
@@ -419,7 +471,7 @@ class GtfsRepository {
                 );
                 final String transferStopName = stops
                     .firstWhere((s) => s.stopId == transferA.stopId)
-                    .name;
+                    .getLocalizedName(currentLang);
 
                 String rAName = routeA.longName;
                 if (tripA.directionId.toString() == '1') {

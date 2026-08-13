@@ -25,6 +25,7 @@ class TripSearchBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final languageCode = Localizations.localeOf(context).languageCode;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -95,7 +96,7 @@ class TripSearchBar extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          startStop?.name ?? l10n.selectStartHint,
+                          startStop?.getLocalizedName(languageCode) ?? l10n.selectStartHint,
                           style: TextStyle(
                             fontSize: 18,
                             color: startStop != null
@@ -124,7 +125,7 @@ class TripSearchBar extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          destinationStop?.name ??
+                          destinationStop?.getLocalizedName(languageCode) ??
                               l10n.selectDestinationHint,
                           style: TextStyle(
                             fontSize: 18,

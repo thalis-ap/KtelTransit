@@ -430,8 +430,10 @@ class TripDetailsCard extends StatelessWidget {
   Widget _buildTransferTrip(BuildContext context, String totalStr) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    
     final Stop localTransferStop = allStops.firstWhere(
-          (s) => s.name == osrmTrip.transferStopName,
+          (s) => s.getLocalizedName(languageCode) == osrmTrip.transferStopName,
     );
 
     double fare1 = _estimateFare(startStop, localTransferStop);
@@ -499,7 +501,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                l10n.departureFrom(startStop.name),
+                l10n.departureFrom(startStop.getLocalizedName(languageCode)),
                 style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
               ),
             ),
@@ -581,7 +583,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                l10n.estimatedArrivalAt(destinationStop.name),
+                l10n.estimatedArrivalAt(destinationStop.getLocalizedName(languageCode)),
                 style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
               ),
             ),
@@ -608,6 +610,8 @@ class TripDetailsCard extends StatelessWidget {
   Widget _buildDirectTrip(BuildContext context, String totalStr) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    
     double estimatedFare = _estimateFare(startStop, destinationStop);
 
     return Column(
@@ -696,8 +700,8 @@ class TripDetailsCard extends StatelessWidget {
             Expanded(
               child: Text(
                 osrmTrip.isStartAlsoOrigin
-                    ? l10n.departureFrom(startStop.name)
-                    : l10n.estimatedArrivalAt(startStop.name),
+                    ? l10n.departureFrom(startStop.getLocalizedName(languageCode))
+                    : l10n.estimatedArrivalAt(startStop.getLocalizedName(languageCode)),
                 style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
               ),
             ),
@@ -714,7 +718,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                l10n.estimatedArrivalAt(destinationStop.name),
+                l10n.estimatedArrivalAt(destinationStop.getLocalizedName(languageCode)),
                 style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
               ),
             ),

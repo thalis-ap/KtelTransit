@@ -166,6 +166,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _fetchRouteForSelectedTrip(OsrmTrip osrmTrip) async {
     if (startStop == null || destinationStop == null) return;
 
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     try {
       final start = LatLng(startStop!.latitude, startStop!.longitude);
       final dest = LatLng(
@@ -174,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
       if (osrmTrip.isTransfer) {
         final Stop trStop = repository.stops.firstWhere(
-          (s) => s.name == osrmTrip.transferStopName,
+          (s) => s.getLocalizedName(languageCode) == osrmTrip.transferStopName,
         );
         final transfer = LatLng(trStop.latitude, trStop.longitude);
 
@@ -559,6 +561,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     final List<OsrmTrip>? trips = _getTripInfo();
 
     Stop? activeTransferStop;
@@ -567,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (activeTrip.isTransfer) {
         try {
           activeTransferStop = repository.stops.firstWhere(
-            (s) => s.name == activeTrip.transferStopName,
+            (s) => s.getLocalizedName(languageCode) == activeTrip.transferStopName,
           );
         } catch (_) {}
       }

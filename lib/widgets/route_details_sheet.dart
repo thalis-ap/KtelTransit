@@ -100,7 +100,8 @@ class RouteDetailsSheet extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
+    final languageCode = Localizations.localeOf(context).languageCode;
+    
     final now = DateTime.now();
     final List<Departure> todayDepartures =
     repository.getDeparturesForStop(stop.stopId, selectedTime: now);
@@ -183,7 +184,7 @@ class RouteDetailsSheet extends StatelessWidget {
                     ),
 
                     Text(
-                      stop.name,
+                      stop.getLocalizedName(languageCode),
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
