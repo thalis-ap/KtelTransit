@@ -10,6 +10,8 @@ import 'package:ktel_transit/models/route.dart';
 import 'package:ktel_transit/models/stop_time.dart';
 
 import 'package:csv/csv.dart';
+import 'package:ktel_transit/services/settings_controller.dart';
+import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,25 +26,39 @@ class GtfsRepository {
   List<StopTime> stopTimes = [];
   List<Calendar> calendars = [];
 
+  SettingsController? _settingsController;
+
   static final GtfsRepository _instance = GtfsRepository._internal();
+
   factory GtfsRepository() => _instance;
+
   GtfsRepository._internal();
 
+  // This notifier handles the region change
   final ValueNotifier<Region?> currentRegionNotifier = ValueNotifier(null);
+
+  // This is an extra notifier to let any widgets know when the region is loaded
   final ValueNotifier<bool> isRegionLoadingNotifier = ValueNotifier(false);
 
   Region? get currentRegion => currentRegionNotifier.value;
 
-  Future<void> init() async {
+  String dataPath(String regionId, String fileName) =>
+      "assets/gtfs/$regionId/$fileName";
+
+  Future<void> init({SettingsController? settingsController}) async {
     final prefs = await SharedPreferences.getInstance();
-    final savedRegionId = prefs.getString('saved_region_id');
+    final savedRegionId = prefs.getString(RegionUtils.savedRegionIdKey);
 
     if (savedRegionId != null) {
       final savedRegion = availableRegions.firstWhere(
-            (region) => region.id == savedRegionId,
+        (region) => region.id == savedRegionId,
         orElse: () => availableRegions.first,
       );
       currentRegionNotifier.value = savedRegion;
+    }
+
+    if (settingsController != null) {
+      _settingsController = settingsController;
     }
 
     await loadData();
@@ -53,7 +69,7 @@ class GtfsRepository {
         currentRegionNotifier.value?.id != newRegion.id;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('saved_region_id', newRegion.id);
+    await prefs.setString(RegionUtils.savedRegionIdKey, newRegion.id);
 
     if (didActuallyChange) {
       isRegionLoadingNotifier.value = true;
@@ -79,8 +95,9 @@ class GtfsRepository {
     stopTimes.clear();
     calendars.clear();
 
-    String stopsString =
-    await rootBundle.loadString("assets/gtfs/$regionId/stops.txt");
+    String stopsString = await rootBundle.loadString(
+      dataPath(regionId, "stops.txt"),
+    );
     List<List<dynamic>> stopsGrid = csv.decode(stopsString);
 
     if (stopsGrid.isNotEmpty) {
@@ -95,8 +112,9 @@ class GtfsRepository {
       }
     }
 
-    String routesString =
-    await rootBundle.loadString("assets/gtfs/$regionId/routes.txt");
+    String routesString = await rootBundle.loadString(
+      dataPath(regionId, "routes.txt"),
+    );
     List<List<dynamic>> routesGrid = csv.decode(routesString);
 
     if (routesGrid.isNotEmpty) {
@@ -111,8 +129,9 @@ class GtfsRepository {
       }
     }
 
-    String tripsString =
-    await rootBundle.loadString("assets/gtfs/$regionId/trips.txt");
+    String tripsString = await rootBundle.loadString(
+      dataPath(regionId, "trips.txt"),
+    );
     List<List<dynamic>> tripsGrid = csv.decode(tripsString);
 
     if (tripsGrid.isNotEmpty) {
@@ -128,7 +147,7 @@ class GtfsRepository {
     }
 
     String stopTimesString = await rootBundle.loadString(
-      "assets/gtfs/$regionId/stop_times.txt",
+      dataPath(regionId, "stop_times.txt"),
     );
     List<List<dynamic>> stopTimesGrid = csv.decode(stopTimesString);
 
@@ -145,7 +164,7 @@ class GtfsRepository {
     }
 
     String calendarString = await rootBundle.loadString(
-      "assets/gtfs/$regionId/calendar.txt",
+      dataPath(regionId, "calendar.txt"),
     );
     List<List<dynamic>> calendarGrid = csv.decode(calendarString);
 
@@ -163,9 +182,9 @@ class GtfsRepository {
   }
 
   List<Departure> getDeparturesForStop(
-      String departureStopId, {
-        DateTime? selectedTime,
-      }) {
+    String departureStopId, {
+    DateTime? selectedTime,
+  }) {
     final DateTime target = selectedTime ?? DateTime.now();
 
     List<String> validServiceIds = getServiceIds(target);
@@ -178,7 +197,7 @@ class GtfsRepository {
     }
 
     final Stop departureStop = stops.firstWhere(
-          (s) => s.stopId == departureStopId,
+      (s) => s.stopId == departureStopId,
     );
 
     List<StopTime> times = stopTimes.where((st) {
@@ -202,20 +221,20 @@ class GtfsRepository {
             .where((s) => s.tripId == trip.tripId)
             .toList();
         allTripsStopTimes.sort(
-              (a, b) => a.stopSequence.compareTo(b.stopSequence),
+          (a, b) => a.stopSequence.compareTo(b.stopSequence),
         );
 
         final StopTime originStopTime = allTripsStopTimes.first;
         final StopTime destinationStopTime = allTripsStopTimes.last;
         final StopTime departureStopTime = allTripsStopTimes.firstWhere(
-              (s) => s.stopId == departureStopId,
+          (s) => s.stopId == departureStopId,
         );
 
         final Stop originStop = stops.firstWhere(
-              (s) => s.stopId == originStopTime.stopId,
+          (s) => s.stopId == originStopTime.stopId,
         );
         final Stop destinationStop = stops.firstWhere(
-              (s) => s.stopId == destinationStopTime.stopId,
+          (s) => s.stopId == destinationStopTime.stopId,
         );
 
         results.add(
@@ -240,17 +259,17 @@ class GtfsRepository {
     }
 
     results.sort(
-          (a, b) => a.originDepartureTime.compareTo(b.originDepartureTime),
+      (a, b) => a.originDepartureTime.compareTo(b.originDepartureTime),
     );
 
     return results;
   }
 
   List<OsrmTrip> findAllTripsBetween(
-      String startStopId,
-      String destStopId, {
-        DateTime? selectedTime,
-      }) {
+    String startStopId,
+    String destStopId, {
+    DateTime? selectedTime,
+  }) {
     final DateTime targetDateTime = selectedTime ?? DateTime.now();
 
     List<String> validServiceIds = getServiceIds(targetDateTime);
@@ -290,7 +309,7 @@ class GtfsRepository {
 
         final int durationMins =
             TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
-                TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
+            TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
 
         final Route route = routes.firstWhere((r) => r.routeId == trip.routeId);
         String displayName = trip.getDisplayName(route.longName);
@@ -336,24 +355,24 @@ class GtfsRepository {
       for (StopTime stStart in startTimes) {
         try {
           final Trip tripA = trips.firstWhere(
-                (t) => t.tripId == stStart.tripId,
+            (t) => t.tripId == stStart.tripId,
           );
           if (!validServiceIds.contains(tripA.serviceId)) continue;
 
           final List<StopTime> tripAStops = stopTimes
               .where(
                 (st) =>
-            st.tripId == tripA.tripId &&
-                st.stopSequence > stStart.stopSequence,
-          )
+                    st.tripId == tripA.tripId &&
+                    st.stopSequence > stStart.stopSequence,
+              )
               .toList();
 
           tripAStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
           final StopTime firstStop = tripAStops.first;
 
-          final String originStopName = stops.firstWhere(
-                (s) => s.stopId == firstStop.stopId,
-          ).name;
+          final String originStopName = stops
+              .firstWhere((s) => s.stopId == firstStop.stopId)
+              .name;
 
           for (StopTime transferA in tripAStops) {
             final int tArrivalMins = TimeFormat.gtfsTimeToMinutes(
@@ -366,12 +385,12 @@ class GtfsRepository {
                 st.departureTime,
               );
               return tDepartMins >= tArrivalMins &&
-                  tDepartMins <= tArrivalMins + 1440;
+                  tDepartMins <= tArrivalMins + 60 * (_settingsController?.maxWaitTime ?? 24);
             }).toList();
 
             for (StopTime stTransB in potentialLeg2) {
               final Trip tripB = trips.firstWhere(
-                    (t) => t.tripId == stTransB.tripId,
+                (t) => t.tripId == stTransB.tripId,
               );
               if (!validServiceIds.contains(tripB.serviceId)) continue;
               if (tripA.tripId == tripB.tripId) continue;
@@ -379,10 +398,10 @@ class GtfsRepository {
               final List<StopTime> destTimes = stopTimes
                   .where(
                     (st) =>
-                st.tripId == tripB.tripId &&
-                    st.stopId == destStopId &&
-                    st.stopSequence > stTransB.stopSequence,
-              )
+                        st.tripId == tripB.tripId &&
+                        st.stopId == destStopId &&
+                        st.stopSequence > stTransB.stopSequence,
+                  )
                   .toList();
 
               if (destTimes.isNotEmpty) {
@@ -390,13 +409,13 @@ class GtfsRepository {
 
                 final int durationMins =
                     TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
-                        TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
+                    TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
 
                 final Route routeA = routes.firstWhere(
-                      (r) => r.routeId == tripA.routeId,
+                  (r) => r.routeId == tripA.routeId,
                 );
                 final Route routeB = routes.firstWhere(
-                      (r) => r.routeId == tripB.routeId,
+                  (r) => r.routeId == tripB.routeId,
                 );
                 final String transferStopName = stops
                     .firstWhere((s) => s.stopId == transferA.stopId)
@@ -463,8 +482,8 @@ class GtfsRepository {
 
     final int targetDateInt =
         targetDateTime.year * 10000 +
-            targetDateTime.month * 100 +
-            targetDateTime.day;
+        targetDateTime.month * 100 +
+        targetDateTime.day;
 
     for (final calendar in calendars) {
       try {
