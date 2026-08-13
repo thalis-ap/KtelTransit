@@ -258,4 +258,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsButton => 'Settings';
+
+  @override
+  String get maxWaitTime => 'Max wait time';
 }

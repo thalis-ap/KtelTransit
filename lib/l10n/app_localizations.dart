@@ -517,6 +517,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Ρυθμίσεις'**
   String get settingsButton;
+
+  /// No description provided for @maxWaitTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Μέγιστη αναμονή μετεπιβίβασης'**
+  String get maxWaitTime;
 }
 
 class _AppLocalizationsDelegate

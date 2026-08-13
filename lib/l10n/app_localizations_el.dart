@@ -260,4 +260,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get settingsButton => 'Ρυθμίσεις';
+
+  @override
+  String get maxWaitTime => 'Μέγιστη αναμονή μετεπιβίβασης';
 }
