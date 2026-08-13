@@ -1,0 +1,261 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appTitle => 'Local KTEL';
+
+  @override
+  String get welcomeTitle => 'Welcome!';
+
+  @override
+  String get welcomeDescription =>
+      'Here you will find all local KTEL and urban bus schedules for every region in Greece.';
+
+  @override
+  String get readyToStart => 'Ready?';
+
+  @override
+  String get selectRegionHint =>
+      'Select your region of interest. You can change it anytime from the left side drawer menu.';
+
+  @override
+  String get notChosen => 'Not selected';
+
+  @override
+  String get letGoButton => 'Let\'s go';
+
+  @override
+  String get regionRequiredError => 'You must select a region to proceed!';
+
+  @override
+  String get searchDestinationHint => 'Search destination...';
+
+  @override
+  String get selectStartHint => 'Select departure...';
+
+  @override
+  String get selectDestinationHint => 'Select destination...';
+
+  @override
+  String get swapDirectionTooltip => 'Swap direction';
+
+  @override
+  String get resetOrientationTooltip => 'Reset orientation';
+
+  @override
+  String get originLabel => 'Origin';
+
+  @override
+  String get destinationLabel => 'Destination';
+
+  @override
+  String get upcomingDeparturesToday => 'UPCOMING DEPARTURES TODAY';
+
+  @override
+  String departuresOnDay(String day) {
+    return 'DEPARTURES $day';
+  }
+
+  @override
+  String get tomorrow => 'TOMORROW';
+
+  @override
+  String get noDeparturesToday => 'No departures scheduled today';
+
+  @override
+  String get noScheduledDepartures => 'No scheduled departures';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get appearanceSection => 'APPEARANCE';
+
+  @override
+  String get systemDefaultTheme => 'System default';
+
+  @override
+  String get lightTheme => 'Light';
+
+  @override
+  String get darkTheme => 'Dark';
+
+  @override
+  String get languageSection => 'LANGUAGE / ΓΛΩΣΣΑ';
+
+  @override
+  String get exitDialogTitle => 'Exit';
+
+  @override
+  String get exitDialogMessage => 'Are you sure you want to close the app?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get exit => 'Exit';
+
+  @override
+  String get regionPrefix => 'Region: ';
+
+  @override
+  String get tapToChange => 'Tap to change';
+
+  @override
+  String get region => 'Region';
+
+  @override
+  String get routes => 'Routes';
+
+  @override
+  String get info => 'Information';
+
+  @override
+  String get tickets => 'Tickets';
+
+  @override
+  String get allTrips => 'All trips';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get noTripsForDateShowingNext =>
+      'No departures found for the selected date. Showing next available.';
+
+  @override
+  String tripsForDate(String date) {
+    return 'Departures for: $date';
+  }
+
+  @override
+  String get departed => 'Departed';
+
+  @override
+  String get noTripsForRoute => 'No departures found for this route.';
+
+  @override
+  String get costBreakdown => 'Fare breakdown';
+
+  @override
+  String get totalTicketCost => 'Total ticket fare';
+
+  @override
+  String get transfer => 'TRANSFER';
+
+  @override
+  String departureFrom(String stop) {
+    return 'Departure from $stop:';
+  }
+
+  @override
+  String arrivalAt(String stop) {
+    return 'Arrival at $stop:';
+  }
+
+  @override
+  String estimatedArrivalAt(String stop) {
+    return 'Estimated arrival at $stop:';
+  }
+
+  @override
+  String waitingTime(String time) {
+    return 'Wait time: $time';
+  }
+
+  @override
+  String hoursMinutesFormat(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String minutesFormat(int minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String departureLabel(String time) {
+    return 'Departure: $time';
+  }
+
+  @override
+  String get changeButton => 'CHANGE';
+
+  @override
+  String get daily => 'Daily';
+
+  @override
+  String get unknownDays => 'Unknown days';
+
+  @override
+  String get searchRegionHint => 'Search region...';
+
+  @override
+  String get noRegionFound => 'No region found.';
+
+  @override
+  String get searchStopHint => 'Search stop...';
+
+  @override
+  String get noStopFound => 'No stop found.';
+
+  @override
+  String durationHoursMinutes(int hours, String minutes) {
+    return '$hours hr $minutes min';
+  }
+
+  @override
+  String durationHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String durationMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get outbound => 'Outbound';
+
+  @override
+  String get returnTrip => 'Return';
+
+  @override
+  String get loadingStops => 'Loading stops...';
+
+  @override
+  String get locationDisabledTitle => 'Location disabled';
+
+  @override
+  String get locationDisabledMessage =>
+      'Please enable location services on your device to see your position.';
+
+  @override
+  String get locationDeniedTitle => 'Access denied';
+
+  @override
+  String get locationDeniedMessage =>
+      'Location permission is denied. Please open app settings to enable it.';
+
+  @override
+  String get settingsButton => 'Settings';
+}
