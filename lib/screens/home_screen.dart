@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Asynchronous function to load repository data and user location
   Future<void> _loadData() async {
-    await repository.init();
+    await repository.init(settingsController: widget.settingsController);
     setState(() {
       isLoading = false;
     });
