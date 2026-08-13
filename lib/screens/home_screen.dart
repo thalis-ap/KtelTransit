@@ -802,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         valueListenable: repository.isRegionLoadingNotifier,
                         builder: (context, isLoadingRegion, child) {
                           return AnimatedPositioned(
-                            duration: const Duration(milliseconds: 300),
+                            duration: const Duration(milliseconds: 200),
                             curve: Curves.easeOutBack,
                             // Slides up when loading, hides below the screen when done
                             bottom: isLoadingRegion ? 18.0 : -100.0,

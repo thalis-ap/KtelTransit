@@ -74,7 +74,7 @@ class GtfsRepository {
     if (didActuallyChange) {
       isRegionLoadingNotifier.value = true;
       // Maybe remove this in the future, but it's very faster than 1 second
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(Duration(milliseconds: 500));
       await loadData(newRegion);
       isRegionLoadingNotifier.value = false;
     }
