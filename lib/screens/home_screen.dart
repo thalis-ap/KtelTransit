@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Stop? startStop, destinationStop;
 
   final DraggableScrollableController _sheetController =
-  DraggableScrollableController();
+      DraggableScrollableController();
 
   bool? lastChosenStopIsStart;
 
@@ -59,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    // Add the listener to run the function _onRegionChanged when GtfsRepository
+    // changeRegion function runs.
     repository.currentRegionNotifier.addListener(_onRegionChanged);
     _loadData();
   }
@@ -70,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  /// Asynchronous function to load repository data and user location
   Future<void> _loadData() async {
     await repository.init();
     setState(() {
@@ -79,10 +82,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _loadUserLocation();
   }
 
+  /// Tries to fetch user location upon successfull permission check
   Future<void> _loadUserLocation() async {
     // Fails quietly when the app first opens
     if (!await _handleLocationPermissions(showDialogs: false)) return;
 
+    // Get the last known position fast, so as not to let the user wait without
+    // any feedback. We will get the actual position below.
     final lastPosition = await Geolocator.getLastKnownPosition();
     if (lastPosition != null && mounted) {
       setState(() {
@@ -90,12 +96,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       });
     }
 
+    // We have now set the userLocation to the last known position. We now need
+    // to find the actual position of the user and update userLocation.
     try {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.medium,
         ),
       );
+      // Re-update the userLocation, to the newly fetched one
       if (mounted) {
         setState(() {
           userLocation = LatLng(position.latitude, position.longitude);
@@ -104,8 +113,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (_) {}
   }
 
+  /// Handles location permissions. If the user has denied the permission in the
+  /// past, we prompt them with a dialog to open the settings. If they accept,
+  /// we return true, so that Geolocator can continue with the correct location
   Future<bool> _handleLocationPermissions({bool showDialogs = false}) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    // Case where location is not on, tell user (on showDialogs = true) that
+    // they need to turn on location on settings
     if (!serviceEnabled) {
       if (showDialogs && mounted) {
         final l10n = AppLocalizations.of(context)!;
@@ -120,12 +134,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
+      // User pressed the button, ask them for permission even if they had
+      // denied it in the past
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         return false;
       }
     }
 
+    // Show them the location error dialog as above, if they have denied access
+    // to location forever in the settings
     if (permission == LocationPermission.deniedForever) {
       if (showDialogs && mounted) {
         final l10n = AppLocalizations.of(context)!;
@@ -137,9 +155,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
       return false;
     }
+
+    // If all goes well, then we have permission to use the location
     return true;
   }
 
+  /// Fetches the route(s) (i.e. the map points) for a given OsrmTrip object
+  /// and updates the routeTrips state variable to re-build the map with the
+  /// route
   Future<void> _fetchRouteForSelectedTrip(OsrmTrip osrmTrip) async {
     if (startStop == null || destinationStop == null) return;
 
@@ -151,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
       if (osrmTrip.isTransfer) {
         final Stop trStop = repository.stops.firstWhere(
-              (s) => s.name == osrmTrip.transferStopName,
+          (s) => s.name == osrmTrip.transferStopName,
         );
         final transfer = LatLng(trStop.latitude, trStop.longitude);
 
@@ -180,6 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  /// Fetches info for all the upcoming (up to 7 days ahead) trips
   List<OsrmTrip>? _getTripInfo() {
     if (startStop == null || destinationStop == null) return null;
 
@@ -220,40 +244,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return tripsFound.isNotEmpty ? tripsFound : null;
   }
 
-  List<LatLng> _getRoutePointsFromTripsList() {
-    return routeTrips
-        .expand((trip) => trip.points ?? [] as List<LatLng>)
-        .toList();
-  }
-
-  Future<void> _pickDateTime() async {
-    final DateTime? date = await showDatePicker(
-      context: context,
-      initialDate: selectedSearchTime,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 30)),
-    );
-    if (date == null) return;
-
-    if (!mounted) return;
-
-    final TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(selectedSearchTime),
-    );
-    if (time == null) return;
-
-    setState(() {
-      selectedSearchTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
-  }
-
+  /// Opens the search stop delegate to allow user to select a stop
   Future<void> _searchAndSetStop({required bool isStart}) async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -284,6 +275,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  /// Runs when user sets the start stop
   void _onSetStartStop(Stop stop) {
     setState(() {
       startStop = stop;
@@ -295,6 +287,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _showTripSheet();
   }
 
+  /// Runs when user sets the destination stop
   void _onSetDestinationStop(Stop stop) {
     setState(() {
       destinationStop = stop;
@@ -306,6 +299,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _showTripSheet();
   }
 
+  /// Handles a back button press on each case
   void _onBackPressed() {
     setState(() {
       if (isDepartureBoardOpen) {
@@ -333,6 +327,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  /// This function will run each time the user changes the region of
+  /// GtfsRepository() in any way (through the drawer, delegates)
   void _onRegionChanged() {
     final Region region = repository.currentRegion!;
     _animatedMapMove(region.center, region.defaultZoom);
@@ -344,10 +340,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  /// Moves the map to the user's current location, upon successfully retrieving
+  /// it. On error accessing user's location it prompts them to either accept
+  /// the permission or change it in settings, depending on their choice.
   Future<void> _goToMyLocation() async {
     // Shows the dialog if location is disabled/denied when the user clicks the button
     if (!await _handleLocationPermissions(showDialogs: true)) return;
 
+    // Safe check
     if (userLocation != null) {
       _animatedMapMove(userLocation!, 15.0);
     } else {
@@ -380,6 +380,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (_) {}
   }
 
+  /// A function to transition to a new location on the map smoothly by
+  /// animating from the old location to the new on
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     if (!isMapReady || !mounted) return;
 
@@ -423,6 +425,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     animationController.forward();
   }
 
+  /// Function to open the deparure board for a stop
   void _showDepartureBoard(Stop stop) {
     isDepartureBoardOpen = true;
 
@@ -441,6 +444,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  /// Function to open the trip sheet smoothly from the bottom
   void _showTripSheet() {
     if (startStop == null || destinationStop == null) return;
 
@@ -455,7 +459,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> _showLocationErrorDialog(String title, String message, VoidCallback onSettingsPressed) async {
+  /// Error dialog prompting the user to enable location service in the phone
+  /// settings, if they have it disabled.
+  Future<void> _showLocationErrorDialog(
+    String title,
+    String message,
+    VoidCallback onSettingsPressed,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     return showDialog<void>(
       context: context,
@@ -481,6 +491,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  /// Exit dialog confirmation to avoid mistakenly exiting the app when
+  /// pressing the back button
   Future<void> _showExitDialog() async {
     final l10n = AppLocalizations.of(context)!;
 
@@ -498,7 +510,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               },
             ),
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
               child: Text(l10n.exit),
               onPressed: () {
                 SystemNavigator.pop();
@@ -508,6 +522,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  /// Date time picker dialog, that allows user to set specific date and time
+  /// for their trip
+  Future<void> _showDateTimePickerDialog() async {
+    final DateTime? date = await showDatePicker(
+      context: context,
+      initialDate: selectedSearchTime,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
+    );
+    if (date == null) return;
+
+    if (!mounted) return;
+
+    final TimeOfDay? time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedSearchTime),
+    );
+    if (time == null) return;
+
+    setState(() {
+      selectedSearchTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+    });
   }
 
   @override
@@ -523,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (activeTrip.isTransfer) {
         try {
           activeTransferStop = repository.stops.firstWhere(
-                (s) => s.name == activeTrip.transferStopName,
+            (s) => s.name == activeTrip.transferStopName,
           );
         } catch (_) {}
       }
@@ -544,275 +588,282 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             return isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : Stack(
-              children: [
-                FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    initialCenter: activeRegion!.center,
-                    initialZoom: activeRegion.defaultZoom,
-                    minZoom: 6.0,
-                    maxZoom: 20.0,
-                    onMapReady: () {
-                      setState(() {
-                        isMapReady = true;
-                      });
-
-                    },
-                    onPositionChanged: (position, hasGesture) {
-                      if (position.rotationRad != mapRotation) {
-                        setState(() {
-                          mapRotation = position.rotationRad;
-                        });
-                      }
-                    },
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.all &
-                      ~InteractiveFlag.flingAnimation,
-                      enableMultiFingerGestureRace: true,
-                      rotationThreshold: 10.0,
-                      pinchZoomThreshold: 0.2,
-                      pinchMoveThreshold: 20.0,
-                    ),
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.symplyapps.ktel_transit',
-                      tileBuilder: isDark ? darkModeTileBuilder : null,
-                    ),
-                    if (routeTrips.isNotEmpty)
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: _getRoutePointsFromTripsList(),
-                            color: colorScheme.primary,
-                            strokeWidth: 4.0,
+                    children: [
+                      FlutterMap(
+                        mapController: mapController,
+                        options: MapOptions(
+                          initialCenter: activeRegion!.center,
+                          initialZoom: activeRegion.defaultZoom,
+                          minZoom: 6.0,
+                          maxZoom: 20.0,
+                          onMapReady: () {
+                            setState(() {
+                              isMapReady = true;
+                            });
+                          },
+                          onPositionChanged: (position, hasGesture) {
+                            if (position.rotationRad != mapRotation) {
+                              setState(() {
+                                mapRotation = position.rotationRad;
+                              });
+                            }
+                          },
+                          interactionOptions: const InteractionOptions(
+                            flags:
+                                InteractiveFlag.all &
+                                ~InteractiveFlag.flingAnimation,
+                            enableMultiFingerGestureRace: true,
+                            rotationThreshold: 10.0,
+                            pinchZoomThreshold: 0.2,
+                            pinchMoveThreshold: 20.0,
                           ),
-                        ],
-                      ),
-                    if (userLocation != null)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: userLocation!,
-                            width: 20,
-                            height: 20,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary,
-                                shape: BoxShape.circle,
-                                border: Border.all(width: 3),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    blurRadius: 4,
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.symplyapps.ktel_transit',
+                            tileBuilder: isDark ? darkModeTileBuilder : null,
+                          ),
+                          if (routeTrips.isNotEmpty)
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: routeTrips
+                                      .expand(
+                                        (trip) =>
+                                            trip.points ?? [] as List<LatLng>,
+                                      )
+                                      .toList(),
+                                  color: colorScheme.primary,
+                                  strokeWidth: 4.0,
+                                ),
+                              ],
+                            ),
+                          if (userLocation != null)
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: userLocation!,
+                                  width: 20,
+                                  height: 20,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(width: 3),
+                                      boxShadow: const [
+                                        BoxShadow(blurRadius: 4),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
+                          MarkerLayer(
+                            markers: repository.stops.map((stop) {
+                              IconData iconData;
+                              Color iconColor;
+
+                              if (stop.stopId == startStop?.stopId) {
+                                iconData = Icons.my_location;
+                                iconColor = colorScheme.secondary;
+                              } else if (stop.stopId ==
+                                  destinationStop?.stopId) {
+                                iconData = Icons.place;
+                                iconColor = colorScheme.error;
+                              } else if (stop.stopId ==
+                                  activeTransferStop?.stopId) {
+                                iconData = Icons.transfer_within_a_station;
+                                iconColor = colorScheme.tertiary;
+                              } else {
+                                iconData = Icons.directions_bus;
+                                iconColor = colorScheme.surfaceTint;
+                              }
+
+                              return Marker(
+                                point: LatLng(stop.latitude, stop.longitude),
+                                width: 40,
+                                height: 40,
+                                child: GestureDetector(
+                                  onTap: () => _showDepartureBoard(stop),
+                                  child: Icon(
+                                    iconData,
+                                    color: iconColor,
+                                    size: 30,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
-                    MarkerLayer(
-                      markers: repository.stops.map((stop) {
-                        IconData iconData;
-                        Color iconColor;
 
-                        if (stop.stopId == startStop?.stopId) {
-                          iconData = Icons.my_location;
-                          iconColor = colorScheme.secondary;
-                        } else if (stop.stopId ==
-                            destinationStop?.stopId) {
-                          iconData = Icons.place;
-                          iconColor = colorScheme.error;
-                        } else if (stop.stopId ==
-                            activeTransferStop?.stopId) {
-                          iconData = Icons.transfer_within_a_station;
-                          iconColor = colorScheme.tertiary;
-                        } else {
-                          iconData = Icons.directions_bus;
-                          iconColor = colorScheme.surfaceTint;
-                        }
-
-                        return Marker(
-                          point: LatLng(stop.latitude, stop.longitude),
-                          width: 40,
-                          height: 40,
-                          child: GestureDetector(
-                            onTap: () => _showDepartureBoard(stop),
-                            child: Icon(
-                              iconData,
-                              color: iconColor,
-                              size: 30,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + 16,
-                  left: 16,
-                  right: 16,
-                  child: TripSearchBar(
-                    startStop: startStop,
-                    destinationStop: destinationStop,
-                    onMenuPressed: () {
-                      FocusScope.of(context).unfocus();
-                      _scaffoldKey.currentState?.openDrawer();
-                    },
-                    onBackPressed: _onBackPressed,
-                    onSwap: () {
-                      setState(() {
-                        final temp = startStop;
-                        startStop = destinationStop;
-                        destinationStop = temp;
-                        selectedTripIndex = null;
-                        routeTrips.clear();
-                      });
-                    },
-                    onSearch: (isStart) =>
-                        _searchAndSetStop(isStart: isStart),
-                  ),
-                ),
-
-                Positioned(
-                  top: MediaQuery.of(context).padding.top +
-                      (startStop == null && destinationStop == null
-                          ? 120
-                          : 160),
-                  right: 16,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      shape: BoxShape.circle,
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 6,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: Transform.rotate(
-                        angle: mapRotation,
-                        child: Image.asset(AppTheme.compassIconPath,
-                          width: 26,
-                          height: 26,
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 16,
+                        left: 16,
+                        right: 16,
+                        child: TripSearchBar(
+                          startStop: startStop,
+                          destinationStop: destinationStop,
+                          onMenuPressed: () {
+                            FocusScope.of(context).unfocus();
+                            _scaffoldKey.currentState?.openDrawer();
+                          },
+                          onBackPressed: _onBackPressed,
+                          onSwap: () {
+                            setState(() {
+                              final temp = startStop;
+                              startStop = destinationStop;
+                              destinationStop = temp;
+                              selectedTripIndex = null;
+                              routeTrips.clear();
+                            });
+                          },
+                          onSearch: (isStart) =>
+                              _searchAndSetStop(isStart: isStart),
                         ),
                       ),
-                      tooltip: l10n.resetOrientationTooltip,
-                      onPressed: () {
-                        setState(() {
-                          mapRotation = 0;
-                        });
-                        mapController.rotate(0);
-                      },
-                    ),
-                  ),
-                ),
 
-                if (startStop != null && destinationStop != null)
-                  TripInfoSheet(
-                    controller: _sheetController,
-                    startStop: startStop!,
-                    destinationStop: destinationStop!,
-                    trips: trips,
-                    selectedTripIndex: selectedTripIndex,
-                    selectedSearchTime: selectedSearchTime,
-                    allStops: repository.stops,
-                    onBackToAllTrips: () {
-                      setState(() {
-                        selectedTripIndex = null;
-                        routeTrips.clear();
-                      });
-                    },
-                    onClose: () {
-                      setState(() {
-                        startStop = null;
-                        destinationStop = null;
-                        lastChosenStopIsStart = null;
-                        routeTrips.clear();
-                        selectedSearchTime = DateTime.now();
-                        selectedTripIndex = null;
-                      });
-                    },
-                    onChangeTime: _pickDateTime,
-                    onTripSelected: (index, trip) {
-                      setState(() {
-                        selectedTripIndex = index;
-                      });
-                      _fetchRouteForSelectedTrip(trip);
-                    },
-                  ),
-
-                ValueListenableBuilder<bool>(
-                  valueListenable: repository.isRegionLoadingNotifier,
-                  builder: (context, isLoadingRegion, child) {
-                    return AnimatedPositioned(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutBack,
-                      // Slides up when loading, hides below the screen when done
-                      bottom: isLoadingRegion ? 18.0 : -100.0,
-                      left: 24,
-                      right: 100,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: isLoadingRegion ? 1.0 : 0.0,
+                      Positioned(
+                        top:
+                            MediaQuery.of(context).padding.top +
+                            (startStop == null && destinationStop == null
+                                ? 120
+                                : 160),
+                        right: 16,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                           decoration: BoxDecoration(
-                            color: colorScheme.tertiary,
-                            borderRadius: BorderRadius.circular(20),
+                            color: colorScheme.surface,
+                            shape: BoxShape.circle,
                             boxShadow: const [
                               BoxShadow(
                                 color: Colors.black26,
-                                blurRadius: 10,
-                                offset: Offset(0, 4),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: colorScheme.onTertiary,
-                                ),
+                          child: IconButton(
+                            icon: Transform.rotate(
+                              angle: mapRotation,
+                              child: Image.asset(
+                                AppTheme.compassIconPath,
+                                width: 26,
+                                height: 26,
                               ),
-                              const SizedBox(width: 16),
-                              Text(
-                                l10n.loadingStops,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onTertiary,
-                                ),
-                              ),
-                            ],
+                            ),
+                            tooltip: l10n.resetOrientationTooltip,
+                            onPressed: () {
+                              setState(() {
+                                mapRotation = 0;
+                              });
+                              mapController.rotate(0);
+                            },
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
-              ],
-            );
+
+                      if (startStop != null && destinationStop != null)
+                        TripInfoSheet(
+                          controller: _sheetController,
+                          startStop: startStop!,
+                          destinationStop: destinationStop!,
+                          trips: trips,
+                          selectedTripIndex: selectedTripIndex,
+                          selectedSearchTime: selectedSearchTime,
+                          allStops: repository.stops,
+                          onBackToAllTrips: () {
+                            setState(() {
+                              selectedTripIndex = null;
+                              routeTrips.clear();
+                            });
+                          },
+                          onClose: () {
+                            setState(() {
+                              startStop = null;
+                              destinationStop = null;
+                              lastChosenStopIsStart = null;
+                              routeTrips.clear();
+                              selectedSearchTime = DateTime.now();
+                              selectedTripIndex = null;
+                            });
+                          },
+                          onChangeTime: _showDateTimePickerDialog,
+                          onTripSelected: (index, trip) {
+                            setState(() {
+                              selectedTripIndex = index;
+                            });
+                            _fetchRouteForSelectedTrip(trip);
+                          },
+                        ),
+
+                      ValueListenableBuilder<bool>(
+                        valueListenable: repository.isRegionLoadingNotifier,
+                        builder: (context, isLoadingRegion, child) {
+                          return AnimatedPositioned(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutBack,
+                            // Slides up when loading, hides below the screen when done
+                            bottom: isLoadingRegion ? 18.0 : -100.0,
+                            left: 24,
+                            right: 100,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: isLoadingRegion ? 1.0 : 0.0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.tertiary,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: colorScheme.onTertiary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(
+                                      l10n.loadingStops,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onTertiary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  );
           },
         ),
         floatingActionButton: startStop == null || destinationStop == null
             ? FloatingActionButton(
-
-          onPressed: _goToMyLocation,
-          backgroundColor: colorScheme.surface,
-          child: Icon(Icons.my_location, color: colorScheme.primary),
-        )
+                onPressed: _goToMyLocation,
+                backgroundColor: colorScheme.surface,
+                child: Icon(Icons.my_location, color: colorScheme.primary),
+              )
             : null,
       ),
     );
