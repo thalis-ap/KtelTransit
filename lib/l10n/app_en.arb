@@ -69,5 +69,7 @@
   "locationDisabledMessage": "Please enable location services on your device to see your position.",
   "locationDeniedTitle": "Access denied",
   "locationDeniedMessage": "Location permission is denied. Please open app settings to enable it.",
-  "settingsButton": "Settings"
+  "settingsButton": "Settings",
+  "maxWaitTime": "Max wait time"
+
 }
