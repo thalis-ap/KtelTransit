@@ -261,4 +261,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maxWaitTime => 'Max wait time';
+
+  @override
+  String get timeBasedTheme => 'Time-based (Day/Night)';
 }

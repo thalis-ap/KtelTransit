@@ -523,6 +523,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Μέγιστη αναμονή μετεπιβίβασης'**
   String get maxWaitTime;
+
+  /// No description provided for @timeBasedTheme.
+  ///
+  /// In el, this message translates to:
+  /// **'Βάσει ώρας (Ημέρα/Νύχτα)'**
+  String get timeBasedTheme;
 }
 
 class _AppLocalizationsDelegate

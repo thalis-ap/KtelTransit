@@ -263,4 +263,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get maxWaitTime => 'Μέγιστη αναμονή μετεπιβίβασης';
+
+  @override
+  String get timeBasedTheme => 'Βάσει ώρας (Ημέρα/Νύχτα)';
 }
