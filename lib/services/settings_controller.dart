@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum AppThemePreference { system, light, dark, timeBased }
+
 class SettingsController extends ChangeNotifier {
   static const String _themeKey = 'user_theme_mode';
   static const String _localeKey = 'user_language_code';
   static const String _maxWaitTimeKey = 'user_max_wait_time';
 
-  ThemeMode _themeMode = ThemeMode.system;
+  AppThemePreference _themePreference = AppThemePreference.system;
   Locale _locale = const Locale('en'); // Default to Greek
   int _maxWaitTime = 24; // Default to 24 hours
 
-  ThemeMode get themeMode => _themeMode;
+  AppThemePreference get themePreference => _themePreference;
 
+  // Calculate the actual ThemeMode for MaterialApp (3 options)
+  ThemeMode get themeMode {
+    switch (_themePreference) {
+      case AppThemePreference.system:
+        return ThemeMode.system;
+      case AppThemePreference.light:
+        return ThemeMode.light;
+      case AppThemePreference.dark:
+        return ThemeMode.dark;
+      case AppThemePreference.timeBased:
+        final now = DateTime.now();
+        // Night mode is between 19:30 and 07:00
+        final isNight = now.hour > 19 || (now.hour == 19 && now.minute >= 30) || now.hour < 7;
+        return isNight ? ThemeMode.dark : ThemeMode.light;
+    }
+  }
   Locale get locale => _locale;
 
   int get maxWaitTime => _maxWaitTime;
@@ -26,9 +44,9 @@ class SettingsController extends ChangeNotifier {
     // Load Theme
     final themeString = prefs.getString(_themeKey);
     if (themeString != null) {
-      _themeMode = ThemeMode.values.firstWhere(
-        (e) => e.name == themeString,
-        orElse: () => ThemeMode.system,
+      _themePreference = AppThemePreference.values.firstWhere(
+            (e) => e.name == themeString,
+        orElse: () => AppThemePreference.system,
       );
     }
 
@@ -46,15 +64,15 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update and persist the ThemeMode
-  Future<void> updateThemeMode(ThemeMode newThemeMode) async {
-    if (newThemeMode == _themeMode) return;
+  /// Update and persist the ThemePreference
+  Future<void> updateThemePreference(AppThemePreference newPreference) async {
+    if (newPreference == _themePreference) return;
 
-    _themeMode = newThemeMode;
+    _themePreference = newPreference;
     notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_themeKey, newThemeMode.name);
+    await prefs.setString(_themeKey, newPreference.name);
   }
 
   /// Update and persist the Locale

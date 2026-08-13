@@ -35,34 +35,41 @@ class SettingsScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: RadioGroup<ThemeMode>(
-                  groupValue: settingsController.themeMode,
+                child: RadioGroup<AppThemePreference>(
+                  groupValue: settingsController.themePreference,
                   onChanged: (val) {
                     if (val != null) {
-                      settingsController.updateThemeMode(val);
+                      settingsController.updateThemePreference(val);
                     }
                   },
                   child: Column(
                     children: [
-                      RadioListTile<ThemeMode>(
+                      RadioListTile<AppThemePreference>(
                         title: Text(l10n.systemDefaultTheme),
                         secondary: const Icon(Icons.brightness_auto_outlined),
-                        value: ThemeMode.system,
+                        value: AppThemePreference.system,
                       ),
                       const Divider(height: 1, indent: 56),
-                      RadioListTile<ThemeMode>(
+                      RadioListTile<AppThemePreference>(
                         title: Text(l10n.lightTheme),
                         secondary: const Icon(Icons.light_mode_outlined),
-                        value: ThemeMode.light,
+                        value: AppThemePreference.light,
                       ),
                       const Divider(height: 1, indent: 56),
-                      RadioListTile<ThemeMode>(
+                      RadioListTile<AppThemePreference>(
                         title: Text(l10n.darkTheme),
                         secondary: const Icon(Icons.dark_mode_outlined),
-                        value: ThemeMode.dark,
+                        value: AppThemePreference.dark,
+                      ),
+                      const Divider(height: 1, indent: 56),
+                      RadioListTile<AppThemePreference>(
+                        title: Text(l10n.timeBasedTheme),
+                        secondary: const Icon(Icons.schedule_outlined),
+                        value: AppThemePreference.timeBased,
                       ),
                     ],
                   ),
+
                 ),
               ),
 
