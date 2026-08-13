@@ -4,12 +4,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsController extends ChangeNotifier {
   static const String _themeKey = 'user_theme_mode';
   static const String _localeKey = 'user_language_code';
+  static const String _maxWaitTimeKey = 'user_max_wait_time';
 
   ThemeMode _themeMode = ThemeMode.system;
   Locale _locale = const Locale('en'); // Default to Greek
+  int _maxWaitTime = 24; // Default to 24 hours
 
   ThemeMode get themeMode => _themeMode;
+
   Locale get locale => _locale;
+
+  int get maxWaitTime => _maxWaitTime;
+
+  // Possible wait times
+  final List<int> waitTimes = List.generate(5, (i) => i != 4 ? 1 << i : 24);
 
   /// Load saved settings from SharedPreferences on app startup
   Future<void> loadSettings() async {
@@ -19,7 +27,7 @@ class SettingsController extends ChangeNotifier {
     final themeString = prefs.getString(_themeKey);
     if (themeString != null) {
       _themeMode = ThemeMode.values.firstWhere(
-            (e) => e.name == themeString,
+        (e) => e.name == themeString,
         orElse: () => ThemeMode.system,
       );
     }
@@ -28,6 +36,11 @@ class SettingsController extends ChangeNotifier {
     final langCode = prefs.getString(_localeKey);
     if (langCode != null) {
       _locale = Locale(langCode);
+    }
+
+    final maxWaitTime = prefs.getInt(_maxWaitTimeKey);
+    if (maxWaitTime != null) {
+      _maxWaitTime = maxWaitTime;
     }
 
     notifyListeners();
@@ -53,5 +66,16 @@ class SettingsController extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, newLocale.languageCode);
+  }
+
+  /// Update and persist the max wait time
+  Future<void> updateMaxWaitTime(int newMaxWaitTime) async {
+    if (newMaxWaitTime == _maxWaitTime) return;
+
+    _maxWaitTime = newMaxWaitTime;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_maxWaitTimeKey, newMaxWaitTime);
   }
 }

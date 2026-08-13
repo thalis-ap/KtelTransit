@@ -5,10 +5,7 @@ import '../services/settings_controller.dart';
 class SettingsScreen extends StatelessWidget {
   final SettingsController settingsController;
 
-  const SettingsScreen({
-    super.key,
-    required this.settingsController,
-  });
+  const SettingsScreen({super.key, required this.settingsController});
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +14,7 @@ class SettingsScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.settingsTitle),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(l10n.settingsTitle), centerTitle: true),
       body: ListenableBuilder(
         listenable: settingsController,
         builder: (context, child) {
@@ -109,6 +103,42 @@ class SettingsScreen extends StatelessWidget {
                         subtitle: Text('Αγγλικά'),
                         secondary: Icon(Icons.language_outlined),
                         value: 'en',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Language Section
+              Text(
+                l10n.maxWaitTime,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 0,
+                color: colorScheme.surfaceContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: RadioGroup<int>(
+                  groupValue: settingsController.maxWaitTime,
+                  onChanged: (val) {
+                    if (val != null) {
+                      settingsController.updateMaxWaitTime(val);
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      ...settingsController.waitTimes.map(
+                        (value) => RadioListTile<int>(
+                          title: Text(l10n.durationHours(value)),
+                          secondary: const Icon(Icons.access_time_rounded),
+                          value: value,
+                        ),
                       ),
                     ],
                   ),
