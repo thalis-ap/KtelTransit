@@ -794,6 +794,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             setState(() {
                               selectedTripIndex = index;
                             });
+                            // Make sure the trip sheet is at 0.45 size
+                            _showTripSheet();
                             _fetchRouteForSelectedTrip(trip);
                           },
                         ),
