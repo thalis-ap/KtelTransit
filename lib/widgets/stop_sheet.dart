@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:ktel_transit/models/departure.dart';
 import 'package:ktel_transit/widgets/map_point_sheet.dart';
 import 'package:ktel_transit/widgets/trip_info_sheet.dart';
+import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import '../utilities/time_format.dart';
@@ -10,18 +11,17 @@ import '../utilities/time_format.dart';
 class StopSheet extends MapPointSheet {
   final Stop stop;
 
-  const StopSheet({
+  StopSheet({
     super.key,
     required this.stop,
     required super.repository,
     required super.onSetStart,
     required super.onSetDestination,
     required super.title,
-  });
+  }) : super(coordinates: LatLng(stop.latitude, stop.longitude));
 
   Widget _buildDeparturesList(List<Departure> deps, ThemeData theme) {
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     return ListView.separated(
       shrinkWrap: true,
@@ -49,9 +49,7 @@ class StopSheet extends MapPointSheet {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? colorScheme.primary.withValues(alpha: 0.18)
-                          : colorScheme.secondaryContainer,
+                      color: colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -59,9 +57,7 @@ class StopSheet extends MapPointSheet {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: isDark
-                            ? colorScheme.primary
-                            : colorScheme.onSecondaryContainer,
+                        color: colorScheme.onSecondaryContainer
                       ),
                     ),
                   ),

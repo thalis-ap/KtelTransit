@@ -8,7 +8,7 @@ import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
-import 'package:ktel_transit/widgets/map_point_sheet.dart';
+import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
 import 'package:ktel_transit/widgets/stop_sheet.dart';
 import 'package:ktel_transit/widgets/side_drawer.dart';
 import 'package:ktel_transit/widgets/trip_search_bar.dart';
@@ -250,12 +250,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Opens the search stop delegate to allow user to select a stop
   Future<void> _searchAndSetStop({required bool isStart}) async {
     final l10n = AppLocalizations.of(context)!;
+    final languageCode = widget.settingsController.locale.languageCode;
 
     final Stop? selectedStop = await showSearch<Stop?>(
       context: context,
       delegate: StopSearchDelegate(
         repository.stops,
-        currentRegionName: repository.currentRegion!.name,
+        currentRegionName: repository.currentRegion!.getLocalizedName(languageCode),
         searchFieldLabel: l10n.searchStopHint,
         onChangeRegionTap: () => RegionUtils.promptRegionChange(
           context,
@@ -430,17 +431,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Function to show a bottom sheet board for a point on the map that is not
   /// a stop. Used when user presses on an unknown spot on the map
-  void _showMapPointSheet(LatLng latlng) {
+  void _showMapPointSheet(LatLng coordinates) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => MapPointSheet(
+      builder: (context) => DroppedPinSheet(
         repository: repository,
         onSetStart: () {},
         onSetDestination: () {},
-        title: AppLocalizations.of(context)!.chosenPoint,
-        latlng: latlng,
+        coordinates: coordinates,
       ),
     );
   }
@@ -580,7 +580,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
     final languageCode = Localizations.localeOf(context).languageCode;
 
@@ -652,7 +651,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             urlTemplate:
                                 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.symplyapps.ktel_transit',
-                            tileBuilder: isDark ? darkModeTileBuilder : null,
+                            tileBuilder: Theme.of(context).brightness == Brightness.dark ? darkModeTileBuilder : null,
                           ),
                           if (routeTrips.isNotEmpty)
                             PolylineLayer(
