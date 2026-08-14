@@ -529,6 +529,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Βάσει ώρας (Ημέρα/Νύχτα)'**
   String get timeBasedTheme;
+
+  /// No description provided for @chosenPoint.
+  ///
+  /// In el, this message translates to:
+  /// **'Επιλεγμένο σημείο'**
+  String get chosenPoint;
 }
 
 class _AppLocalizationsDelegate

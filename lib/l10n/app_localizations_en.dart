@@ -264,4 +264,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeBasedTheme => 'Time-based (Day/Night)';
+
+  @override
+  String get chosenPoint => 'Dropped pin';
 }

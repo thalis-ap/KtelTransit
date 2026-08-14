@@ -71,5 +71,6 @@
   "locationDeniedMessage": "Location permission is denied. Please open app settings to enable it.",
   "settingsButton": "Settings",
   "maxWaitTime": "Max wait time",
-  "timeBasedTheme": "Time-based (Day/Night)"
+  "timeBasedTheme": "Time-based (Day/Night)",
+  "chosenPoint": "Dropped pin"
 }

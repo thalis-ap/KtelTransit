@@ -266,4 +266,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get timeBasedTheme => 'Βάσει ώρας (Ημέρα/Νύχτα)';
+
+  @override
+  String get chosenPoint => 'Επιλεγμένο σημείο';
 }
