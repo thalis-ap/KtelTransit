@@ -170,12 +170,12 @@ class _RoutesScreenState extends State<RoutesScreen> {
                   elevation: 2,
                   child: ExpansionTile(
                     leading: const Icon(Icons.directions_bus),
-                    title: Text(route.longName),
+                    title: Text(route.getLocalizedLongName(languageCode)),
                     children: [
                       if (going.isNotEmpty)
                         _buildDirectionSection(
                           context,
-                          "${going.first.getShortDisplayName(route.longName)} (${l10n.outbound})",
+                          "${going.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.outbound})",
                           going,
                         ),
                       if (going.isNotEmpty && returning.isNotEmpty)
@@ -183,7 +183,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                       if (returning.isNotEmpty)
                         _buildDirectionSection(
                           context,
-                          "${returning.first.getShortDisplayName(route.longName)} (${l10n.returnTrip})",
+                          "${returning.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.returnTrip})",
                           returning,
                         ),
                       const SizedBox(height: 8),
