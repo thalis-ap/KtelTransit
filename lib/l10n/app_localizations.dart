@@ -377,7 +377,7 @@ abstract class AppLocalizations {
   /// No description provided for @arrivalAt.
   ///
   /// In el, this message translates to:
-  /// **'Άφιξη σε {stop}:'**
+  /// **'Εκτιμώμενη άφιξη σε {stop}:'**
   String arrivalAt(String stop);
 
   /// No description provided for @estimatedArrivalAt.

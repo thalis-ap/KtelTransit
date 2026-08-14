@@ -2,3 +2,7 @@ table_name,field_name,language,translation,record_id
 stops,stop_name,en,Argostoli,STOP-1
 stops,stop_name,en,Sami,STOP-2
 stops,stop_name,en,Assos,STOP-3
+routes,route_short_name,en,KEF-SAM,R-SAM
+routes,route_long_name,en,Argostoli - Sami,R-SAM
+routes,route_short_name,en,KEF-ASS,R-ASS
+routes,route_long_name,en,Argostoli - Assos,R-ASS

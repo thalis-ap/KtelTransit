@@ -157,7 +157,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String arrivalAt(String stop) {
-    return 'Arrival at $stop:';
+    return 'Estimated arrival at $stop:';
   }
 
   @override

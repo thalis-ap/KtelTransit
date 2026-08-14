@@ -97,6 +97,9 @@ class GtfsRepository {
 
     // Load translations into a Map
     Map<String, String> stopTranslations = {};
+    Map<String, String> routeShortNameTranslations = {};
+    Map<String, String> routeLongNameTranslations = {};
+
     try {
       String translationsString = await rootBundle.loadString(
         dataPath(regionId, "translations.txt"),
@@ -118,18 +121,33 @@ class GtfsRepository {
           final translationIdx = headers['translation'];
           final recordIdIdx = headers['record_id'];
 
-          if (languageIdx == null || translationIdx == null || recordIdIdx == null) continue;
+          if (languageIdx == null ||
+              translationIdx == null ||
+              recordIdIdx == null) {
+            continue;
+          }
 
           final language = row[languageIdx].toString();
           if (language != 'en') continue;
 
-          final tableName = tableNameIdx != null ? row[tableNameIdx].toString() : 'stops';
-          final fieldName = fieldNameIdx != null ? row[fieldNameIdx].toString() : 'stop_name';
+          final tableName = tableNameIdx != null
+              ? row[tableNameIdx].toString()
+              : 'stops';
+          final fieldName = fieldNameIdx != null
+              ? row[fieldNameIdx].toString()
+              : 'stop_name';
           final recordId = row[recordIdIdx].toString();
           final translation = row[translationIdx].toString();
 
-          if (tableName == 'stops' && (fieldName == 'stop_name' || fieldName == 'stop_desc')) {
+          if (tableName == 'stops' &&
+              (fieldName == 'stop_name' || fieldName == 'stop_desc')) {
             stopTranslations[recordId] = translation;
+          } else if (tableName == 'routes') {
+            if (fieldName == 'route_short_name') {
+              routeShortNameTranslations[recordId] = translation;
+            } else if (fieldName == 'route_long_name') {
+              routeLongNameTranslations[recordId] = translation;
+            }
           }
         }
       }
@@ -154,11 +172,9 @@ class GtfsRepository {
         // Grab the ID first so we can check our dictionary
         final stopId = row[headers['stop_id']!].toString();
 
-        stops.add(Stop.fromCsv(
-          row,
-          headers,
-          englishName: stopTranslations[stopId],
-        ));
+        stops.add(
+          Stop.fromCsv(row, headers, englishName: stopTranslations[stopId]),
+        );
       }
     }
 
@@ -175,7 +191,17 @@ class GtfsRepository {
 
       for (List<dynamic> row in routesGrid.skip(1)) {
         if (row.isEmpty || row.length < 2) continue;
-        routes.add(Route.fromCsv(row, headers));
+
+        final routeId = row[headers['route_id']!].toString();
+
+        routes.add(
+          Route.fromCsv(
+            row,
+            headers,
+            englishShortName: routeShortNameTranslations[routeId],
+            englishLongName: routeLongNameTranslations[routeId],
+          ),
+        );
       }
     }
 
@@ -235,6 +261,7 @@ class GtfsRepository {
     String departureStopId, {
     DateTime? selectedTime,
   }) {
+    final languageCode = _settingsController?.locale.languageCode ?? 'el';
     final DateTime target = selectedTime ?? DateTime.now();
 
     List<String> validServiceIds = getServiceIds(target);
@@ -265,7 +292,7 @@ class GtfsRepository {
         if (!validServiceIds.contains(trip.serviceId)) continue;
 
         final Route route = routes.firstWhere((r) => r.routeId == trip.routeId);
-        final String routeName = trip.getDisplayName(route.longName);
+        final String routeName = trip.getDisplayName(route.getLocalizedLongName(languageCode));
 
         final List<StopTime> allTripsStopTimes = stopTimes
             .where((s) => s.tripId == trip.tripId)
@@ -322,7 +349,7 @@ class GtfsRepository {
   }) {
     final DateTime targetDateTime = selectedTime ?? DateTime.now();
 
-    final currentLang = _settingsController?.locale.languageCode ?? 'el';
+    final languageCode = _settingsController?.locale.languageCode ?? 'el';
 
     List<String> validServiceIds = getServiceIds(targetDateTime);
 
@@ -344,7 +371,7 @@ class GtfsRepository {
 
     final String destinationStopName = stops
         .firstWhere((s) => s.stopId == destStopId)
-        .getLocalizedName(currentLang);
+        .getLocalizedName(languageCode);
 
     for (StopTime stStart in startTimes) {
       try {
@@ -364,7 +391,7 @@ class GtfsRepository {
             TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
 
         final Route route = routes.firstWhere((r) => r.routeId == trip.routeId);
-        String displayName = trip.getDisplayName(route.longName);
+        String displayName = trip.getDisplayName(route.getLocalizedLongName(languageCode));
 
         final List<StopTime> allTripStops = stopTimes
             .where((s) => s.tripId == trip.tripId)
@@ -374,7 +401,7 @@ class GtfsRepository {
 
         final String originStopName = stops
             .firstWhere((s) => s.stopId == firstStop.stopId)
-            .getLocalizedName(currentLang);
+            .getLocalizedName(languageCode);
 
         dailyTrips.add(
           OsrmTrip(
@@ -424,7 +451,7 @@ class GtfsRepository {
 
           final String originStopName = stops
               .firstWhere((s) => s.stopId == firstStop.stopId)
-              .getLocalizedName(currentLang);
+              .getLocalizedName(languageCode);
 
           for (StopTime transferA in tripAStops) {
             final int tArrivalMins = TimeFormat.gtfsTimeToMinutes(
@@ -437,7 +464,9 @@ class GtfsRepository {
                 st.departureTime,
               );
               return tDepartMins >= tArrivalMins &&
-                  tDepartMins <= tArrivalMins + 60 * (_settingsController?.maxWaitTime ?? 24);
+                  tDepartMins <=
+                      tArrivalMins +
+                          60 * (_settingsController?.maxWaitTime ?? 24);
             }).toList();
 
             for (StopTime stTransB in potentialLeg2) {
@@ -471,16 +500,11 @@ class GtfsRepository {
                 );
                 final String transferStopName = stops
                     .firstWhere((s) => s.stopId == transferA.stopId)
-                    .getLocalizedName(currentLang);
+                    .getLocalizedName(languageCode);
 
-                String rAName = routeA.longName;
-                if (tripA.directionId.toString() == '1') {
-                  rAName = rAName.split(' - ').reversed.join(' - ');
-                }
-                String rBName = routeB.longName;
-                if (tripB.directionId.toString() == '1') {
-                  rBName = rBName.split(' - ').reversed.join(' - ');
-                }
+
+                String rAName = tripA.getDisplayName(routeA.getLocalizedLongName(languageCode));
+                String rBName = tripB.getDisplayName(routeB.getLocalizedLongName(languageCode));
 
                 dailyTrips.add(
                   OsrmTrip(

@@ -46,7 +46,7 @@
   "totalTicketCost": "Total ticket fare",
   "transfer": "TRANSFER",
   "departureFrom": "Departure from {stop}:",
-  "arrivalAt": "Arrival at {stop}:",
+  "arrivalAt": "Estimated arrival at {stop}:",
   "estimatedArrivalAt": "Estimated arrival at {stop}:",
   "waitingTime": "Wait time: {time}",
   "hoursMinutesFormat": "{hours}h {minutes}m",

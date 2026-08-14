@@ -19,3 +19,31 @@ stops,stop_name,en,Vournika,STOP-17
 stops,stop_name,en,Syvros,STOP-18
 stops,stop_name,en,Agios Ilias,STOP-19
 stops,stop_name,en,Athani,STOP-20
+routes,route_short_name,en,LEF-NYD,R-NYD
+routes,route_long_name,en,Lefkada - Lygia - Nikiana - Nydri,R-NYD
+routes,route_short_name,en,LEF-VAS,R-VAS
+routes,route_long_name,en,Lefkada - Vasiliki,R-VAS
+routes,route_short_name,en,LEF-AGN,R-AGN
+routes,route_long_name,en,Lefkada - Agios Nikitas,R-AGN
+routes,route_short_name,en,LEF-KTH,R-KTH
+routes,route_long_name,en,Lefkada - Kathisma Beach,R-KTH
+routes,route_short_name,en,LEF-KST,R-KST
+routes,route_long_name,en,Lefkada - Kastro Gyra,R-KST
+routes,route_short_name,en,LEF-VLY,R-VLY
+routes,route_long_name,en,Lefkada - Vlycho,R-VLY
+routes,route_short_name,en,LEF-KAL,R-KAL
+routes,route_long_name,en,Lefkada - Kalamitsi,R-KAL
+routes,route_short_name,en,LEF-KAR,R-KAR
+routes,route_long_name,en,Lefkada - Karya,R-KAR
+routes,route_short_name,en,LEF-EGK,R-EGK
+routes,route_long_name,en,Lefkada - Eglouvi,R-EGK
+routes,route_short_name,en,LEF-POR,R-POR
+routes,route_long_name,en,Lefkada - Poros - Katochori,R-POR
+routes,route_short_name,en,LEF-SYV,R-SYV
+routes,route_long_name,en,Lefkada - Syvota,R-SYV
+routes,route_short_name,en,LEF-FTE,R-FTE
+routes,route_long_name,en,Lefkada - Fterno - Vournika - Syvros,R-FTE
+routes,route_short_name,en,LEF-AGI,R-AGI
+routes,route_long_name,en,Lefkada - Syvros - Agios Ilias,R-AGI
+routes,route_short_name,en,LEF-ATH,R-ATH
+routes,route_long_name,en,Lefkada - Athani,R-ATH

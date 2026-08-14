@@ -67,7 +67,7 @@
       }
     }
   },
-  "arrivalAt": "Άφιξη σε {stop}:",
+  "arrivalAt": "Εκτιμώμενη άφιξη σε {stop}:",
   "@arrivalAt": {
     "placeholders": {
       "stop": {

@@ -20,6 +20,25 @@ class StopSheet extends MapPointSheet {
     required super.title,
   }) : super(coordinates: LatLng(stop.latitude, stop.longitude));
 
+  String getSubtitle(BuildContext context, Departure dep) {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+
+    if (dep.originStop.stopId == dep.departureStop.stopId) {
+      final stopName = dep.originStop.getLocalizedName(languageCode);
+      final time = TimeFormat.dateTimeToFormattedString(dep.originDepartureTime);
+
+      // Using your existing localization and appending the time
+      return "${l10n.departureFrom(stopName)} - $time";
+    } else {
+      final stopName = dep.departureStop.getLocalizedName(languageCode);
+      final time = TimeFormat.dateTimeToFormattedString(dep.departureTime);
+
+      // Using your existing localization and appending the time
+      return "${l10n.estimatedArrivalAt(stopName)} - $time";
+    }
+  }
+
   Widget _buildDeparturesList(List<Departure> deps, ThemeData theme) {
     final colorScheme = theme.colorScheme;
 
@@ -34,7 +53,7 @@ class StopSheet extends MapPointSheet {
           dep.originDepartureTime,
         );
         final String route = dep.routeName;
-        final String subtitle = dep.getSubtitle();
+        final String subtitle = getSubtitle(context, dep);
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
