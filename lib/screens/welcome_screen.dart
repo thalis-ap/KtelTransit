@@ -83,8 +83,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final hasSelected = selectedRegion != null;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final currentLang = widget.settingsController.locale.languageCode.toUpperCase();
+    final theme = Theme.of(context);
+    final languageCode = widget.settingsController.locale.languageCode;
 
     return Scaffold(
       appBar: AppBar(
@@ -100,7 +100,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 const Icon(Icons.language, size: 20),
                 const SizedBox(width: 4),
                 Text(
-                  currentLang,
+                  languageCode.toUpperCase(),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(width: 4),
@@ -139,9 +139,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: 200,
                   height: 200,
                   child: Image.asset(
-                    isDark
-                        ? AppTheme.darkAppIconPath
-                        : AppTheme.appIconPath,
+                    theme.appIconPath
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -158,7 +156,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     child: CircularProgressIndicator(),
                   )
                       : RegionInfoBanner(
-                    regionName: selectedRegion?.name ?? l10n.notChosen,
+                    regionName: selectedRegion?.getLocalizedName(languageCode) ?? l10n.notChosen,
                     onChangeTap: _changeRegion,
                   ),
                 ),

@@ -130,13 +130,14 @@ class _RoutesScreenState extends State<RoutesScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.routes)),
       body: Column(
         children: [
           RegionInfoBanner(
-            regionName: repository.currentRegion?.name ?? l10n.notChosen,
+            regionName: repository.currentRegion?.getLocalizedName(languageCode) ?? l10n.notChosen,
             onChangeTap: () => RegionUtils.promptRegionChange(
               context,
               repository,

@@ -17,9 +17,10 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final normalizedSearch = normalizeGreek(query);
+    final languageCode = Localizations.localeOf(context).languageCode;
 
     final suggestions = regions.where((region) {
-      final normalizedRegionName = normalizeGreek(region.name);
+      final normalizedRegionName = normalizeGreek(region.getLocalizedName(languageCode));
       return normalizedRegionName.contains(normalizedSearch);
     }).toList();
 
@@ -40,7 +41,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
         return ListTile(
           leading: const Icon(Icons.map_outlined),
           title: Text(
-            region.name,
+            region.getLocalizedName(languageCode),
             style: TextStyle(
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
