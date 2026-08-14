@@ -8,7 +8,8 @@ import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
-import 'package:ktel_transit/widgets/route_details_sheet.dart';
+import 'package:ktel_transit/widgets/map_point_sheet.dart';
+import 'package:ktel_transit/widgets/stop_sheet.dart';
 import 'package:ktel_transit/widgets/side_drawer.dart';
 import 'package:ktel_transit/widgets/trip_search_bar.dart';
 import 'package:latlong2/latlong.dart';
@@ -427,19 +428,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     animationController.forward();
   }
 
+  /// Function to show a bottom sheet board for a point on the map that is not
+  /// a stop. Used when user presses on an unknown spot on the map
+  void _showMapPointSheet(LatLng latlng) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => MapPointSheet(
+        repository: repository,
+        onSetStart: () {},
+        onSetDestination: () {},
+        title: AppLocalizations.of(context)!.chosenPoint,
+        latlng: latlng,
+      ),
+    );
+  }
+
   /// Function to open the deparure board for a stop
-  void _showDepartureBoard(Stop stop) {
+  void _showStopSheet(Stop stop) {
     isDepartureBoardOpen = true;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => RouteDetailsSheet(
+      builder: (context) => StopSheet(
         stop: stop,
         repository: repository,
         onSetStart: () => _onSetStartStop(stop),
         onSetDestination: () => _onSetDestinationStop(stop),
+        title: stop.getLocalizedName(
+          Localizations.localeOf(context).languageCode,
+        ),
       ),
     ).whenComplete(() {
       isDepartureBoardOpen = false;
@@ -571,7 +592,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (activeTrip.isTransfer) {
         try {
           activeTransferStop = repository.stops.firstWhere(
-            (s) => s.getLocalizedName(languageCode) == activeTrip.transferStopName,
+            (s) =>
+                s.getLocalizedName(languageCode) == activeTrip.transferStopName,
           );
         } catch (_) {}
       }
@@ -600,6 +622,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           initialZoom: activeRegion.defaultZoom,
                           minZoom: 6.0,
                           maxZoom: 20.0,
+                          onTap: (position, latlng) {
+                            _showMapPointSheet(latlng);
+                          },
                           onMapReady: () {
                             setState(() {
                               isMapReady = true;
@@ -690,7 +715,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 width: 40,
                                 height: 40,
                                 child: GestureDetector(
-                                  onTap: () => _showDepartureBoard(stop),
+                                  onTap: () => _showStopSheet(stop),
                                   child: Icon(
                                     iconData,
                                     color: iconColor,

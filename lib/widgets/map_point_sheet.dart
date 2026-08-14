@@ -1,0 +1,145 @@
+import 'package:flutter/material.dart';
+import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:latlong2/latlong.dart';
+
+/// This class acts as a base widget for any point the user presses on the map
+/// It has the basic features: title, start/dest buttons, scrollable sheet
+/// To use it just do:
+/// return MapPointSheet(...) and use the followUpWidgets list to fill the
+/// extra widgets (see stop_sheet.dart).
+class MapPointSheet extends StatelessWidget {
+  // Title will either be the stop name or the point name
+  final String title;
+  final GtfsRepository repository;
+  final VoidCallback onSetStart, onSetDestination;
+  final LatLng? latlng;
+
+  const MapPointSheet({
+    super.key,
+    required this.repository,
+    required this.onSetStart,
+    required this.onSetDestination, required this.title, this.latlng,
+  });
+
+  /// This function will draw the follow up widgets after the base ones (the
+  /// base ones are: title, onSetStart/Dest buttons, grey handle).
+  /// Derived sheet classes can override this function to customize their own
+  /// follow up widgets. If the sheet used is clearly a MapPointSheet() then
+  /// this generic method will be used for the "unknown" map points that will
+  /// provide generic info about them.
+  List<Widget> buildFollowUpWidgets(BuildContext context) {
+    return [
+
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(context).pop(),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.45,
+        minChildSize: 0.25,
+        maxChildSize: 0.85,
+        snap: true,
+        snapSizes: const [0.45],
+        builder: (context, scrollController) {
+          return GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                top: 12.0,
+                left: 24.0,
+                right: 24.0,
+                bottom: 24.0,
+              ),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                boxShadow: const [BoxShadow(blurRadius: 16, spreadRadius: 2)],
+              ),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 48,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.4,
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              onSetStart();
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.my_location, size: 20),
+                            label: Text(l10n.originLabel),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colorScheme.secondary.withAlpha(
+                                50,
+                              ),
+                              foregroundColor: colorScheme.secondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              onSetDestination();
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.place, size: 20),
+                            label: Text(l10n.destinationLabel),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colorScheme.primary.withAlpha(
+                                50,
+                              ),
+                              foregroundColor: colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    ...buildFollowUpWidgets(context)
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
