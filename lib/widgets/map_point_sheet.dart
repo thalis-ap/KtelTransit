@@ -13,13 +13,20 @@ class MapPointSheet extends StatelessWidget {
   final String title;
   final GtfsRepository repository;
   final VoidCallback onSetStart, onSetDestination;
-  final LatLng? latlng;
+  final LatLng coordinates;
+
+  // This will be used for special cases, such as when showing the name of a
+  // map point, to show extra widgets, e.g. loading indicator
+  final List<Widget> followUpWidgets;
 
   const MapPointSheet({
     super.key,
     required this.repository,
     required this.onSetStart,
-    required this.onSetDestination, required this.title, this.latlng,
+    required this.onSetDestination,
+    required this.title,
+    required this.coordinates,
+    this.followUpWidgets = const [],
   });
 
   /// This function will draw the follow up widgets after the base ones (the
@@ -29,9 +36,7 @@ class MapPointSheet extends StatelessWidget {
   /// this generic method will be used for the "unknown" map points that will
   /// provide generic info about them.
   List<Widget> buildFollowUpWidgets(BuildContext context) {
-    return [
-
-    ];
+    return [];
   }
 
   @override
@@ -132,7 +137,10 @@ class MapPointSheet extends StatelessWidget {
                         ),
                       ],
                     ),
-                    ...buildFollowUpWidgets(context)
+                    if (followUpWidgets.isEmpty)
+                      ...buildFollowUpWidgets(context)
+                    else
+                      ...followUpWidgets,
                   ],
                 ),
               ),
