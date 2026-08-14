@@ -72,5 +72,7 @@
   "settingsButton": "Settings",
   "maxWaitTime": "Max wait time",
   "timeBasedTheme": "Time-based (Day/Night)",
-  "chosenPoint": "Dropped pin"
+  "chosenPoint": "Dropped pin",
+  "searchingPoint": "Searching point..."
+
 }

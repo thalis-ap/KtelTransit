@@ -535,6 +535,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Επιλεγμένο σημείο'**
   String get chosenPoint;
+
+  /// No description provided for @searchingPoint.
+  ///
+  /// In el, this message translates to:
+  /// **'Αναζήτηση σημείου...'**
+  String get searchingPoint;
 }
 
 class _AppLocalizationsDelegate

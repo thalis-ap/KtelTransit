@@ -267,4 +267,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chosenPoint => 'Dropped pin';
+
+  @override
+  String get searchingPoint => 'Searching point...';
 }

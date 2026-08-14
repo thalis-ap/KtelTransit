@@ -162,5 +162,6 @@
   "settingsButton": "Ρυθμίσεις",
   "maxWaitTime": "Μέγιστη αναμονή μετεπιβίβασης",
   "timeBasedTheme": "Βάσει ώρας (Ημέρα/Νύχτα)",
-  "chosenPoint": "Επιλεγμένο σημείο"
+  "chosenPoint": "Επιλεγμένο σημείο",
+  "searchingPoint": "Αναζήτηση σημείου..."
 }

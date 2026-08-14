@@ -269,4 +269,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get chosenPoint => 'Επιλεγμένο σημείο';
+
+  @override
+  String get searchingPoint => 'Αναζήτηση σημείου...';
 }
