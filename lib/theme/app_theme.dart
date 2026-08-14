@@ -108,3 +108,11 @@ class AppTheme {
     );
   }
 }
+
+extension AppThemeExtension on ThemeData {
+  String get appIconPath {
+    return brightness == Brightness.dark
+        ? AppTheme.darkAppIconPath
+        : AppTheme.appIconPath;
+  }
+}

@@ -20,7 +20,7 @@ class SideDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final languageCode = settingsController.locale.languageCode;
 
     return Drawer(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -33,7 +33,7 @@ class SideDrawer extends StatelessWidget {
                 Text(l10n.appTitle, style: const TextStyle(fontSize: 24)),
                 Expanded(
                   child: Image.asset(
-                    isDark ? AppTheme.darkAppIconPath : AppTheme.appIconPath,
+                    AppTheme.appIconPath,
                   ),
                 ),
               ],
@@ -47,7 +47,7 @@ class SideDrawer extends StatelessWidget {
               return ListTile(
                 leading: const Icon(Icons.map_outlined),
                 title: Text(l10n.region),
-                subtitle: Text(currentRegion?.name ?? l10n.notChosen),
+                subtitle: Text(currentRegion?.getLocalizedName(languageCode) ?? l10n.notChosen),
                 trailing: const Icon(Icons.search),
                 onTap: () => RegionUtils.promptRegionChange(
                   context,
