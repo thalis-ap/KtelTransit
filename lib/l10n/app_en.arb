@@ -73,6 +73,8 @@
   "maxWaitTime": "Max wait time",
   "timeBasedTheme": "Time-based (Day/Night)",
   "chosenPoint": "Dropped pin",
-  "searchingPoint": "Searching point..."
+  "searchingPoint": "Searching point...",
+  "nearestStops": "Nearest stops"
+
 
 }

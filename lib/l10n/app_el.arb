@@ -163,5 +163,6 @@
   "maxWaitTime": "Μέγιστη αναμονή μετεπιβίβασης",
   "timeBasedTheme": "Βάσει ώρας (Ημέρα/Νύχτα)",
   "chosenPoint": "Επιλεγμένο σημείο",
-  "searchingPoint": "Αναζήτηση σημείου..."
+  "searchingPoint": "Αναζήτηση σημείου...",
+  "nearestStops": "Πλησιέστερες στάσεις"
 }

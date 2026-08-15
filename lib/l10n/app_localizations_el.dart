@@ -272,4 +272,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get searchingPoint => 'Αναζήτηση σημείου...';
+
+  @override
+  String get nearestStops => 'Πλησιέστερες στάσεις';
 }

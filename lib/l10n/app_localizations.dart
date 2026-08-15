@@ -541,6 +541,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Αναζήτηση σημείου...'**
   String get searchingPoint;
+
+  /// No description provided for @nearestStops.
+  ///
+  /// In el, this message translates to:
+  /// **'Πλησιέστερες στάσεις'**
+  String get nearestStops;
 }
 
 class _AppLocalizationsDelegate

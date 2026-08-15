@@ -270,4 +270,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchingPoint => 'Searching point...';
+
+  @override
+  String get nearestStops => 'Nearest stops';
 }
