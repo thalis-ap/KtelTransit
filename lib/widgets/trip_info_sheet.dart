@@ -131,10 +131,6 @@ class TripInfoSheet extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.close, color: colorScheme.onSurfaceVariant),
-                              onPressed: onClose,
-                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
