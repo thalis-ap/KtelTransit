@@ -8,6 +8,10 @@ class AppTheme {
 
   static const Color seedColor = Colors.blue;
 
+  // Standard blue color to use for both light and dark theme because it
+  // looks nicer in some cases
+  static final Color blueish = Colors.blue.shade700;
+
   static final _buttonShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(12),
   );
@@ -76,8 +80,6 @@ class AppTheme {
       primary: Colors.blue.shade300,
       secondary: Colors.green.shade400,
       tertiary: Colors.orange.shade400,
-
-
     );
 
     return ThemeData(
