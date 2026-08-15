@@ -79,7 +79,10 @@ class GtfsRepository {
       isRegionLoadingNotifier.value = false;
     }
 
+    // Must trigger the loading animation and movement of map
+    isRegionLoadingNotifier.value = true;
     currentRegionNotifier.value = newRegion;
+    isRegionLoadingNotifier.value = false;
   }
 
   Future<void> loadData([Region? region]) async {
