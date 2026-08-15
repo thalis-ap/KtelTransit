@@ -403,7 +403,7 @@ class GtfsRepository {
         final StopTime firstStop = allTripStops.first;
 
         final String originStopName = stops
-            .firstWhere((s) => s.stopId == firstStop.stopId)
+            .firstWhere((s) => s.stopId == startStopId)
             .getLocalizedName(languageCode);
 
         dailyTrips.add(
@@ -450,10 +450,9 @@ class GtfsRepository {
               .toList();
 
           tripAStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
-          final StopTime firstStop = tripAStops.first;
 
           final String originStopName = stops
-              .firstWhere((s) => s.stopId == firstStop.stopId)
+              .firstWhere((s) => s.stopId == startStopId)
               .getLocalizedName(languageCode);
 
           for (StopTime transferA in tripAStops) {
