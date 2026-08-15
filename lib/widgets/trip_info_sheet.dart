@@ -37,12 +37,13 @@ class TripInfoSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return DraggableScrollableSheet(
       controller: controller,
       initialChildSize: 0.45,
-      minChildSize: 0.10,
+      minChildSize: 0.15,
       maxChildSize: 0.85,
       snap: true,
       snapSizes: const [0.45],
@@ -81,6 +82,35 @@ class TripInfoSheet extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "${startStop.name}  - ${destinationStop.name}",
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.close, size: 22, color: colorScheme.onSurfaceVariant),
+                          onPressed: onClose,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(), // Keeps it compact
+                        ),
+                      ),
+
+                    ],
+                  ),
+
                   if (selectedTripIndex != null && trips != null)
                     Column(
                       mainAxisSize: MainAxisSize.min,
@@ -431,7 +461,7 @@ class TripDetailsCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final languageCode = Localizations.localeOf(context).languageCode;
-    
+
     final Stop localTransferStop = allStops.firstWhere(
           (s) => s.getLocalizedName(languageCode) == osrmTrip.transferStopName,
     );
@@ -611,7 +641,7 @@ class TripDetailsCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final languageCode = Localizations.localeOf(context).languageCode;
-    
+
     double estimatedFare = _estimateFare(startStop, destinationStop);
 
     return Column(
