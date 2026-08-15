@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ktel_transit/models/osrm_trip.dart';
 import 'package:ktel_transit/models/region.dart';
@@ -19,6 +23,7 @@ import '../models/stop.dart';
 import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
 import '../services/settings_controller.dart';
+import '../widgets/compass_cone.dart';
 import '../widgets/trip_info_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -78,6 +83,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   LatLng? userLocation;
   LatLng? selectedMapPoint;
 
+  // Compass
+  StreamSubscription<CompassEvent>? _compassSubscription;
+  double? deviceHeading;
+
   // Keys - state related
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -91,10 +100,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // changeRegion function runs.
     repository.currentRegionNotifier.addListener(_onRegionChanged);
     _loadData();
+
+    // Track the compass to show the correct direction of which the phone is looking
+    _compassSubscription = FlutterCompass.events?.listen((CompassEvent event) {
+      if (mounted && event.heading != null) {
+        setState(() {
+          deviceHeading = event.heading;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _compassSubscription?.cancel();
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
     _tripInfoSheetController.dispose();
     _droppedPinSheetController.dispose();
@@ -776,17 +795,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               markers: [
                                 Marker(
                                   point: userLocation!,
-                                  width: 20,
-                                  height: 20,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primary,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(width: 3),
-                                      boxShadow: const [
-                                        BoxShadow(blurRadius: 4),
-                                      ],
-                                    ),
+                                  width: 80,
+                                  height: 80,
+                                  rotate: true,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // The rotating cone (Bottom layer)
+                                      if (deviceHeading != null)
+                                        Transform.rotate(
+                                          angle:
+                                              deviceHeading! * (math.pi / 180),
+                                          child: CustomPaint(
+                                            size: const Size(80, 80),
+                                            painter: CompassConePainter(
+                                              color: AppTheme.blueish,
+                                            ),
+                                          ),
+                                        ),
+
+                                      // Google Maps dot (Top layer)
+                                      Container(
+                                        width: 20,
+                                        height: 20,
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.blueish,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            width: 2,
+                                            color: Colors.white,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppTheme.blueish,
+                                              blurRadius: 20,
+                                              spreadRadius: 4,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -1048,8 +1096,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ? null
             : FloatingActionButton(
                 onPressed: _goToMyLocation,
-                backgroundColor: colorScheme.surface,
-                child: Icon(Icons.my_location, color: colorScheme.primary),
+                // slight lighter color to avoid same color with the map
+                backgroundColor: colorScheme.surfaceContainerHigh,
+                child: Icon(Icons.my_location, color: AppTheme.blueish),
               ),
       ),
     );
