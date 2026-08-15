@@ -33,29 +33,56 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final GtfsRepository repository = GtfsRepository();
 
+  // Loading variables
   bool isLoading = true;
-  bool isDepartureBoardOpen = false;
+
+  // Stops related
+  Stop? activeStop; // State variable to track if the StopSheet is open
 
   Stop? startStop, destinationStop;
 
-  final DraggableScrollableController _sheetController =
-      DraggableScrollableController();
-
   bool? lastChosenStopIsStart;
 
+  // Trips related
   List<OsrmTrip> routeTrips = [];
 
   DateTime selectedSearchTime = DateTime.now();
   int? selectedTripIndex;
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  // Sheets
+  static const String tripInfoSheetName = 'trip';
+  static const String droppedPinSheetName = 'pin';
+  static const String stopSheetName = 'stop';
 
+  final DraggableScrollableController _tripInfoSheetController =
+      DraggableScrollableController();
+  final DraggableScrollableController _droppedPinSheetController =
+      DraggableScrollableController();
+  final DraggableScrollableController _stopSheetController =
+      DraggableScrollableController();
+
+  // Keeps an order of the sheets so that we know which one is on top
+  // Last means first in the stack (top of the others)
+  final List<String> _sheetStackOrder = [
+    tripInfoSheetName,
+    stopSheetName,
+    droppedPinSheetName,
+  ];
+
+  // Map related
   final MapController mapController = MapController();
 
   double mapRotation = 0;
   bool isMapReady = false;
 
   LatLng? userLocation;
+  LatLng? selectedMapPoint;
+
+  // Keys - state related
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // Other
+  bool isDepartureBoardOpen = false;
 
   @override
   void initState() {
@@ -69,7 +96,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
-    _sheetController.dispose();
+    _tripInfoSheetController.dispose();
+    _droppedPinSheetController.dispose();
+    _stopSheetController.dispose();
     super.dispose();
   }
 
@@ -256,7 +285,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context: context,
       delegate: StopSearchDelegate(
         repository.stops,
-        currentRegionName: repository.currentRegion!.getLocalizedName(languageCode),
+        currentRegionName: repository.currentRegion!.getLocalizedName(
+          languageCode,
+        ),
         searchFieldLabel: l10n.searchStopHint,
         onChangeRegionTap: () => RegionUtils.promptRegionChange(
           context,
@@ -288,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedTripIndex = null;
       routeTrips.clear();
     });
-    _showTripSheet();
+    _showTripInfoSheet();
   }
 
   /// Runs when user sets the destination stop
@@ -300,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedTripIndex = null;
       routeTrips.clear();
     });
-    _showTripSheet();
+    _showTripInfoSheet();
   }
 
   /// Handles a back button press on each case
@@ -429,56 +460,87 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     animationController.forward();
   }
 
-  /// Function to show a bottom sheet board for a point on the map that is not
-  /// a stop. Used when user presses on an unknown spot on the map
-  void _showMapPointSheet(LatLng coordinates) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DroppedPinSheet(
-        repository: repository,
-        onSetStart: () {},
-        onSetDestination: () {},
-        coordinates: coordinates,
-      ),
-    );
-  }
-
-  /// Function to open the deparure board for a stop
-  void _showStopSheet(Stop stop) {
-    isDepartureBoardOpen = true;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StopSheet(
-        stop: stop,
-        repository: repository,
-        onSetStart: () => _onSetStartStop(stop),
-        onSetDestination: () => _onSetDestinationStop(stop),
-        title: stop.getLocalizedName(
-          Localizations.localeOf(context).languageCode,
-        ),
-      ),
-    ).whenComplete(() {
-      isDepartureBoardOpen = false;
+  void _bringSheetToFront(String sheetName) {
+    setState(() {
+      _sheetStackOrder.remove(sheetName);
+      // Moves to the end of the list - top of the stack
+      _sheetStackOrder.add(sheetName);
     });
   }
 
-  /// Function to open the trip sheet smoothly from the bottom
-  void _showTripSheet() {
-    if (startStop == null || destinationStop == null) return;
+  void _showDroppedPinSheet(LatLng coordinates) {
+    _bringSheetToFront(droppedPinSheetName);
+    setState(() {
+      selectedMapPoint = coordinates;
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_sheetController.isAttached) {
-        _sheetController.animateTo(
+      if (_droppedPinSheetController.isAttached) {
+        _droppedPinSheetController.animateTo(
           0.45,
-          duration: const Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 300),
+          // Matched to the new AnimatedSwitcher speed
           curve: Curves.easeOutCubic,
         );
       }
+    });
+  }
+
+  void _closeDroppedPinSheet() {
+    setState(() {
+      selectedMapPoint = null;
+    });
+  }
+
+  void _showStopSheet(Stop stop) {
+    _bringSheetToFront(stopSheetName);
+    setState(() {
+      activeStop = stop;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_stopSheetController.isAttached) {
+        _stopSheetController.animateTo(
+          0.45,
+          duration: const Duration(milliseconds: 300),
+          // Matched to the new AnimatedSwitcher speed
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
+  void _closeStopSheet() {
+    setState(() {
+      activeStop = null;
+    });
+  }
+
+  void _showTripInfoSheet() {
+    if (startStop == null || destinationStop == null) return;
+
+    _bringSheetToFront(tripInfoSheetName);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_tripInfoSheetController.isAttached) {
+        _tripInfoSheetController.animateTo(
+          0.45,
+          duration: const Duration(milliseconds: 300),
+          // Matched to the new AnimatedSwitcher speed
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
+  void _closeTripInfoSheet() {
+    setState(() {
+      startStop = null;
+      destinationStop = null;
+      lastChosenStopIsStart = null;
+      routeTrips.clear();
+      selectedSearchTime = DateTime.now();
+      selectedTripIndex = null;
     });
   }
 
@@ -577,6 +639,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  /// Wraps our sheets in a smooth slide transition when they open and close
+  Widget _buildAnimatedSheet(Widget? sheetWidget, String sheetName) {
+    return AnimatedSwitcher(
+      key: ValueKey("${sheetName}_wrapper"),
+      duration: const Duration(milliseconds: 350),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1.2), // Starts off-screen at the bottom
+            end: Offset.zero, // Slides to normal position
+          ).animate(animation),
+          child: child,
+        );
+      },
+      // The ValueKey is required so AnimatedSwitcher knows when the widget changes
+      child: sheetWidget ?? const SizedBox.shrink(key: ValueKey('empty_sheet')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -622,7 +705,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           minZoom: 6.0,
                           maxZoom: 20.0,
                           onTap: (position, latlng) {
-                            _showMapPointSheet(latlng);
+                            _showDroppedPinSheet(latlng);
                           },
                           onMapReady: () {
                             setState(() {
@@ -651,7 +734,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             urlTemplate:
                                 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.symplyapps.ktel_transit',
-                            tileBuilder: Theme.of(context).brightness == Brightness.dark ? darkModeTileBuilder : null,
+                            tileBuilder:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? darkModeTileBuilder
+                                : null,
                           ),
                           if (routeTrips.isNotEmpty)
                             PolylineLayer(
@@ -665,6 +751,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       .toList(),
                                   color: colorScheme.primary,
                                   strokeWidth: 4.0,
+                                ),
+                              ],
+                            ),
+                          if (selectedMapPoint != null)
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: selectedMapPoint!,
+                                  width: 50.0,
+                                  height: 50.0,
+                                  alignment: Alignment.topCenter,
+                                  // Anchors the bottom of the pin to the exact coordinate
+                                  child: Icon(
+                                    Icons.push_pin_rounded,
+                                    size: 30.0,
+                                    color: colorScheme.tertiary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -727,6 +830,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ],
                       ),
 
+                      // Search bar
                       Positioned(
                         top: MediaQuery.of(context).padding.top + 16,
                         left: 16,
@@ -753,6 +857,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
 
+                      // Compass
                       Positioned(
                         top:
                             MediaQuery.of(context).padding.top +
@@ -792,43 +897,89 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      if (startStop != null && destinationStop != null)
-                        TripInfoSheet(
-                          controller: _sheetController,
-                          startStop: startStop!,
-                          destinationStop: destinationStop!,
-                          trips: trips,
-                          selectedTripIndex: selectedTripIndex,
-                          selectedSearchTime: selectedSearchTime,
-                          allStops: repository.stops,
-                          onBackToAllTrips: () {
-                            setState(() {
-                              selectedTripIndex = null;
-                              routeTrips.clear();
-                            });
-                          },
-                          onClose: () {
-                            setState(() {
-                              startStop = null;
-                              destinationStop = null;
-                              lastChosenStopIsStart = null;
-                              routeTrips.clear();
-                              selectedSearchTime = DateTime.now();
-                              selectedTripIndex = null;
-                            });
-                          },
-                          onChangeTime: _showDateTimePickerDialog,
-                          onTripSelected: (index, trip) {
-                            setState(() {
-                              selectedTripIndex = index;
-                            });
-                            // Make sure the trip sheet is at 0.45 size so that
-                            // when user selects a trip, the map shows the route
-                            _showTripSheet();
-                            _fetchRouteForSelectedTrip(trip);
-                          },
-                        ),
+                      ..._sheetStackOrder.map((sheetName) {
+                        if (sheetName == tripInfoSheetName) {
+                          return // TripInfoSheet
+                          _buildAnimatedSheet(
+                            (startStop != null && destinationStop != null)
+                                ? TripInfoSheet(
+                                    key: const ValueKey('trip_sheet'),
+                                    controller: _tripInfoSheetController,
+                                    startStop: startStop!,
+                                    destinationStop: destinationStop!,
+                                    trips: trips,
+                                    selectedTripIndex: selectedTripIndex,
+                                    selectedSearchTime: selectedSearchTime,
+                                    allStops: repository.stops,
+                                    onBackToAllTrips: () {
+                                      setState(() {
+                                        selectedTripIndex = null;
+                                        routeTrips.clear();
+                                      });
+                                    },
+                                    onClose: _closeTripInfoSheet,
 
+                                    onChangeTime: _showDateTimePickerDialog,
+                                    onTripSelected: (index, trip) {
+                                      setState(() {
+                                        selectedTripIndex = index;
+                                      });
+                                      // Make sure the trip sheet is at 0.45 size so that
+                                      // when user selects a trip, the map shows the route
+                                      _showTripInfoSheet();
+                                      _fetchRouteForSelectedTrip(trip);
+                                    },
+                                  )
+                                : null,
+                            sheetName,
+                          );
+                        } else if (sheetName == stopSheetName) {
+                          return // StopSheet
+                          _buildAnimatedSheet(
+                            (activeStop != null)
+                                ? StopSheet(
+                                    key: ValueKey('stop_sheet'),
+                                    stop: activeStop!,
+                                    controller: _stopSheetController,
+                                    repository: repository,
+                                    onSetStart: () {
+                                      _onSetStartStop(activeStop!);
+                                      _closeStopSheet();
+                                    },
+                                    onSetDestination: () {
+                                      _onSetDestinationStop(activeStop!);
+                                      _closeStopSheet();
+                                    },
+                                    onClose: _closeStopSheet,
+                                    title: activeStop!.getLocalizedName(
+                                      languageCode,
+                                    ),
+                                  )
+                                : null,
+                            sheetName,
+                          );
+                        } else if (sheetName == droppedPinSheetName) {
+                          return // DroppedPinSheet
+                          _buildAnimatedSheet(
+                            (selectedMapPoint != null)
+                                ? DroppedPinSheet(
+                                    key: ValueKey('dropped_pin_sheet'),
+                                    controller: _droppedPinSheetController,
+                                    coordinates: selectedMapPoint!,
+                                    repository: repository,
+                                    onSetStart: () {},
+                                    onSetDestination: () {},
+                                    onClose: _closeDroppedPinSheet,
+                                  )
+                                : null,
+                            sheetName,
+                          );
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      }),
+
+                      // Loading snackbar
                       ValueListenableBuilder<bool>(
                         valueListenable: repository.isRegionLoadingNotifier,
                         builder: (context, isLoadingRegion, child) {
@@ -889,13 +1040,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   );
           },
         ),
-        floatingActionButton: startStop == null || destinationStop == null
-            ? FloatingActionButton(
+        // Hide it if any sheet is open
+        floatingActionButton:
+            (startStop != null && destinationStop != null) ||
+                (selectedMapPoint != null) ||
+                (activeStop != null)
+            ? null
+            : FloatingActionButton(
                 onPressed: _goToMyLocation,
                 backgroundColor: colorScheme.surface,
                 child: Icon(Icons.my_location, color: colorScheme.primary),
-              )
-            : null,
+              ),
       ),
     );
   }
