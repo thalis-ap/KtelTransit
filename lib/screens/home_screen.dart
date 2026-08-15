@@ -86,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Compass
   StreamSubscription<CompassEvent>? _compassSubscription;
   double? deviceHeading;
+  bool _hasShownCalibrationDialog = false;
 
   // Keys - state related
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -107,6 +108,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         setState(() {
           deviceHeading = event.heading;
         });
+      }
+
+      // 0.0 is Android's "Unreliable" status. < 0 is iOS's "Invalid" status.
+      if (event.accuracy != null && (event.accuracy == 0.0 || event.accuracy! < 0)) {
+        if (!_hasShownCalibrationDialog) {
+          _hasShownCalibrationDialog = true; // Lock it so it only shows once
+          _showCalibrationDialog();
+        }
       }
     });
   }
@@ -621,6 +630,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               onPressed: () {
                 SystemNavigator.pop();
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCalibrationDialog() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final colorScheme = Theme.of(context).colorScheme;
+
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.explore, color: colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(child: Text(l10n.calibrateCompassTitle,)),
+            ],
+          ),
+          content: Column(
+            children: [
+              Text(l10n.calibrateCompassDescription),
+              Expanded(child: Image.asset(Theme.of(context).compassCalibrateIconPath, ))
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.gotItLabel),
             ),
           ],
         );

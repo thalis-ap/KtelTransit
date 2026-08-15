@@ -4,6 +4,10 @@ class AppTheme {
   static const String appIconPath = "assets/icons/appicon.png";
   static const String darkAppIconPath = "assets/icons/appicondark.png";
 
+  static const compassCalibrateIconPath = "assets/icons/compasscalibrate.png";
+  static const darkCompassCalibrateIconPath =
+      "assets/icons/compasscalibratedark.png";
+
   static const String compassIconPath = "assets/icons/compass.png";
 
   static const Color seedColor = Colors.blue;
@@ -51,9 +55,7 @@ class AppTheme {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      drawerTheme: const DrawerThemeData(
-        backgroundColor: Colors.white,
-      ),
+      drawerTheme: const DrawerThemeData(backgroundColor: Colors.white),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
@@ -92,9 +94,7 @@ class AppTheme {
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
-      drawerTheme: const DrawerThemeData(
-        backgroundColor: Color(0xFF1E1E1E),
-      ),
+      drawerTheme: const DrawerThemeData(backgroundColor: Color(0xFF1E1E1E)),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Color(0xFF1E1E1E),
         surfaceTintColor: Colors.transparent,
@@ -116,5 +116,11 @@ extension AppThemeExtension on ThemeData {
     return brightness == Brightness.dark
         ? AppTheme.darkAppIconPath
         : AppTheme.appIconPath;
+  }
+
+  String get compassCalibrateIconPath {
+    return brightness == Brightness.dark
+        ? AppTheme.darkCompassCalibrateIconPath
+        : AppTheme.compassCalibrateIconPath;
   }
 }
