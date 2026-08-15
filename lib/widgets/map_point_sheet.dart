@@ -12,8 +12,9 @@ class MapPointSheet extends StatelessWidget {
   // Title will either be the stop name or the point name
   final String title;
   final GtfsRepository repository;
-  final VoidCallback onSetStart, onSetDestination;
+  final VoidCallback onSetStart, onSetDestination, onClose;
   final LatLng coordinates;
+  final DraggableScrollableController controller;
 
   // This will be used for special cases, such as when showing the name of a
   // map point, to show extra widgets, e.g. loading indicator
@@ -21,9 +22,11 @@ class MapPointSheet extends StatelessWidget {
 
   const MapPointSheet({
     super.key,
+    required this.controller,
     required this.repository,
     required this.onSetStart,
     required this.onSetDestination,
+    required this.onClose,
     required this.title,
     required this.coordinates,
     this.followUpWidgets = const [],
@@ -45,109 +48,118 @@ class MapPointSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.of(context).pop(),
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.45,
-        minChildSize: 0.25,
-        maxChildSize: 0.85,
-        snap: true,
-        snapSizes: const [0.45],
-        builder: (context, scrollController) {
-          return GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 12.0,
-                left: 24.0,
-                right: 24.0,
-                bottom: 24.0,
-              ),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
+    return DraggableScrollableSheet(
+      controller: controller,
+      initialChildSize: 0.45,
+      minChildSize: 0.15,
+      maxChildSize: 0.85,
+      snap: true,
+      snapSizes: const [0.45],
+      shouldCloseOnMinExtent: false,
+      builder: (context, scrollController) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.only(
+            top: 12.0,
+            left: 24.0,
+            right: 24.0,
+            bottom: 24.0,
+          ),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: const [BoxShadow(blurRadius: 16, spreadRadius: 2)],
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
+                      ),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
                 ),
-                boxShadow: const [BoxShadow(blurRadius: 16, spreadRadius: 2)],
-              ),
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 48,
-                        height: 5,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.4,
-                          ),
-                          borderRadius: BorderRadius.circular(3),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-
-                    Text(
-                      title,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 32,
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.1,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          size: 22,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        onPressed: onClose,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(), // Keeps it compact
                       ),
                     ),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: () {
-                              onSetStart();
-                              Navigator.pop(context);
-                            },
-                            icon: const Icon(Icons.my_location, size: 20),
-                            label: Text(l10n.originLabel),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: colorScheme.secondary.withAlpha(
-                                50,
-                              ),
-                              foregroundColor: colorScheme.secondary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: () {
-                              onSetDestination();
-                              Navigator.pop(context);
-                            },
-                            icon: const Icon(Icons.place, size: 20),
-                            label: Text(l10n.destinationLabel),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: colorScheme.primary.withAlpha(
-                                50,
-                              ),
-                              foregroundColor: colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (followUpWidgets.isEmpty)
-                      ...buildFollowUpWidgets(context)
-                    else
-                      ...followUpWidgets,
                   ],
                 ),
-              ),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: onSetStart,
+                        icon: const Icon(Icons.my_location, size: 20),
+                        label: Text(l10n.originLabel),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colorScheme.secondary.withAlpha(50),
+                          foregroundColor: colorScheme.secondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: onSetDestination,
+                        icon: const Icon(Icons.place, size: 20),
+                        label: Text(l10n.destinationLabel),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colorScheme.primary.withAlpha(50),
+                          foregroundColor: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (followUpWidgets.isEmpty)
+                  ...buildFollowUpWidgets(context)
+                else
+                  ...followUpWidgets,
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

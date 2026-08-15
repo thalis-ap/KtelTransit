@@ -14,9 +14,11 @@ class StopSheet extends MapPointSheet {
   StopSheet({
     super.key,
     required this.stop,
+    required super.controller,
     required super.repository,
     required super.onSetStart,
     required super.onSetDestination,
+    required super.onClose,
     required super.title,
   }) : super(coordinates: LatLng(stop.latitude, stop.longitude));
 
@@ -43,6 +45,7 @@ class StopSheet extends MapPointSheet {
     final colorScheme = theme.colorScheme;
 
     return ListView.separated(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: deps.length,
