@@ -11,6 +11,7 @@ import 'package:ktel_transit/models/stop_time.dart';
 
 import 'package:csv/csv.dart';
 import 'package:ktel_transit/services/settings_controller.dart';
+import 'package:ktel_transit/utilities/notifiers.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,7 +36,7 @@ class GtfsRepository {
   GtfsRepository._internal();
 
   // This notifier handles the region change
-  final ValueNotifier<Region?> currentRegionNotifier = ValueNotifier(null);
+  final CustomValueNotifier<Region?> currentRegionNotifier = CustomValueNotifier(null);
 
   // This is an extra notifier to let any widgets know when the region is loaded
   final ValueNotifier<bool> isRegionLoadingNotifier = ValueNotifier(false);
@@ -65,24 +66,23 @@ class GtfsRepository {
   }
 
   Future<void> changeRegion(Region newRegion) async {
-    final bool didActuallyChange =
-        currentRegionNotifier.value?.id != newRegion.id;
+    // Check if the region changed
+    if (currentRegionNotifier.value?.id != newRegion.id) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(RegionUtils.savedRegionIdKey, newRegion.id);
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(RegionUtils.savedRegionIdKey, newRegion.id);
-
-    if (didActuallyChange) {
       isRegionLoadingNotifier.value = true;
-      // Maybe remove this in the future, but it's very faster than 1 second
+      // Maybe remove this in the future - extra delay
       await Future.delayed(Duration(milliseconds: 500));
       await loadData(newRegion);
       isRegionLoadingNotifier.value = false;
+
+      currentRegionNotifier.value = newRegion;
+    } else {
+      // Notify listeners anyway, region is the same but we must animate the map
+      currentRegionNotifier.forceNotify();
     }
 
-    // Must trigger the loading animation and movement of map
-    isRegionLoadingNotifier.value = true;
-    currentRegionNotifier.value = newRegion;
-    isRegionLoadingNotifier.value = false;
   }
 
   Future<void> loadData([Region? region]) async {
