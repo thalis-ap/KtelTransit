@@ -29,7 +29,7 @@ class Departure {
       final time = TimeFormat.dateTimeToFormattedString(departureTime);
 
       // Using your existing localization and appending the time
-      return "${l10n.estimatedArrivalAt(stopName)} - $time";
+      return "${l10n.estimatedArrivalAt(stopName)} $time";
     }
   }
 }
