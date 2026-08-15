@@ -547,6 +547,24 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Πλησιέστερες στάσεις'**
   String get nearestStops;
+
+  /// No description provided for @calibrateCompassTitle.
+  ///
+  /// In el, this message translates to:
+  /// **'Βαθμονόμηση Πυξίδας'**
+  String get calibrateCompassTitle;
+
+  /// No description provided for @calibrateCompassDescription.
+  ///
+  /// In el, this message translates to:
+  /// **'Η πυξίδα της συσκευής σας είναι αυτή τη στιγμή αναξιόπιστη.\n\nΓια να βεβαιωθείτε ότι ο χάρτης δείχνει προς τη σωστή κατεύθυνση, κινήστε το τηλέφωνό σας στον αέρα σχηματίζοντας τον αριθμό \'8\' μερικές φορές.'**
+  String get calibrateCompassDescription;
+
+  /// No description provided for @gotItLabel.
+  ///
+  /// In el, this message translates to:
+  /// **'Το κατάλαβα'**
+  String get gotItLabel;
 }
 
 class _AppLocalizationsDelegate

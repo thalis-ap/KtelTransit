@@ -275,4 +275,14 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get nearestStops => 'Πλησιέστερες στάσεις';
+
+  @override
+  String get calibrateCompassTitle => 'Βαθμονόμηση Πυξίδας';
+
+  @override
+  String get calibrateCompassDescription =>
+      'Η πυξίδα της συσκευής σας είναι αυτή τη στιγμή αναξιόπιστη.\n\nΓια να βεβαιωθείτε ότι ο χάρτης δείχνει προς τη σωστή κατεύθυνση, κινήστε το τηλέφωνό σας στον αέρα σχηματίζοντας τον αριθμό \'8\' μερικές φορές.';
+
+  @override
+  String get gotItLabel => 'Το κατάλαβα';
 }

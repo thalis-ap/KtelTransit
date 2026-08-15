@@ -74,7 +74,10 @@
   "timeBasedTheme": "Time-based (Day/Night)",
   "chosenPoint": "Dropped pin",
   "searchingPoint": "Searching point...",
-  "nearestStops": "Nearest stops"
+  "nearestStops": "Nearest stops",
+  "calibrateCompassTitle": "Calibrate Compass",
+  "calibrateCompassDescription": "Your device's compass is currently unreliable.\n\nTo ensure the map points in the correct direction, please wave your phone in a large 'Figure 8' motion a few times.",
+  "gotItLabel": "Got it"
 
 
 }

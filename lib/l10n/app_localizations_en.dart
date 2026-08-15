@@ -273,4 +273,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nearestStops => 'Nearest stops';
+
+  @override
+  String get calibrateCompassTitle => 'Calibrate Compass';
+
+  @override
+  String get calibrateCompassDescription =>
+      'Your device\'s compass is currently unreliable.\n\nTo ensure the map points in the correct direction, please wave your phone in a large \'Figure 8\' motion a few times.';
+
+  @override
+  String get gotItLabel => 'Got it';
 }
