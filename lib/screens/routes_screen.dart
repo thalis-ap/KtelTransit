@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart' hide Route;
 import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/models/trip.dart';
+import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
 import '../models/route.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import '../models/stop.dart';
 import '../utilities/region_utils.dart';
 
 class RoutesScreen extends StatefulWidget {
@@ -38,8 +40,29 @@ class _RoutesScreenState extends State<RoutesScreen> {
       List<Trip> trips,
       ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final languageCode = Localizations.localeOf(context).languageCode;
 
     if (trips.isEmpty) return const SizedBox.shrink();
+
+    // Get the ordered stops and times for a representative sample trip
+    final sampleTrip = trips.first;
+    final tripStops = repository.stopTimes
+        .where((st) => st.tripId == sampleTrip.tripId)
+        .toList();
+    tripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
+
+    final Map<String, String> stopTimesMap = {};
+    for (final st in tripStops) {
+      stopTimesMap[st.stopId] = TimeFormat.gtfsTimeToFormattedString(st.departureTime);
+    }
+
+    final List<Stop> routeStops = tripStops.map((st) {
+      try {
+        return repository.stops.firstWhere((stop) => stop.stopId == st.stopId);
+      } catch (_) {
+        return null;
+      }
+    }).whereType<Stop>().toList();
 
     final Map<String, List<String>> groupedTimes = {};
 
@@ -71,6 +94,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
       groupedTimes[key]!.sort();
     }
 
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Column(
@@ -80,6 +104,39 @@ class _RoutesScreenState extends State<RoutesScreen> {
             title,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
+          const SizedBox(height: 8),
+          ListView.builder(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: routeStops.length,
+            itemBuilder: (context, index) {
+              final stop = routeStops[index];
+              final time = stopTimesMap[stop.stopId] ?? '--:--';
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "${index + 1}. ${stop.getLocalizedName(languageCode)}",
+                        style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
+                      ),
+                    ),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           const SizedBox(height: 12),
           ...groupedTimes.entries.map((entry) {
             return Padding(
@@ -87,6 +144,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
                   Text(
                     entry.key,
                     style: TextStyle(
