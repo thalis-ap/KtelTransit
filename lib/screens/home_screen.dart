@@ -50,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Trips related
   List<OsrmTrip> routeTrips = [];
+  List<OsrmTrip>? cachedTrips; // last search results
 
   DateTime selectedSearchTime = DateTime.now();
   int? selectedTripIndex;
@@ -280,6 +281,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  /// Used when we need to update the trips we have found, for example, after
+  /// changing startStop, destinationStop, time, ...
+  void _refreshTripInfo() {
+    setState(() {
+      cachedTrips = _getTripInfo();
+    });
+  }
+
   /// Fetches info for all the upcoming (up to 7 days ahead) trips
   List<OsrmTrip>? _getTripInfo() {
     if (startStop == null || destinationStop == null) return null;
@@ -364,6 +373,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedTripIndex = null;
       routeTrips.clear();
     });
+    _refreshTripInfo();
     _showTripInfoSheet();
   }
 
@@ -381,7 +391,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedTripIndex = null;
       routeTrips.clear();
     });
+    _refreshTripInfo();
     _showTripInfoSheet();
+  }
+
+  void _onSwapDirectionPressed() {
+    setState(() {
+      final temp = startStop;
+      startStop = destinationStop;
+      destinationStop = temp;
+      selectedTripIndex = null;
+      routeTrips.clear();
+    });
+    _refreshTripInfo();
   }
 
   /// Handles a back button press on each case
@@ -409,6 +431,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       routeTrips.clear();
       selectedTripIndex = null;
       selectedSearchTime = DateTime.now();
+
+      // Will return null, but we must update it
+      cachedTrips = _getTripInfo();
     });
   }
 
@@ -741,6 +766,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         time.minute,
       );
     });
+    _refreshTripInfo();
   }
 
   /// Wraps our sheets in a smooth slide transition when they open and close
@@ -770,7 +796,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final colorScheme = Theme.of(context).colorScheme;
     final languageCode = Localizations.localeOf(context).languageCode;
 
-    final List<OsrmTrip>? trips = _getTripInfo();
+    final List<OsrmTrip>? trips = cachedTrips;
 
     Stop? activeTransferStop;
     if (selectedTripIndex != null && trips != null) {
@@ -979,15 +1005,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             _scaffoldKey.currentState?.openDrawer();
                           },
                           onBackPressed: _onBackPressed,
-                          onSwap: () {
-                            setState(() {
-                              final temp = startStop;
-                              startStop = destinationStop;
-                              destinationStop = temp;
-                              selectedTripIndex = null;
-                              routeTrips.clear();
-                            });
-                          },
+                          onSwap: _onSwapDirectionPressed,
                           onSearch: (isStart) =>
                               _searchAndSetStop(isStart: isStart),
                         ),
