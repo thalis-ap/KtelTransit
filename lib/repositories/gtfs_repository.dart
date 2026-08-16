@@ -27,6 +27,13 @@ class GtfsRepository {
   List<StopTime> stopTimes = [];
   List<Calendar> calendars = [];
 
+  // Fast-lookup indexes, rebuilt whenever data loads
+  Map<String, List<StopTime>> _stopTimesByStopId = {};
+  Map<String, List<StopTime>> _stopTimesByTripId = {};
+  Map<String, Trip> _tripsById = {};
+  Map<String, Route> _routesById = {};
+  Map<String, Stop> _stopsById = {};
+
   SettingsController? _settingsController;
 
   static final GtfsRepository _instance = GtfsRepository._internal();
@@ -36,7 +43,8 @@ class GtfsRepository {
   GtfsRepository._internal();
 
   // This notifier handles the region change
-  final CustomValueNotifier<Region?> currentRegionNotifier = CustomValueNotifier(null);
+  final CustomValueNotifier<Region?> currentRegionNotifier =
+      CustomValueNotifier(null);
 
   // This is an extra notifier to let any widgets know when the region is loaded
   final ValueNotifier<bool> isRegionLoadingNotifier = ValueNotifier(false);
@@ -82,7 +90,6 @@ class GtfsRepository {
       // Notify listeners anyway, region is the same but we must animate the map
       currentRegionNotifier.forceNotify();
     }
-
   }
 
   Future<void> loadData([Region? region]) async {
@@ -258,6 +265,22 @@ class GtfsRepository {
         calendars.add(Calendar.fromCsv(row, headers));
       }
     }
+
+    _buildIndexes();
+  }
+
+  /// Helper function to build up the indexes that will help resolve calls to
+  /// the stops, trips, routes fields faster
+  void _buildIndexes() {
+    _stopTimesByStopId = {};
+    _stopTimesByTripId = {};
+    for (final st in stopTimes) {
+      _stopTimesByStopId.putIfAbsent(st.stopId, () => []).add(st);
+      _stopTimesByTripId.putIfAbsent(st.tripId, () => []).add(st);
+    }
+    _tripsById = {for (final t in trips) t.tripId: t};
+    _routesById = {for (final r in routes) r.routeId: r};
+    _stopsById = {for (final s in stops) s.stopId: s};
   }
 
   List<Departure> getDeparturesForStop(
@@ -276,12 +299,10 @@ class GtfsRepository {
       validServiceIds = getServiceIds(prevDay);
     }
 
-    final Stop departureStop = stops.firstWhere(
-      (s) => s.stopId == departureStopId,
-    );
+    final Stop? departureStop = _stopsById[departureStopId];
+    if (departureStop == null) return [];
 
-    List<StopTime> times = stopTimes.where((st) {
-      if (st.stopId != departureStopId) return false;
+    List<StopTime> times = (_stopTimesByStopId[departureStopId] ?? []).where((st) {
       return TimeFormat.gtfsTimeToMinutes(st.arrivalTime) >= startMinutes;
     }).toList();
 
@@ -291,31 +312,32 @@ class GtfsRepository {
 
     for (StopTime st in times) {
       try {
-        final Trip trip = trips.firstWhere((t) => t.tripId == st.tripId);
+        final Trip? trip = _tripsById[st.tripId];
+        if (trip == null) continue;
         if (!validServiceIds.contains(trip.serviceId)) continue;
 
-        final Route route = routes.firstWhere((r) => r.routeId == trip.routeId);
-        final String routeName = trip.getDisplayName(route.getLocalizedLongName(languageCode));
+        final Route? route = _routesById[trip.routeId];
+        if (route == null) continue;
+        final String routeName = trip.getDisplayName(
+          route.getLocalizedLongName(languageCode),
+        );
 
-        final List<StopTime> allTripsStopTimes = stopTimes
-            .where((s) => s.tripId == trip.tripId)
-            .toList();
+        final List<StopTime> allTripsStopTimes = List.of(
+          _stopTimesByTripId[trip.tripId] ?? [],
+        );
         allTripsStopTimes.sort(
-          (a, b) => a.stopSequence.compareTo(b.stopSequence),
+              (a, b) => a.stopSequence.compareTo(b.stopSequence),
         );
 
         final StopTime originStopTime = allTripsStopTimes.first;
         final StopTime destinationStopTime = allTripsStopTimes.last;
         final StopTime departureStopTime = allTripsStopTimes.firstWhere(
-          (s) => s.stopId == departureStopId,
+              (s) => s.stopId == departureStopId,
         );
 
-        final Stop originStop = stops.firstWhere(
-          (s) => s.stopId == originStopTime.stopId,
-        );
-        final Stop destinationStop = stops.firstWhere(
-          (s) => s.stopId == destinationStopTime.stopId,
-        );
+        final Stop? originStop = _stopsById[originStopTime.stopId];
+        final Stop? destinationStop = _stopsById[destinationStopTime.stopId];
+        if (originStop == null || destinationStop == null) continue;
 
         results.add(
           Departure(
@@ -363,8 +385,9 @@ class GtfsRepository {
       validServiceIds = getServiceIds(prevDay);
     }
 
-    List<StopTime> startTimes = stopTimes.where((st) {
-      if (st.stopId != startStopId) return false;
+    List<StopTime> startTimes = (_stopTimesByStopId[startStopId] ?? []).where((
+      st,
+    ) {
       return TimeFormat.gtfsTimeToMinutes(st.departureTime) >= startMinutes;
     }).toList();
 
@@ -372,17 +395,21 @@ class GtfsRepository {
 
     List<OsrmTrip> dailyTrips = [];
 
-    final String destinationStopName = stops
-        .firstWhere((s) => s.stopId == destStopId)
-        .getLocalizedName(languageCode);
+    final String destinationStopName =
+        (_stopsById[destStopId])?.getLocalizedName(languageCode) ?? '';
+
+    final String originStopName =
+        (_stopsById[startStopId])?.getLocalizedName(languageCode) ?? '';
 
     for (StopTime stStart in startTimes) {
       try {
-        final Trip trip = trips.firstWhere((t) => t.tripId == stStart.tripId);
+        final Trip? trip = _tripsById[stStart.tripId];
+        if (trip == null) continue;
+
         if (!validServiceIds.contains(trip.serviceId)) continue;
 
-        final List<StopTime> destTimes = stopTimes
-            .where((st) => st.tripId == trip.tripId && st.stopId == destStopId)
+        final List<StopTime> destTimes = (_stopTimesByTripId[trip.tripId] ?? [])
+            .where((st) => st.stopId == destStopId)
             .toList();
         if (destTimes.isEmpty) continue;
 
@@ -393,18 +420,19 @@ class GtfsRepository {
             TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
             TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
 
-        final Route route = routes.firstWhere((r) => r.routeId == trip.routeId);
-        String displayName = trip.getDisplayName(route.getLocalizedLongName(languageCode));
+        final Route? route = _routesById[trip.routeId];
+        if (route == null) continue;
 
-        final List<StopTime> allTripStops = stopTimes
-            .where((s) => s.tripId == trip.tripId)
-            .toList();
+        String displayName = trip.getDisplayName(
+          route.getLocalizedLongName(languageCode),
+        );
+
+        final List<StopTime> allTripStops = List.of(
+          _stopTimesByTripId[trip.tripId] ?? [],
+        );
+
         allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
         final StopTime firstStop = allTripStops.first;
-
-        final String originStopName = stops
-            .firstWhere((s) => s.stopId == startStopId)
-            .getLocalizedName(languageCode);
 
         dailyTrips.add(
           OsrmTrip(
@@ -436,55 +464,37 @@ class GtfsRepository {
     if (dailyTrips.isEmpty) {
       for (StopTime stStart in startTimes) {
         try {
-          final Trip tripA = trips.firstWhere(
-            (t) => t.tripId == stStart.tripId,
-          );
+          final Trip? tripA = _tripsById[stStart.tripId];
+          if (tripA == null) continue;
+
           if (!validServiceIds.contains(tripA.serviceId)) continue;
 
-          final List<StopTime> tripAStops = stopTimes
-              .where(
-                (st) =>
-                    st.tripId == tripA.tripId &&
-                    st.stopSequence > stStart.stopSequence,
-              )
+          final List<StopTime> tripAStops = (_stopTimesByTripId[tripA.tripId] ?? [])
+              .where((st) => st.stopSequence > stStart.stopSequence)
               .toList();
 
           tripAStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
-
-          final String originStopName = stops
-              .firstWhere((s) => s.stopId == startStopId)
-              .getLocalizedName(languageCode);
 
           for (StopTime transferA in tripAStops) {
             final int tArrivalMins = TimeFormat.gtfsTimeToMinutes(
               transferA.arrivalTime,
             );
 
-            List<StopTime> potentialLeg2 = stopTimes.where((st) {
-              if (st.stopId != transferA.stopId) return false;
-              final tDepartMins = TimeFormat.gtfsTimeToMinutes(
-                st.departureTime,
-              );
+            List<StopTime> potentialLeg2 = (_stopTimesByStopId[transferA.stopId] ?? []).where((st) {
+              final tDepartMins = TimeFormat.gtfsTimeToMinutes(st.departureTime);
               return tDepartMins >= tArrivalMins &&
-                  tDepartMins <=
-                      tArrivalMins +
-                          60 * (_settingsController?.maxWaitTime ?? 24);
+                  tDepartMins <= tArrivalMins + 60 * (_settingsController?.maxWaitTime ?? 24);
             }).toList();
 
             for (StopTime stTransB in potentialLeg2) {
-              final Trip tripB = trips.firstWhere(
-                (t) => t.tripId == stTransB.tripId,
-              );
+              final Trip? tripB = _tripsById[stTransB.tripId];
+              if (tripB == null) continue;
+
               if (!validServiceIds.contains(tripB.serviceId)) continue;
               if (tripA.tripId == tripB.tripId) continue;
 
-              final List<StopTime> destTimes = stopTimes
-                  .where(
-                    (st) =>
-                        st.tripId == tripB.tripId &&
-                        st.stopId == destStopId &&
-                        st.stopSequence > stTransB.stopSequence,
-                  )
+              final List<StopTime> destTimes = (_stopTimesByTripId[tripB.tripId] ?? [])
+                  .where((st) => st.stopId == destStopId && st.stopSequence > stTransB.stopSequence)
                   .toList();
 
               if (destTimes.isNotEmpty) {
@@ -494,19 +504,20 @@ class GtfsRepository {
                     TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
                     TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
 
-                final Route routeA = routes.firstWhere(
-                  (r) => r.routeId == tripA.routeId,
-                );
-                final Route routeB = routes.firstWhere(
-                  (r) => r.routeId == tripB.routeId,
-                );
-                final String transferStopName = stops
-                    .firstWhere((s) => s.stopId == transferA.stopId)
-                    .getLocalizedName(languageCode);
+                final Route? routeA = _routesById[tripA.routeId];
+                final Route? routeB = _routesById[tripB.routeId];
+                if (routeA == null || routeB == null) continue;
 
+                final String transferStopName = _stopsById[transferA.stopId]
+                    ?.getLocalizedName(languageCode) ??
+                    '';
 
-                String rAName = tripA.getDisplayName(routeA.getLocalizedLongName(languageCode));
-                String rBName = tripB.getDisplayName(routeB.getLocalizedLongName(languageCode));
+                String rAName = tripA.getDisplayName(
+                  routeA.getLocalizedLongName(languageCode),
+                );
+                String rBName = tripB.getDisplayName(
+                  routeB.getLocalizedLongName(languageCode),
+                );
 
                 dailyTrips.add(
                   OsrmTrip(
