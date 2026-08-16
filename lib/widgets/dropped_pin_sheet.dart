@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/models/walking_trip.dart';
+import 'package:ktel_transit/services/osrm_service.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import '../models/stop.dart';
 import '../services/geocoding_service.dart';
 import 'map_point_sheet.dart';
+
+class WalkingTripLoader {
+  final WalkingTrip walkingTrip;
+  bool isLoading = true;
+  bool errored = false;
+
+  double get distance => walkingTrip.distance;
+
+  double get duration => walkingTrip.duration;
+
+  List<LatLng> get points => walkingTrip.points;
+
+  WalkingTripLoader({required this.walkingTrip});
+}
 
 class DroppedPinSheet extends StatefulWidget {
   final LatLng coordinates;
@@ -28,9 +44,10 @@ class DroppedPinSheet extends StatefulWidget {
 
 class _DroppedPinSheetState extends State<DroppedPinSheet> {
   String? fetchedName;
+  bool isWalkingRoutesLoading = true;
 
   // Used to find the nearest stops of a random map point
-  List<MapEntry<Stop, double>> nearestStops = [];
+  List<MapEntry<Stop, WalkingTripLoader>> nearestStops = [];
 
   @override
   void initState() {
@@ -57,26 +74,61 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
     }
   }
 
-  /// Dumb - draft function to calculate nearest stops
-  /// This will be replaced by a custom service
-  void _calculateNearestStops() {
+  /// Two-phase apprach call
+  Future<void> _calculateNearestStops() async {
+    // Phase 1 - SLD distance ~ fast
+    _calculateNearestStopsSLD();
+
+    // Phase 2 - Actual distance ~ slower
+    _calculateNearestStopsActual();
+  }
+
+  /// Calculates a draft approach of the distances from the stops.
+  /// It uses simple straight line distance over the globe to calculate
+  /// the distance from the pin to the stops. This way it remains fast, though
+  /// not so correct (different from real distances)
+  Future<void> _calculateNearestStopsSLD() async {
     final distanceCalculator = const Distance();
     final allStops = widget.repository.stops;
 
     final distances = allStops.map((stop) {
-      final stopDistance = distanceCalculator.as(
-        LengthUnit.Meter,
-        widget.coordinates,
-        LatLng(stop.latitude, stop.longitude),
+      final stopDistance = distanceCalculator
+          .as(
+            LengthUnit.Meter,
+            widget.coordinates,
+            LatLng(stop.latitude, stop.longitude),
+          )
+          .toDouble();
+      return MapEntry(
+        stop,
+        WalkingTripLoader(
+          walkingTrip: WalkingTrip(
+            distance: stopDistance,
+            duration: WalkingTrip.getDurationFromDistance(stopDistance),
+            points: [],
+          ),
+        )..isLoading = true,
       );
-      return MapEntry(stop, stopDistance.toDouble());
     }).toList();
 
-    distances.sort((a, b) => a.value.compareTo(b.value));
+    distances.sort((a, b) => a.value.distance.compareTo(b.value.distance));
 
     setState(() {
       nearestStops = distances.take(5).toList();
     });
+  }
+
+  /// Calculates the actual distances from the stops using WalkingService class,
+  /// which calls OSRM API behind the scenes.
+  /// It sequentially calls setState to rebuild the widgets for each stop the
+  /// distance is retrieved. This way the user can see the fetching as soon as
+  /// its done (low latency).
+  Future<void> _calculateNearestStopsActual() async {
+    for (int i = 0; i < nearestStops.length; i++) {
+      await _fetchWalkingTripFromStop(i);
+    }
+    // Sort once we finish
+    nearestStops.sort((a, b) => a.value.distance.compareTo(b.value.distance));
   }
 
   Future<void> _fetchLocationName() async {
@@ -98,32 +150,82 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
     });
   }
 
-  /// This list of widgets will show while the name of the point is loading
-  /// (Geocoding service)
-  List<Widget> loadingNameWidgets() {
-    return [
-      Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 30.0),
-          child: Column(
-            children: [
-              Text(
-                AppLocalizations.of(context)!.searchingPoint,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
-              ),
-              SizedBox(height: 20),
-              CircularProgressIndicator(),
-            ],
-          ),
-        ),
-      ),
-    ];
+  /// Actual distance not SLD
+  Future<void> _fetchWalkingTripFromStop(int index) async {
+    setState(() {
+      nearestStops[index].value.errored = false;
+      nearestStops[index].value.isLoading = true;
+    });
+
+    MapEntry<Stop, WalkingTripLoader> entry = nearestStops[index];
+
+    WalkingTrip? wt = await WalkingService.getRoute(
+      widget.coordinates,
+      LatLng(entry.key.latitude, entry.key.longitude),
+    );
+
+    if (wt == null) {
+      // For some reason we retrieved a null object
+      entry.value.errored = true;
+    } else {
+      nearestStops[index] = MapEntry(
+        entry.key,
+        WalkingTripLoader(walkingTrip: wt),
+      );
+    }
+
+    // Either way set isLoading to false
+    setState(() {
+      nearestStops[index].value.isLoading = false;
+    });
   }
 
-  /// After the name form the geocoding service is retrieved this list of widgets
-  /// will show up below the start/dest buttons
-  List<Widget> loadedNameWidgets() {
+  Future<void> _refetchWalkingTripFromStop(int index) async {
+    Navigator.of(context).pop();
+    await _fetchWalkingTripFromStop(index);
+    nearestStops.sort((a,b) => a.value.distance.compareTo(b.value.distance));
+  }
+
+  void _showErroredStopDialog(int index) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    Stop stop = nearestStops[index].key;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.error_outline, color: colorScheme.error),
+              const SizedBox(width: 12),
+              Expanded(child: Text(l10n.routeErrorTitle)),
+            ],
+          ),
+          content: Text(
+            l10n.routeErrorMessage(stop.getLocalizedName(languageCode)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.tertiary,
+              ),
+              onPressed: () => _refetchWalkingTripFromStop(index),
+              child: Text(l10n.retryButton),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Widget> followUpWidgets() {
     final theme = Theme.of(context);
     final languageCode = Localizations.localeOf(context).languageCode;
     final l10n = AppLocalizations.of(context)!;
@@ -158,10 +260,15 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
           ),
         ),
 
-        // Loop through our top 3 stops and build a card for each
+        // Loop through our top stops and build a card for each
         ...nearestStops.map((entry) {
-          final stop = entry.key;
-          final distance = entry.value;
+          int index = nearestStops.indexOf(entry);
+          final Stop stop = entry.key;
+          final WalkingTripLoader walkingTripLoader = entry.value;
+          final WalkingTrip walkingTrip = walkingTripLoader.walkingTrip;
+          final double distance = walkingTrip.distance;
+          final bool isLoading = walkingTripLoader.isLoading;
+          final bool errored = walkingTripLoader.errored;
 
           // Format distance cleanly: use kilometers if it's far, meters if it's close
           final distanceText = distance > 1000
@@ -189,12 +296,49 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
                 stop.getLocalizedName(languageCode),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              trailing: Text(
-                distanceText,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isLoading || errored ? "~ $distanceText" : distanceText,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+
+                  if (errored)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.error_outline,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            // Call the dialog and pass the stop name!
+                            _showErroredStopDialog(index);
+                          },
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    )
+                  else if (isLoading)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                ],
               ),
             ),
           );
@@ -217,9 +361,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
       onSetStart: widget.onSetStart,
       onSetDestination: widget.onSetDestination,
       onClose: widget.onClose,
-      followUpWidgets: fetchedName == null
-          ? loadingNameWidgets()
-          : loadedNameWidgets(),
+      followUpWidgets: followUpWidgets(),
     );
   }
 }
