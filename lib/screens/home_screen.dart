@@ -808,7 +808,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           initialZoom: activeRegion.defaultZoom,
                           minZoom: 6.0,
                           maxZoom: 20.0,
-                          onTap: (position, latlng) {
+                          onLongPress: (position, latlng) {
                             _showDroppedPinSheet(latlng);
                           },
                           onMapReady: () {
@@ -939,6 +939,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               } else if (stop.stopId ==
                                   activeTransferStop?.stopId) {
                                 iconData = Icons.transfer_within_a_station;
+                                iconColor = colorScheme.tertiary;
+                              } else if (stop.stopId == activeStop?.stopId) {
+                                iconData = Icons.directions_bus;
                                 iconColor = colorScheme.tertiary;
                               } else {
                                 iconData = Icons.directions_bus;
