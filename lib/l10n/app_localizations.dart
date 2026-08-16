@@ -565,6 +565,24 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Το κατάλαβα'**
   String get gotItLabel;
+
+  /// No description provided for @routeErrorTitle.
+  ///
+  /// In el, this message translates to:
+  /// **'Σφάλμα Διαδρομής'**
+  String get routeErrorTitle;
+
+  /// No description provided for @routeErrorMessage.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν ήταν δυνατός ο υπολογισμός της διαδρομής πεζών προς τη στάση {stopName}. Παρακαλώ ελέγξτε τη σύνδεση σας και δοκιμάστε ξανά.'**
+  String routeErrorMessage(String stopName);
+
+  /// No description provided for @retryButton.
+  ///
+  /// In el, this message translates to:
+  /// **'Δοκιμή ξανά'**
+  String get retryButton;
 }
 
 class _AppLocalizationsDelegate

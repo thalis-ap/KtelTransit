@@ -283,4 +283,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gotItLabel => 'Got it';
+
+  @override
+  String get routeErrorTitle => 'Route Error';
+
+  @override
+  String routeErrorMessage(String stopName) {
+    return 'Could not calculate the walking route to $stopName. Please check your internet connection and try again.';
+  }
+
+  @override
+  String get retryButton => 'Retry';
 }

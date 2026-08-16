@@ -285,4 +285,15 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get gotItLabel => 'Το κατάλαβα';
+
+  @override
+  String get routeErrorTitle => 'Σφάλμα Διαδρομής';
+
+  @override
+  String routeErrorMessage(String stopName) {
+    return 'Δεν ήταν δυνατός ο υπολογισμός της διαδρομής πεζών προς τη στάση $stopName. Παρακαλώ ελέγξτε τη σύνδεση σας και δοκιμάστε ξανά.';
+  }
+
+  @override
+  String get retryButton => 'Δοκιμή ξανά';
 }
