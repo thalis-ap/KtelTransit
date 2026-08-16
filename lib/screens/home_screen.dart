@@ -256,12 +256,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
         final transfer = LatLng(trStop.latitude, trStop.longitude);
 
-        final OsrmTrip leg1 = await OsrmService.getRoute(
+        final OsrmTrip leg1 = await BusService.getRoute(
           start,
           transfer,
           osrmTrip,
         );
-        final OsrmTrip leg2 = await OsrmService.getRoute(
+        final OsrmTrip leg2 = await BusService.getRoute(
           transfer,
           dest,
           osrmTrip,
@@ -271,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           routeTrips = [leg1, leg2];
         });
       } else {
-        final OsrmTrip leg = await OsrmService.getRoute(start, dest, osrmTrip);
+        final OsrmTrip leg = await BusService.getRoute(start, dest, osrmTrip);
         setState(() {
           routeTrips = [leg];
         });
@@ -893,10 +893,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   height: 50.0,
                                   alignment: Alignment.topCenter,
                                   // Anchors the bottom of the pin to the exact coordinate
-                                  child: Icon(
-                                    Icons.push_pin_rounded,
-                                    size: 30.0,
-                                    color: colorScheme.tertiary,
+                                  child: Padding(
+                                    // Added padding to make the pin actually land where you tap
+                                    padding: const EdgeInsets.only(top: 20.0),
+                                    child: Icon(
+                                      Icons.push_pin_rounded,
+                                      size: 30.0,
+                                      color: colorScheme.tertiary,
+                                    ),
                                   ),
                                 ),
                               ],
