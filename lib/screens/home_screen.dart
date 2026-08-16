@@ -77,13 +77,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Map related
   final MapController mapController = MapController();
 
-  double mapRotation = 0;
+  double mapRotation = 0; // in rad
   bool isMapReady = false;
 
   LatLng? userLocation;
   LatLng? selectedMapPoint;
 
   // Compass
+
+  // Used to animate rotation back to 0 degrees
+  late final AnimationController _rotationController;
+  late Animation<double> _rotationAnimation;
+
+  // Direction of the phone looking
   StreamSubscription<CompassEvent>? _compassSubscription;
   double? deviceHeading;
   bool _hasShownCalibrationDialog = false;
@@ -111,17 +117,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       }
 
       // 0.0 is Android's "Unreliable" status. < 0 is iOS's "Invalid" status.
-      if (event.accuracy != null && (event.accuracy == 0.0 || event.accuracy! < 0)) {
+      if (event.accuracy != null &&
+          (event.accuracy == 0.0 || event.accuracy! < 0)) {
         if (!_hasShownCalibrationDialog) {
           _hasShownCalibrationDialog = true; // Lock it so it only shows once
           _showCalibrationDialog();
         }
       }
     });
+
+    _rotationController = AnimationController(vsync: this);
+
+    _rotationAnimation = const AlwaysStoppedAnimation(0);
+
+    _rotationController.addListener(() {
+      mapRotation = _rotationAnimation.value;
+      mapController.rotate(mapRotation * 180 / math.pi);
+    });
   }
 
   @override
   void dispose() {
+    _rotationController.dispose();
     _compassSubscription?.cancel();
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
     _tripInfoSheetController.dispose();
@@ -353,6 +370,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Runs when user sets the destination stop
   void _onSetDestinationStop(Stop stop) {
     setState(() {
+      // If user selects same start as destination stop, make sure start
+      // is made null first
+      if (stop.stopId == startStop?.stopId) {
+        startStop = null;
+      }
       destinationStop = stop;
       lastChosenStopIsStart = false;
       selectedSearchTime = DateTime.now();
@@ -403,10 +425,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  void _onCompassPressed() {
+    final start = mapRotation;
+
+    final degrees = start.abs() * 180 / math.pi;
+
+    const degreesPerSecond = 360.0;
+
+    final milliseconds = (degrees / degreesPerSecond * 1000).clamp(150, 1000);
+
+    _rotationController.duration = Duration(milliseconds: milliseconds.round());
+
+    _rotationAnimation = Tween<double>(
+      begin: start,
+      end: 0,
+    ).animate(_rotationController);
+
+    _rotationController.forward(from: 0);
+  }
+
   /// Moves the map to the user's current location, upon successfully retrieving
   /// it. On error accessing user's location it prompts them to either accept
   /// the permission or change it in settings, depending on their choice.
-  Future<void> _goToMyLocation() async {
+  Future<void> _onMyLocationPressed() async {
     // Shows the dialog if location is disabled/denied when the user clicks the button
     if (!await _handleLocationPermissions(showDialogs: true)) return;
 
@@ -650,13 +691,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               Icon(Icons.explore, color: colorScheme.primary),
               const SizedBox(width: 12),
-              Expanded(child: Text(l10n.calibrateCompassTitle,)),
+              Expanded(child: Text(l10n.calibrateCompassTitle)),
             ],
           ),
           content: Column(
             children: [
               Text(l10n.calibrateCompassDescription),
-              Expanded(child: Image.asset(Theme.of(context).compassCalibrateIconPath, ))
+              Expanded(
+                child: Image.asset(Theme.of(context).compassCalibrateIconPath),
+              ),
             ],
           ),
           actions: [
@@ -977,12 +1020,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                             ),
                             tooltip: l10n.resetOrientationTooltip,
-                            onPressed: () {
-                              setState(() {
-                                mapRotation = 0;
-                              });
-                              mapController.rotate(0);
-                            },
+                            onPressed: _onCompassPressed,
                           ),
                         ),
                       ),
@@ -1137,7 +1175,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 (activeStop != null)
             ? null
             : FloatingActionButton(
-                onPressed: _goToMyLocation,
+                onPressed: _onMyLocationPressed,
                 // slight lighter color to avoid same color with the map
                 backgroundColor: colorScheme.surfaceContainerHigh,
                 child: Icon(Icons.my_location, color: AppTheme.blueish),

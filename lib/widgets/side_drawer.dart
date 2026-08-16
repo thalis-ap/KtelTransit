@@ -33,7 +33,7 @@ class SideDrawer extends StatelessWidget {
                 Text(l10n.appTitle, style: const TextStyle(fontSize: 24)),
                 Expanded(
                   child: Image.asset(
-                    AppTheme.appIconPath,
+                    Theme.of(context).appIconPath,
                   ),
                 ),
               ],
