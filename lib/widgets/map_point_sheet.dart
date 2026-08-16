@@ -91,7 +91,7 @@ class MapPointSheet extends StatelessWidget {
                 ),
 
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Text(
