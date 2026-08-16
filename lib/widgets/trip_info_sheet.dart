@@ -88,7 +88,7 @@ class TripInfoSheet extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          "${startStop.name}  - ${destinationStop.name}",
+                          "${startStop.name} - ${destinationStop.name}",
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
