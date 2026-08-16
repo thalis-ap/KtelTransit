@@ -69,7 +69,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                 ),
               ),
 
@@ -96,19 +95,27 @@ class SettingsScreen extends StatelessWidget {
                       settingsController.updateLocale(Locale(val));
                     }
                   },
-                  child: const Column(
+                  child: Column(
                     children: [
                       RadioListTile<String>(
                         title: Text('Ελληνικά'),
                         subtitle: Text('Greek'),
-                        secondary: Icon(Icons.language),
+                        secondary: Image.asset(
+                          "assets/icons/greeceflag.png",
+                          width: 32,
+                          height: 32,
+                        ),
                         value: 'el',
                       ),
-                      Divider(height: 1, indent: 56),
+                      const Divider(height: 1, indent: 56),
                       RadioListTile<String>(
-                        title: Text('English'),
-                        subtitle: Text('Αγγλικά'),
-                        secondary: Icon(Icons.language_outlined),
+                        title: const Text('English'),
+                        subtitle: const Text('Αγγλικά'),
+                        secondary: Image.asset(
+                          "assets/icons/englishflag.png",
+                          width: 32,
+                          height: 32,
+                        ),
                         value: 'en',
                       ),
                     ],
