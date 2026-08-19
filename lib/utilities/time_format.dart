@@ -3,8 +3,18 @@ import '../l10n/app_localizations.dart';
 class TimeFormat {
   /// Returns a String object that represents a human readable time of the
   /// DateTime object
-  static String dateTimeToFormattedString(DateTime dateTime) {
+  static String dateTimeToFormattedStringHoursMinutes(DateTime dateTime) {
     return "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
+  }
+
+  static String dateTimeToFormattedStringDateMonth(DateTime dateTime) {
+    return "${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}";
+  }
+
+  /// Strips up the dateTime object from hours, minutes and seconds and returns
+  /// a clear date only object (useful for date only comparisons)
+  static DateTime dateTimeToDateOnly(DateTime dateTime) {
+    return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }
 
   /// Returns a String object that represents a human readable time of the
@@ -49,5 +59,24 @@ class TimeFormat {
     final parts = gtfsTime.split(':');
     final gtfsMinutes = int.parse(parts[0]) * 60 + int.parse(parts[1]);
     return gtfsMinutes;
+  }
+
+  static int gtfsTimeToSeconds(String gtfsTime) {
+    final parts = gtfsTime.split(":");
+    final gtfsSeconds = int.parse(parts[0]) * 3600 + int.parse(parts[1]) * 60;
+    return gtfsSeconds;
+  }
+
+  static int gtfsTimesToDiffSeconds(String after, String before) {
+    return gtfsTimeToSeconds(after) - gtfsTimeToSeconds(before);
+  }
+
+  static String secondsToFormattedString(double seconds, AppLocalizations l10n) {
+    int s = seconds.round();
+    int h = s ~/ 3600;
+    int m = s % 3600 ~/ 60;
+
+    return h > 0 ? l10n.hoursMinutesFormat(h, m) : l10n.minutesFormat(m);
+
   }
 }

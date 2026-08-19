@@ -20,13 +20,13 @@ class Departure {
   String getSubtitle(AppLocalizations l10n, String languageCode) {
     if (originStop.stopId == departureStop.stopId) {
       final stopName = originStop.getLocalizedName(languageCode);
-      final time = TimeFormat.dateTimeToFormattedString(originDepartureTime);
+      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(originDepartureTime);
 
       // Using your existing localization and appending the time
       return "${l10n.departureFrom(stopName)} - $time";
     } else {
       final stopName = departureStop.getLocalizedName(languageCode);
-      final time = TimeFormat.dateTimeToFormattedString(departureTime);
+      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(departureTime);
 
       // Using your existing localization and appending the time
       return "${l10n.estimatedArrivalAt(stopName)} $time";

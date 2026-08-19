@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-import '../models/stop.dart';
+import '../models/map_point.dart';
 
 class TripSearchBar extends StatelessWidget {
-  final Stop? startStop;
-  final Stop? destinationStop;
+  final MapPoint? startPoint;
+  final MapPoint? destinationPoint;
   final VoidCallback onMenuPressed;
   final VoidCallback onBackPressed;
   final VoidCallback onSwap;
@@ -12,8 +12,8 @@ class TripSearchBar extends StatelessWidget {
 
   const TripSearchBar({
     super.key,
-    required this.startStop,
-    required this.destinationStop,
+    required this.startPoint,
+    required this.destinationPoint,
     required this.onMenuPressed,
     required this.onBackPressed,
     required this.onSwap,
@@ -36,7 +36,7 @@ class TripSearchBar extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: (startStop == null && destinationStop == null)
+      child: (startPoint == null && destinationPoint == null)
       // 0 stops selected
           ? InkWell(
         onTap: () => onSearch(false), // Default to destination
@@ -96,13 +96,13 @@ class TripSearchBar extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          startStop?.getLocalizedName(languageCode) ?? l10n.selectStartHint,
+                          startPoint?.getLocalizedName(languageCode) ?? l10n.selectStartHint,
                           style: TextStyle(
                             fontSize: 18,
-                            color: startStop != null
+                            color: startPoint != null
                                 ? colorScheme.onSurface
                                 : theme.hintColor,
-                            fontWeight: startStop != null
+                            fontWeight: startPoint != null
                                 ? FontWeight.w500
                                 : FontWeight.normal,
                           ),
@@ -125,14 +125,14 @@ class TripSearchBar extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          destinationStop?.getLocalizedName(languageCode) ??
+                          destinationPoint?.getLocalizedName(languageCode) ??
                               l10n.selectDestinationHint,
                           style: TextStyle(
                             fontSize: 18,
-                            color: destinationStop != null
+                            color: destinationPoint != null
                                 ? colorScheme.onSurface
                                 : theme.hintColor,
-                            fontWeight: destinationStop != null
+                            fontWeight: destinationPoint != null
                                 ? FontWeight.w500
                                 : FontWeight.normal,
                           ),

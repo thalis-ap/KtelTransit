@@ -1,18 +1,22 @@
-class Stop {
-  final String stopId, name;
-  final double latitude, longitude;
+import 'package:latlong2/latlong.dart';
+
+import 'map_point.dart';
+
+class Stop extends MapPoint {
+  final String stopId;
   final String englishName;
 
-  const Stop({
+  Stop({
     required this.stopId,
-    required this.name,
-    required this.latitude,
-    required this.longitude,
     required this.englishName,
+    required super.name,
+    required super.coordinates,
   });
 
+  @override
   String getLocalizedName(String languageCode) {
-    return languageCode == 'en' ? englishName : name;
+    // In stops, the name is always not null so name! is safe
+    return languageCode == 'en' ? englishName : name!;
   }
 
   factory Stop.fromCsv(
@@ -24,8 +28,7 @@ class Stop {
     return Stop(
       stopId: row[headerIndices['stop_id']!].toString(),
       name: stopName,
-      latitude: double.parse(row[headerIndices['stop_lat']!].toString()),
-      longitude: double.parse(row[headerIndices['stop_lon']!].toString()),
+      coordinates: LatLng(double.parse(row[headerIndices['stop_lat']!].toString()), double.parse(row[headerIndices['stop_lon']!].toString())),
       englishName: englishName ?? stopName,
     );
   }

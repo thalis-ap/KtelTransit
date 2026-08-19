@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
-import 'package:ktel_transit/services/settings_controller.dart';
+import 'package:ktel_transit/services/settings_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';

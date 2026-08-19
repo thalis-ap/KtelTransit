@@ -2,9 +2,7 @@ import 'package:latlong2/latlong.dart';
 
 /// This class is used for the actual osrm-computed trip and must not be
 /// confused with the Trip class, which is a generic class to hold basic info
-/// It represents a single trip from one source to one destination and
-/// cannot be used for trips with line changes (transfers)
-class OsrmTrip {
+class BusTrip {
   /// Points and duration attributes are online based data. Keep them null
   /// until we retrieve them from OSRM. This is done because we are mixiing
   /// online with offline data (for example routeName can be fetched offline
@@ -14,7 +12,7 @@ class OsrmTrip {
 
   // This is the duration computed using safe duration factor+offset
   // Note: It can be different from estimatedDuration
-  final int? safeDuration;
+  final int? safeDuration; // in seconds2
 
   // Required locally fetched info
   final bool isTransfer, isStartAlsoOrigin;
@@ -25,13 +23,13 @@ class OsrmTrip {
 
   // This is the duration of the trip computed using the stop_times.txt local
   // file. It should not be confused with safeDuration which uses OSRM data.
-  final int estimatedDuration;
+  final int estimatedDuration; // in seconds
 
   // Transfer related - can be null
   final String? transferStopName;
   final DateTime? transferArrivalDateTime, transferDepartureDateTime;
 
-  OsrmTrip({
+  BusTrip({
     required this.isStartAlsoOrigin,
     required this.routeName,
     required this.originStopName,
@@ -48,7 +46,7 @@ class OsrmTrip {
     this.transferDepartureDateTime,
   });
 
-  OsrmTrip copyWith({
+  BusTrip copyWith({
     List<LatLng>? points,
     int? safeDuration,
     bool? isTransfer,
@@ -62,8 +60,9 @@ class OsrmTrip {
     int? estimatedDuration,
     String? transferStopName,
     DateTime? transferArrivalDateTime,
+    DateTime? transferDepartureDateTime,
   }) {
-    return OsrmTrip(
+    return BusTrip(
       points: points ?? this.points,
       safeDuration: safeDuration ?? this.safeDuration,
       isTransfer: isTransfer ?? this.isTransfer,

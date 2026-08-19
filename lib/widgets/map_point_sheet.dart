@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
-import 'package:latlong2/latlong.dart';
 
 /// This class acts as a base widget for any point the user presses on the map
 /// It has the basic features: title, start/dest buttons, scrollable sheet
@@ -9,11 +9,12 @@ import 'package:latlong2/latlong.dart';
 /// return MapPointSheet(...) and use the followUpWidgets list to fill the
 /// extra widgets (see stop_sheet.dart).
 class MapPointSheet extends StatelessWidget {
-  // Title will either be the stop name or the point name
-  final String title;
+  // MapPoint name will either be the stop name or the point name
+  final MapPoint mapPoint;
+
   final GtfsRepository repository;
-  final VoidCallback onSetStart, onSetDestination, onClose;
-  final LatLng coordinates;
+  final Function(MapPoint p) onSetStart, onSetDestination;
+  final VoidCallback onClose;
   final DraggableScrollableController controller;
 
   // This will be used for special cases, such as when showing the name of a
@@ -22,13 +23,12 @@ class MapPointSheet extends StatelessWidget {
 
   const MapPointSheet({
     super.key,
+    required this.mapPoint,
     required this.controller,
     required this.repository,
     required this.onSetStart,
     required this.onSetDestination,
     required this.onClose,
-    required this.title,
-    required this.coordinates,
     this.followUpWidgets = const [],
   });
 
@@ -95,7 +95,8 @@ class MapPointSheet extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        title,
+                        // Default to chosenPoint string if name is null
+                        mapPoint.name ?? l10n.chosenPoint,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -128,7 +129,9 @@ class MapPointSheet extends StatelessWidget {
                   children: [
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: onSetStart,
+                        onPressed: () {
+                          onSetStart(mapPoint);
+                        },
                         icon: const Icon(Icons.my_location, size: 20),
                         label: Text(l10n.originLabel),
                         style: FilledButton.styleFrom(
@@ -140,7 +143,9 @@ class MapPointSheet extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: onSetDestination,
+                        onPressed: () {
+                          onSetDestination(mapPoint);
+                        },
                         icon: const Icon(Icons.place, size: 20),
                         label: Text(l10n.destinationLabel),
                         style: FilledButton.styleFrom(

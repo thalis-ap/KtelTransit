@@ -130,7 +130,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get noTripsForDateShowingNext =>
-      'Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.';
+      'Δεν βρέθηκαν δρομολόγια λεωφορείων για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.';
 
   @override
   String tripsForDate(String date) {
@@ -142,6 +142,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get noTripsForRoute => 'Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.';
+
+  @override
+  String get noBusTripsForRoute =>
+      'Δεν βρέθηκαν δρομολόγια λεωφορείων για αυτή τη διαδρομή.';
 
   @override
   String get costBreakdown => 'Ανάλυση κόστους';
@@ -296,4 +300,13 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get retryButton => 'Δοκιμή ξανά';
+
+  @override
+  String get walking => 'Περπάτημα';
+
+  @override
+  String get walkFrom => 'Περπάτημα από';
+
+  @override
+  String get walkTo => 'Περπάτημα προς';
 }

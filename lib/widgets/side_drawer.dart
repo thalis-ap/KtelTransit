@@ -7,7 +7,7 @@ import '../screens/routes_screen.dart';
 import '../screens/info_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/tickets_screen.dart';
-import '../services/settings_controller.dart';
+import '../services/settings_service.dart';
 import '../utilities/region_utils.dart';
 
 class SideDrawer extends StatelessWidget {

@@ -128,7 +128,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTripsForDateShowingNext =>
-      'No departures found for the selected date. Showing next available.';
+      'No bus departures found for the selected date. Showing next available.';
 
   @override
   String tripsForDate(String date) {
@@ -140,6 +140,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTripsForRoute => 'No departures found for this route.';
+
+  @override
+  String get noBusTripsForRoute => 'No bus departures found for this route.';
 
   @override
   String get costBreakdown => 'Fare breakdown';
@@ -294,4 +297,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retryButton => 'Retry';
+
+  @override
+  String get walking => 'Walking';
+
+  @override
+  String get walkFrom => 'Walk from';
+
+  @override
+  String get walkTo => 'Walk to';
 }

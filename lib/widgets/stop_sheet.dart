@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:ktel_transit/models/departure.dart';
 import 'package:ktel_transit/widgets/map_point_sheet.dart';
 import 'package:ktel_transit/widgets/trip_info_sheet.dart';
-import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import '../utilities/time_format.dart';
@@ -11,7 +10,7 @@ import '../utilities/time_format.dart';
 class StopSheet extends MapPointSheet {
   final Stop stop;
 
-  StopSheet({
+  const StopSheet({
     super.key,
     required this.stop,
     required super.controller,
@@ -19,8 +18,7 @@ class StopSheet extends MapPointSheet {
     required super.onSetStart,
     required super.onSetDestination,
     required super.onClose,
-    required super.title,
-  }) : super(coordinates: LatLng(stop.latitude, stop.longitude));
+  }) : super(mapPoint: stop);
 
   String getSubtitle(BuildContext context, Departure dep) {
     final languageCode = Localizations.localeOf(context).languageCode;
@@ -28,13 +26,13 @@ class StopSheet extends MapPointSheet {
 
     if (dep.originStop.stopId == dep.departureStop.stopId) {
       final stopName = dep.originStop.getLocalizedName(languageCode);
-      final time = TimeFormat.dateTimeToFormattedString(dep.originDepartureTime);
+      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.originDepartureTime);
 
       // Using your existing localization and appending the time
       return "${l10n.departureFrom(stopName)} - $time";
     } else {
       final stopName = dep.departureStop.getLocalizedName(languageCode);
-      final time = TimeFormat.dateTimeToFormattedString(dep.departureTime);
+      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.departureTime);
 
       // Using your existing localization and appending the time
       return "${l10n.estimatedArrivalAt(stopName)} $time";
@@ -52,7 +50,7 @@ class StopSheet extends MapPointSheet {
       separatorBuilder: (context, index) => Divider(thickness: 2),
       itemBuilder: (context, index) {
         final Departure dep = deps[index];
-        final String mainTime = TimeFormat.dateTimeToFormattedString(
+        final String mainTime = TimeFormat.dateTimeToFormattedStringHoursMinutes(
           dep.originDepartureTime,
         );
         final String route = dep.routeName;

@@ -38,10 +38,11 @@
   "tickets": "Tickets",
   "allTrips": "All trips",
   "today": "Today",
-  "noTripsForDateShowingNext": "No departures found for the selected date. Showing next available.",
+  "noTripsForDateShowingNext": "No bus departures found for the selected date. Showing next available.",
   "tripsForDate": "Departures for: {date}",
   "departed": "Departed",
   "noTripsForRoute": "No departures found for this route.",
+  "noBusTripsForRoute": "No bus departures found for this route.",
   "costBreakdown": "Fare breakdown",
   "totalTicketCost": "Total ticket fare",
   "transfer": "TRANSFER",
@@ -87,7 +88,9 @@
       }
     }
   },
-  "retryButton": "Retry"
-
+  "retryButton": "Retry",
+  "walking": "Walking",
+  "walkFrom": "Walk from",
+  "walkTo": "Walk to"
 
 }

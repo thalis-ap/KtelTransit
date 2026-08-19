@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:ktel_transit/models/osrm_trip.dart';
+import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/region.dart';
+import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
@@ -19,10 +20,11 @@ import 'package:ktel_transit/widgets/trip_search_bar.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/map_point.dart';
 import '../models/stop.dart';
 import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
-import '../services/settings_controller.dart';
+import '../services/settings_service.dart';
 import '../widgets/compass_cone.dart';
 import '../widgets/trip_info_sheet.dart';
 
@@ -40,17 +42,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // Loading variables
   bool isLoading = true;
+  bool isLoadingTrips = false;
 
   // Stops related
   Stop? activeStop; // State variable to track if the StopSheet is open
 
-  Stop? startStop, destinationStop;
+  MapPoint? startPoint, destinationPoint;
 
   bool? lastChosenStopIsStart;
 
   // Trips related
-  List<OsrmTrip> routeTrips = [];
-  List<OsrmTrip>? cachedTrips; // last search results
+  RoutingTrip? activeRoute;
+  List<RoutingTrip>? cachedTrips; // last search results
 
   DateTime selectedSearchTime = DateTime.now();
   int? selectedTripIndex;
@@ -81,8 +84,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   double mapRotation = 0; // in rad
   bool isMapReady = false;
 
-  LatLng? userLocation;
-  LatLng? selectedMapPoint;
+  MapPoint? userLocation;
+  MapPoint? selectedMapPoint;
 
   // Compass
 
@@ -168,7 +171,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final lastPosition = await Geolocator.getLastKnownPosition();
     if (lastPosition != null && mounted) {
       setState(() {
-        userLocation = LatLng(lastPosition.latitude, lastPosition.longitude);
+        userLocation = MapPoint(
+          coordinates: LatLng(lastPosition.latitude, lastPosition.longitude),
+        );
       });
     }
 
@@ -183,7 +188,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // Re-update the userLocation, to the newly fetched one
       if (mounted) {
         setState(() {
-          userLocation = LatLng(position.latitude, position.longitude);
+          userLocation = MapPoint(
+            coordinates: LatLng(position.latitude, position.longitude),
+          );
         });
       }
     } catch (_) {}
@@ -239,93 +246,98 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Fetches the route(s) (i.e. the map points) for a given OsrmTrip object
   /// and updates the routeTrips state variable to re-build the map with the
   /// route
-  Future<void> _fetchRouteForSelectedTrip(OsrmTrip osrmTrip) async {
-    if (startStop == null || destinationStop == null) return;
+  Future<void> _fetchRouteForSelectedTrip(RoutingTrip routingTrip) async {
+    if (startPoint == null || destinationPoint == null) return;
 
     final languageCode = Localizations.localeOf(context).languageCode;
 
     try {
-      final start = LatLng(startStop!.latitude, startStop!.longitude);
-      final dest = LatLng(
-        destinationStop!.latitude,
-        destinationStop!.longitude,
-      );
-      if (osrmTrip.isTransfer) {
-        final Stop trStop = repository.stops.firstWhere(
-          (s) => s.getLocalizedName(languageCode) == osrmTrip.transferStopName,
-        );
-        final transfer = LatLng(trStop.latitude, trStop.longitude);
+      if (routingTrip.transitTrip != null) {
+        final BusTrip busTrip = routingTrip.transitTrip!;
 
-        final OsrmTrip leg1 = await BusService.getRoute(
-          start,
-          transfer,
-          osrmTrip,
+        final Stop busStart = repository.stops.firstWhere(
+          (s) => s.getLocalizedName(languageCode) == busTrip.originStopName,
         );
-        final OsrmTrip leg2 = await BusService.getRoute(
-          transfer,
-          dest,
-          osrmTrip,
+        final Stop busDest = repository.stops.firstWhere(
+          (s) =>
+              s.getLocalizedName(languageCode) == busTrip.destinationStopName,
         );
 
-        setState(() {
-          routeTrips = [leg1, leg2];
-        });
-      } else {
-        final OsrmTrip leg = await BusService.getRoute(start, dest, osrmTrip);
-        setState(() {
-          routeTrips = [leg];
-        });
+        final LatLng startCoords = LatLng(
+          busStart.latitude,
+          busStart.longitude,
+        );
+        final LatLng destinationCoords = LatLng(
+          busDest.latitude,
+          busDest.longitude,
+        );
+
+        BusTrip updatedBusTrip;
+
+        if (busTrip.isTransfer) {
+          final Stop trStop = repository.stops.firstWhere(
+            (s) =>
+                s.getLocalizedName(languageCode) ==
+                routingTrip.transitTrip!.transferStopName,
+          );
+
+          final BusTrip leg1 = await BusService.getRoute(
+            startCoords,
+            trStop.coordinates,
+            busTrip,
+          );
+          final BusTrip leg2 = await BusService.getRoute(
+            trStop.coordinates,
+            destinationCoords,
+            busTrip,
+          );
+
+          // Combine the points of the two legs into one single BusTrip object
+          updatedBusTrip = leg1.copyWith(
+            points: [...(leg1.points ?? []), ...(leg2.points ?? [])],
+          );
+        } else {
+          updatedBusTrip = await BusService.getRoute(
+            startCoords,
+            destinationCoords,
+            busTrip,
+          );
+        }
+
+        routingTrip.transitTrip = updatedBusTrip;
       }
+
+      setState(() {
+        activeRoute = routingTrip;
+      });
     } catch (e) {
       debugPrint("Error fetching route: $e");
     }
   }
 
   /// Used when we need to update the trips we have found, for example, after
-  /// changing startStop, destinationStop, time, ...
-  void _refreshTripInfo() {
+  /// changing startPoint, destinationPoint, time, ...
+  Future<void> _refreshTripInfo() async {
     setState(() {
-      cachedTrips = _getTripInfo();
+      isLoadingTrips = true;
     });
+    final tripInfo = await _getTripInfo();
+    if (mounted) {
+      setState(() {
+        cachedTrips = tripInfo;
+        isLoadingTrips = false;
+      });
+    }
   }
 
-  /// Fetches info for all the upcoming (up to 7 days ahead) trips
-  List<OsrmTrip>? _getTripInfo() {
-    if (startStop == null || destinationStop == null) return null;
+  Future<List<RoutingTrip>?> _getTripInfo() async {
+    if (startPoint == null || destinationPoint == null) return null;
 
-    List<OsrmTrip> tripsFound = repository.findAllTripsBetween(
-      startStop!.stopId,
-      destinationStop!.stopId,
-      selectedTime: selectedSearchTime,
+    List<RoutingTrip> tripsFound = await RoutingService.getRoutes(
+      startPoint!,
+      destinationPoint!,
+      selectedSearchTime,
     );
-
-    if (tripsFound.isEmpty) {
-      DateTime baseDate = selectedSearchTime.hour < 4
-          ? selectedSearchTime.subtract(const Duration(days: 1))
-          : selectedSearchTime;
-
-      for (int i = 1; i <= 7; i++) {
-        final nextDate = baseDate.add(Duration(days: i));
-        final startOfDay = DateTime(
-          nextDate.year,
-          nextDate.month,
-          nextDate.day,
-          4,
-          0,
-        );
-
-        final futureTrips = repository.findAllTripsBetween(
-          startStop!.stopId,
-          destinationStop!.stopId,
-          selectedTime: startOfDay,
-        );
-
-        if (futureTrips.isNotEmpty) {
-          tripsFound = futureTrips;
-          break;
-        }
-      }
-    }
 
     return tripsFound.isNotEmpty ? tripsFound : null;
   }
@@ -353,57 +365,60 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     if (selectedStop != null) {
       if (isStart) {
-        if (destinationStop?.stopId != selectedStop.stopId) {
-          _onSetStartStop(selectedStop);
+        if (destinationPoint?.coordinates != selectedStop.coordinates) {
+          _onSetStartPoint(selectedStop);
         }
       } else {
-        if (startStop?.stopId != selectedStop.stopId) {
-          _onSetDestinationStop(selectedStop);
+        if (startPoint?.coordinates != selectedStop.coordinates) {
+          _onSetDestinationPoint(selectedStop);
         }
       }
     }
   }
 
-  /// Runs when user sets the start stop
-  void _onSetStartStop(Stop stop) {
+  /// Runs when user sets the start point
+  void _onSetStartPoint(MapPoint point) async {
     setState(() {
-      startStop = stop;
+      if (point.coordinates == destinationPoint?.coordinates) {
+        destinationPoint = null;
+      }
+      startPoint = point;
       lastChosenStopIsStart = true;
       selectedSearchTime = DateTime.now();
       selectedTripIndex = null;
-      routeTrips.clear();
+      selectedMapPoint = null;
+      activeRoute = null;
     });
-    _refreshTripInfo();
+    await _refreshTripInfo();
     _showTripInfoSheet();
   }
 
-  /// Runs when user sets the destination stop
-  void _onSetDestinationStop(Stop stop) {
+  /// Runs when user sets the destination point
+  void _onSetDestinationPoint(MapPoint point) async {
     setState(() {
-      // If user selects same start as destination stop, make sure start
-      // is made null first
-      if (stop.stopId == startStop?.stopId) {
-        startStop = null;
+      if (point.coordinates == startPoint?.coordinates) {
+        startPoint = null;
       }
-      destinationStop = stop;
+      destinationPoint = point;
       lastChosenStopIsStart = false;
       selectedSearchTime = DateTime.now();
       selectedTripIndex = null;
-      routeTrips.clear();
+      selectedMapPoint = null;
+      activeRoute = null;
     });
-    _refreshTripInfo();
+    await _refreshTripInfo();
     _showTripInfoSheet();
   }
 
-  void _onSwapDirectionPressed() {
+  void _onSwapDirectionPressed() async {
     setState(() {
-      final temp = startStop;
-      startStop = destinationStop;
-      destinationStop = temp;
+      final temp = startPoint;
+      startPoint = destinationPoint;
+      destinationPoint = temp;
       selectedTripIndex = null;
-      routeTrips.clear();
+      activeRoute = null;
     });
-    _refreshTripInfo();
+    await _refreshTripInfo();
   }
 
   /// Handles a back button press on each case
@@ -413,27 +428,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Navigator.pop(context);
         return;
       }
-      if (startStop == null && destinationStop == null) {
+      if (startPoint == null && destinationPoint == null) {
         _showExitDialog();
-      } else if (startStop != null && destinationStop != null) {
+      } else if (startPoint != null && destinationPoint != null) {
         if (lastChosenStopIsStart == null) {
-          startStop = destinationStop = null;
+          startPoint = destinationPoint = null;
         } else if (lastChosenStopIsStart == true) {
-          startStop = null;
+          startPoint = null;
         } else {
-          destinationStop = null;
+          destinationPoint = null;
         }
-      } else if (startStop != null) {
-        startStop = null;
+      } else if (startPoint != null) {
+        startPoint = null;
       } else {
-        destinationStop = null;
+        destinationPoint = null;
       }
-      routeTrips.clear();
+      activeRoute = null;
       selectedTripIndex = null;
       selectedSearchTime = DateTime.now();
 
-      // Will return null, but we must update it
-      cachedTrips = _getTripInfo();
+      cachedTrips = null;
     });
   }
 
@@ -444,9 +458,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _animatedMapMove(region.center, region.defaultZoom);
 
     setState(() {
-      startStop = null;
-      destinationStop = null;
-      routeTrips.clear();
+      startPoint = null;
+      destinationPoint = null;
+      activeRoute = null;
     });
   }
 
@@ -478,14 +492,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // Safe check
     if (userLocation != null) {
-      _animatedMapMove(userLocation!, 15.0);
+      _animatedMapMove(userLocation!.coordinates, 15.0);
     } else {
       final lastPosition = await Geolocator.getLastKnownPosition();
       if (lastPosition != null) {
         setState(() {
-          userLocation = LatLng(lastPosition.latitude, lastPosition.longitude);
+          userLocation = MapPoint(coordinates: LatLng(lastPosition.latitude, lastPosition.longitude));
         });
-        _animatedMapMove(userLocation!, 15.0);
+        _animatedMapMove(userLocation!.coordinates, 15.0);
       }
     }
 
@@ -502,9 +516,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           userLocation!.latitude != actualLocation.latitude ||
           userLocation!.longitude != actualLocation.longitude) {
         setState(() {
-          userLocation = actualLocation;
+          userLocation = MapPoint(coordinates: actualLocation);
         });
-        _animatedMapMove(userLocation!, 15.0);
+        _animatedMapMove(userLocation!.coordinates, 15.0);
       }
     } catch (_) {}
   }
@@ -565,7 +579,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _showDroppedPinSheet(LatLng coordinates) {
     _bringSheetToFront(droppedPinSheetName);
     setState(() {
-      selectedMapPoint = coordinates;
+      selectedMapPoint = MapPoint(coordinates: coordinates);
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -611,7 +625,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showTripInfoSheet() {
-    if (startStop == null || destinationStop == null) return;
+    if (startPoint == null || destinationPoint == null) return;
 
     _bringSheetToFront(tripInfoSheetName);
 
@@ -629,10 +643,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _closeTripInfoSheet() {
     setState(() {
-      startStop = null;
-      destinationStop = null;
+      startPoint = null;
+      destinationPoint = null;
       lastChosenStopIsStart = null;
-      routeTrips.clear();
+      activeRoute = null;
       selectedSearchTime = DateTime.now();
       selectedTripIndex = null;
     });
@@ -766,7 +780,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         time.minute,
       );
     });
-    _refreshTripInfo();
+    await _refreshTripInfo();
   }
 
   /// Wraps our sheets in a smooth slide transition when they open and close
@@ -796,16 +810,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final colorScheme = Theme.of(context).colorScheme;
     final languageCode = Localizations.localeOf(context).languageCode;
 
-    final List<OsrmTrip>? trips = cachedTrips;
+    final List<RoutingTrip>? trips = cachedTrips;
 
     Stop? activeTransferStop;
     if (selectedTripIndex != null && trips != null) {
       final activeTrip = trips[selectedTripIndex!];
-      if (activeTrip.isTransfer) {
+      if (activeTrip.transitTrip?.isTransfer ?? false) {
         try {
           activeTransferStop = repository.stops.firstWhere(
             (s) =>
-                s.getLocalizedName(languageCode) == activeTrip.transferStopName,
+                s.getLocalizedName(languageCode) ==
+                activeTrip.transitTrip!.transferStopName,
           );
         } catch (_) {}
       }
@@ -869,18 +884,82 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ? darkModeTileBuilder
                                 : null,
                           ),
-                          if (routeTrips.isNotEmpty)
+                          if (activeRoute != null)
                             PolylineLayer(
                               polylines: [
-                                Polyline(
-                                  points: routeTrips
-                                      .expand(
-                                        (trip) =>
-                                            trip.points ?? [] as List<LatLng>,
-                                      )
-                                      .toList(),
-                                  color: colorScheme.primary,
-                                  strokeWidth: 4.0,
+                                // Access Walk (Pin to Start Stop)
+                                if (activeRoute!.accessTrip?.points != null)
+                                  Polyline(
+                                    points: activeRoute!.accessTrip!.points,
+                                    color: AppTheme.blueish,
+                                    borderStrokeWidth: 5,
+                                    borderColor: colorScheme.onSurfaceVariant,
+                                    strokeWidth: 8.0,
+                                    pattern: StrokePattern.dashed(
+                                      segments: [1, 18],
+                                    ),
+                                  ),
+                                // Transit Ride (The Bus)
+                                if (activeRoute!.transitTrip?.points != null)
+                                  Polyline(
+                                    points: activeRoute!.transitTrip!.points!,
+                                    color: AppTheme.blueish,
+                                    strokeWidth: 4.0,
+                                  ),
+                                // Egress Walk (End Stop to Pin)
+                                if (activeRoute!.egressTrip?.points != null)
+                                  Polyline(
+                                    points: activeRoute!.egressTrip!.points,
+                                    color: AppTheme.blueish,
+                                    borderStrokeWidth: 5,
+                                    borderColor: colorScheme.onSurfaceVariant,
+                                    strokeWidth: 8,
+                                    pattern: StrokePattern.dashed(
+                                      segments: [1, 18],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          if (startPoint != null && startPoint is! Stop)
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: startPoint!.coordinates,
+                                  width: 40,
+                                  height: 40,
+                                  rotate: true,
+                                  child: GestureDetector(
+                                    onTap: () => _showDroppedPinSheet(
+                                      startPoint!.coordinates,
+                                    ),
+                                    child: Icon(
+                                      Icons.my_location,
+                                      color: colorScheme.secondary,
+                                      size: 30,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          if (destinationPoint != null &&
+                              destinationPoint is! Stop)
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: destinationPoint!.coordinates,
+                                  width: 40,
+                                  height: 40,
+                                  rotate: true,
+                                  child: GestureDetector(
+                                    onTap: () => _showDroppedPinSheet(
+                                      destinationPoint!.coordinates,
+                                    ),
+                                    child: Icon(
+                                      Icons.place,
+                                      color: colorScheme.error,
+                                      size: 30,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -888,11 +967,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             MarkerLayer(
                               markers: [
                                 Marker(
-                                  point: selectedMapPoint!,
+                                  point: selectedMapPoint!.coordinates,
                                   width: 50.0,
                                   height: 50.0,
-                                  alignment: Alignment.topCenter,
+                                  rotate: true,
                                   // Anchors the bottom of the pin to the exact coordinate
+                                  alignment: Alignment.topCenter,
                                   child: Padding(
                                     // Added padding to make the pin actually land where you tap
                                     padding: const EdgeInsets.only(top: 20.0),
@@ -905,11 +985,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                               ],
                             ),
+
                           if (userLocation != null)
                             MarkerLayer(
                               markers: [
                                 Marker(
-                                  point: userLocation!,
+                                  point: userLocation!.coordinates,
                                   width: 80,
                                   height: 80,
                                   rotate: true,
@@ -954,23 +1035,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                               ],
                             ),
+
                           MarkerLayer(
                             markers: repository.stops.map((stop) {
                               IconData iconData;
                               Color iconColor;
 
-                              if (stop.stopId == startStop?.stopId) {
+                              if (stop.coordinates == startPoint?.coordinates) {
                                 iconData = Icons.my_location;
                                 iconColor = colorScheme.secondary;
-                              } else if (stop.stopId ==
-                                  destinationStop?.stopId) {
+                              } else if (stop.coordinates ==
+                                  destinationPoint?.coordinates) {
                                 iconData = Icons.place;
                                 iconColor = colorScheme.error;
-                              } else if (stop.stopId ==
-                                  activeTransferStop?.stopId) {
+                              } else if (stop.coordinates ==
+                                  activeTransferStop?.coordinates) {
                                 iconData = Icons.transfer_within_a_station;
                                 iconColor = colorScheme.tertiary;
-                              } else if (stop.stopId == activeStop?.stopId) {
+                              } else if (stop.coordinates ==
+                                  activeStop?.coordinates) {
                                 iconData = Icons.directions_bus;
                                 iconColor = colorScheme.tertiary;
                               } else {
@@ -979,9 +1062,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               }
 
                               return Marker(
-                                point: LatLng(stop.latitude, stop.longitude),
+                                point: stop.coordinates,
                                 width: 40,
                                 height: 40,
+                                rotate: true,
                                 child: GestureDetector(
                                   onTap: () => _showStopSheet(stop),
                                   child: Icon(
@@ -1002,8 +1086,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         left: 16,
                         right: 16,
                         child: TripSearchBar(
-                          startStop: startStop,
-                          destinationStop: destinationStop,
+                          startPoint: startPoint,
+                          destinationPoint: destinationPoint,
                           onMenuPressed: () {
                             FocusScope.of(context).unfocus();
                             _scaffoldKey.currentState?.openDrawer();
@@ -1019,7 +1103,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       Positioned(
                         top:
                             MediaQuery.of(context).padding.top +
-                            (startStop == null && destinationStop == null
+                            (startPoint == null && destinationPoint == null
                                 ? 120
                                 : 160),
                         right: 16,
@@ -1054,12 +1138,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         if (sheetName == tripInfoSheetName) {
                           return // TripInfoSheet
                           _buildAnimatedSheet(
-                            (startStop != null && destinationStop != null)
+                            (startPoint != null && destinationPoint != null)
                                 ? TripInfoSheet(
                                     key: const ValueKey('trip_sheet'),
+                                    isLoading: isLoadingTrips,
                                     controller: _tripInfoSheetController,
-                                    startStop: startStop!,
-                                    destinationStop: destinationStop!,
+                                    startPoint: startPoint!,
+                                    destinationPoint: destinationPoint!,
                                     trips: trips,
                                     selectedTripIndex: selectedTripIndex,
                                     selectedSearchTime: selectedSearchTime,
@@ -1067,7 +1152,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     onBackToAllTrips: () {
                                       setState(() {
                                         selectedTripIndex = null;
-                                        routeTrips.clear();
+                                        activeRoute = null;
                                       });
                                     },
                                     onClose: _closeTripInfoSheet,
@@ -1095,18 +1180,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     stop: activeStop!,
                                     controller: _stopSheetController,
                                     repository: repository,
-                                    onSetStart: () {
-                                      _onSetStartStop(activeStop!);
+                                    onSetStart: (MapPoint _) {
+                                      _onSetStartPoint(activeStop!);
                                       _closeStopSheet();
                                     },
-                                    onSetDestination: () {
-                                      _onSetDestinationStop(activeStop!);
+                                    onSetDestination: (MapPoint _) {
+                                      _onSetDestinationPoint(activeStop!);
                                       _closeStopSheet();
                                     },
                                     onClose: _closeStopSheet,
-                                    title: activeStop!.getLocalizedName(
-                                      languageCode,
-                                    ),
                                   )
                                 : null,
                             sheetName,
@@ -1117,11 +1199,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             (selectedMapPoint != null)
                                 ? DroppedPinSheet(
                                     key: ValueKey('dropped_pin_sheet'),
+                                    mapPoint: selectedMapPoint!,
                                     controller: _droppedPinSheetController,
-                                    coordinates: selectedMapPoint!,
                                     repository: repository,
-                                    onSetStart: () {},
-                                    onSetDestination: () {},
+                                    onSetStart: (MapPoint p) {
+                                      _onSetStartPoint(selectedMapPoint!);
+                                    },
+                                    onSetDestination: (MapPoint p) {
+                                      _onSetDestinationPoint(selectedMapPoint!);
+                                    },
                                     onClose: _closeDroppedPinSheet,
                                   )
                                 : null,
@@ -1195,7 +1281,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         // Hide it if any sheet is open
         floatingActionButton:
-            (startStop != null && destinationStop != null) ||
+            (startPoint != null && destinationPoint != null) ||
                 (selectedMapPoint != null) ||
                 (activeStop != null)
             ? null

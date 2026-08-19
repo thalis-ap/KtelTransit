@@ -3,14 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:ktel_transit/models/calendar.dart';
 import 'package:ktel_transit/models/departure.dart';
-import 'package:ktel_transit/models/osrm_trip.dart';
+import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/models/route.dart';
 import 'package:ktel_transit/models/stop_time.dart';
 
 import 'package:csv/csv.dart';
-import 'package:ktel_transit/services/settings_controller.dart';
+import 'package:ktel_transit/services/settings_service.dart';
 import 'package:ktel_transit/utilities/notifiers.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
@@ -302,7 +302,9 @@ class GtfsRepository {
     final Stop? departureStop = _stopsById[departureStopId];
     if (departureStop == null) return [];
 
-    List<StopTime> times = (_stopTimesByStopId[departureStopId] ?? []).where((st) {
+    List<StopTime> times = (_stopTimesByStopId[departureStopId] ?? []).where((
+      st,
+    ) {
       return TimeFormat.gtfsTimeToMinutes(st.arrivalTime) >= startMinutes;
     }).toList();
 
@@ -326,13 +328,13 @@ class GtfsRepository {
           _stopTimesByTripId[trip.tripId] ?? [],
         );
         allTripsStopTimes.sort(
-              (a, b) => a.stopSequence.compareTo(b.stopSequence),
+          (a, b) => a.stopSequence.compareTo(b.stopSequence),
         );
 
         final StopTime originStopTime = allTripsStopTimes.first;
         final StopTime destinationStopTime = allTripsStopTimes.last;
         final StopTime departureStopTime = allTripsStopTimes.firstWhere(
-              (s) => s.stopId == departureStopId,
+          (s) => s.stopId == departureStopId,
         );
 
         final Stop? originStop = _stopsById[originStopTime.stopId];
@@ -367,45 +369,49 @@ class GtfsRepository {
     return results;
   }
 
-  List<OsrmTrip> findAllTripsBetween(
+  /// Searches for trips between two stops on a specific date.
+  /// Returns an empty list if no trips are found.
+  List<BusTrip> _findTripsForDate(
     String startStopId,
-    String destStopId, {
-    DateTime? selectedTime,
-  }) {
-    final DateTime targetDateTime = selectedTime ?? DateTime.now();
-
+    String destStopId,
+    DateTime date,
+  ) {
     final languageCode = _settingsController?.locale.languageCode ?? 'el';
+    final maxWaitMinutes = _settingsController?.maxWaitTime ?? 24;
 
-    List<String> validServiceIds = getServiceIds(targetDateTime);
+    // Get service IDs valid on this date
+    List<String> validServiceIds = getServiceIds(date);
 
-    int startMinutes = targetDateTime.hour * 60 + targetDateTime.minute;
-    if (targetDateTime.hour < 4) {
+    // Get start minutes, handling early-morning (before 4 AM) as previous day
+    int startMinutes = date.hour * 60 + date.minute;
+    DateTime effectiveDate = date;
+    if (date.hour < 4) {
       startMinutes += 24 * 60;
-      final prevDay = targetDateTime.subtract(const Duration(days: 1));
-      validServiceIds = getServiceIds(prevDay);
+      effectiveDate = date.subtract(const Duration(days: 1));
+      validServiceIds = getServiceIds(effectiveDate);
     }
 
-    List<StopTime> startTimes = (_stopTimesByStopId[startStopId] ?? []).where((
-      st,
-    ) {
-      return TimeFormat.gtfsTimeToMinutes(st.departureTime) >= startMinutes;
-    }).toList();
-
+    // Find all departures from start stop after the given minute
+    List<StopTime> startTimes = (_stopTimesByStopId[startStopId] ?? [])
+        .where(
+          (st) =>
+              TimeFormat.gtfsTimeToMinutes(st.departureTime) >= startMinutes,
+        )
+        .toList();
     startTimes.sort((a, b) => a.departureTime.compareTo(b.departureTime));
-
-    List<OsrmTrip> dailyTrips = [];
 
     final String destinationStopName =
         (_stopsById[destStopId])?.getLocalizedName(languageCode) ?? '';
-
     final String originStopName =
         (_stopsById[startStopId])?.getLocalizedName(languageCode) ?? '';
 
+    List<BusTrip> dailyTrips = [];
+
+    // Direct trips
     for (StopTime stStart in startTimes) {
       try {
         final Trip? trip = _tripsById[stStart.tripId];
         if (trip == null) continue;
-
         if (!validServiceIds.contains(trip.serviceId)) continue;
 
         final List<StopTime> destTimes = (_stopTimesByTripId[trip.tripId] ?? [])
@@ -416,9 +422,10 @@ class GtfsRepository {
         final StopTime stDest = destTimes.first;
         if (stDest.stopSequence <= stStart.stopSequence) continue;
 
-        final int durationMins =
-            TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
-            TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
+        final int durationSecs = TimeFormat.gtfsTimesToDiffSeconds(
+          stDest.arrivalTime,
+          stStart.departureTime,
+        );
 
         final Route? route = _routesById[trip.routeId];
         if (route == null) continue;
@@ -430,30 +437,29 @@ class GtfsRepository {
         final List<StopTime> allTripStops = List.of(
           _stopTimesByTripId[trip.tripId] ?? [],
         );
-
         allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
         final StopTime firstStop = allTripStops.first;
 
         dailyTrips.add(
-          OsrmTrip(
+          BusTrip(
             isStartAlsoOrigin: firstStop.stopId == startStopId,
             routeName: displayName,
             originStopName: originStopName,
             destinationStopName: destinationStopName,
             originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-              targetDateTime,
+              date,
               firstStop.departureTime,
             ),
             startDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-              targetDateTime,
+              date,
               stStart.departureTime,
             ),
             destArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
-              targetDateTime,
+              date,
               stDest.arrivalTime,
             ),
             isTransfer: false,
-            estimatedDuration: durationMins,
+            estimatedDuration: durationSecs,
           ),
         );
       } catch (_) {
@@ -461,18 +467,18 @@ class GtfsRepository {
       }
     }
 
+    // Transfer trips (only if no direct trips found)
     if (dailyTrips.isEmpty) {
       for (StopTime stStart in startTimes) {
         try {
           final Trip? tripA = _tripsById[stStart.tripId];
           if (tripA == null) continue;
-
           if (!validServiceIds.contains(tripA.serviceId)) continue;
 
-          final List<StopTime> tripAStops = (_stopTimesByTripId[tripA.tripId] ?? [])
-              .where((st) => st.stopSequence > stStart.stopSequence)
-              .toList();
-
+          final List<StopTime> tripAStops =
+              (_stopTimesByTripId[tripA.tripId] ?? [])
+                  .where((st) => st.stopSequence > stStart.stopSequence)
+                  .toList();
           tripAStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
 
           for (StopTime transferA in tripAStops) {
@@ -480,77 +486,86 @@ class GtfsRepository {
               transferA.arrivalTime,
             );
 
-            List<StopTime> potentialLeg2 = (_stopTimesByStopId[transferA.stopId] ?? []).where((st) {
-              final tDepartMins = TimeFormat.gtfsTimeToMinutes(st.departureTime);
-              return tDepartMins >= tArrivalMins &&
-                  tDepartMins <= tArrivalMins + 60 * (_settingsController?.maxWaitTime ?? 24);
-            }).toList();
+            List<StopTime> potentialLeg2 =
+                (_stopTimesByStopId[transferA.stopId] ?? []).where((st) {
+                  final tDepartMins = TimeFormat.gtfsTimeToMinutes(
+                    st.departureTime,
+                  );
+                  return tDepartMins >= tArrivalMins &&
+                      tDepartMins <= tArrivalMins + 60 * maxWaitMinutes;
+                }).toList();
 
             for (StopTime stTransB in potentialLeg2) {
               final Trip? tripB = _tripsById[stTransB.tripId];
               if (tripB == null) continue;
-
               if (!validServiceIds.contains(tripB.serviceId)) continue;
               if (tripA.tripId == tripB.tripId) continue;
 
-              final List<StopTime> destTimes = (_stopTimesByTripId[tripB.tripId] ?? [])
-                  .where((st) => st.stopId == destStopId && st.stopSequence > stTransB.stopSequence)
-                  .toList();
+              final List<StopTime> destTimes =
+                  (_stopTimesByTripId[tripB.tripId] ?? [])
+                      .where(
+                        (st) =>
+                            st.stopId == destStopId &&
+                            st.stopSequence > stTransB.stopSequence,
+                      )
+                      .toList();
+              if (destTimes.isEmpty) continue;
 
-              if (destTimes.isNotEmpty) {
-                final StopTime stDest = destTimes.first;
+              final StopTime stDest = destTimes.first;
 
-                final int durationMins =
-                    TimeFormat.gtfsTimeToMinutes(stDest.arrivalTime) -
-                    TimeFormat.gtfsTimeToMinutes(stStart.departureTime);
+              final int durationSecs = TimeFormat.gtfsTimesToDiffSeconds(
+                stDest.arrivalTime,
+                stStart.departureTime,
+              );
 
-                final Route? routeA = _routesById[tripA.routeId];
-                final Route? routeB = _routesById[tripB.routeId];
-                if (routeA == null || routeB == null) continue;
+              final Route? routeA = _routesById[tripA.routeId];
+              final Route? routeB = _routesById[tripB.routeId];
+              if (routeA == null || routeB == null) continue;
 
-                final String transferStopName = _stopsById[transferA.stopId]
-                    ?.getLocalizedName(languageCode) ??
-                    '';
+              final String transferStopName =
+                  _stopsById[transferA.stopId]?.getLocalizedName(
+                    languageCode,
+                  ) ??
+                  '';
 
-                String rAName = tripA.getDisplayName(
-                  routeA.getLocalizedLongName(languageCode),
-                );
-                String rBName = tripB.getDisplayName(
-                  routeB.getLocalizedLongName(languageCode),
-                );
+              String rAName = tripA.getDisplayName(
+                routeA.getLocalizedLongName(languageCode),
+              );
+              String rBName = tripB.getDisplayName(
+                routeB.getLocalizedLongName(languageCode),
+              );
 
-                dailyTrips.add(
-                  OsrmTrip(
-                    isStartAlsoOrigin: true,
-                    routeName: '1. $rAName\n2. $rBName',
-                    originStopName: originStopName,
-                    destinationStopName: destinationStopName,
-                    originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-                      targetDateTime,
-                      stStart.departureTime,
-                    ),
-                    startDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-                      targetDateTime,
-                      stStart.departureTime,
-                    ),
-                    destArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
-                      targetDateTime,
-                      stDest.arrivalTime,
-                    ),
-                    isTransfer: true,
-                    estimatedDuration: durationMins,
-                    transferStopName: transferStopName,
-                    transferArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
-                      targetDateTime,
-                      transferA.arrivalTime,
-                    ),
-                    transferDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-                      targetDateTime,
-                      stTransB.departureTime,
-                    ),
+              dailyTrips.add(
+                BusTrip(
+                  isStartAlsoOrigin: true,
+                  routeName: '1. $rAName\n2. $rBName',
+                  originStopName: originStopName,
+                  destinationStopName: destinationStopName,
+                  originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date,
+                    stStart.departureTime,
                   ),
-                );
-              }
+                  startDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date,
+                    stStart.departureTime,
+                  ),
+                  destArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date,
+                    stDest.arrivalTime,
+                  ),
+                  isTransfer: true,
+                  estimatedDuration: durationSecs,
+                  transferStopName: transferStopName,
+                  transferArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date,
+                    transferA.arrivalTime,
+                  ),
+                  transferDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date,
+                    stTransB.departureTime,
+                  ),
+                ),
+              );
             }
           }
         } catch (_) {
@@ -564,6 +579,27 @@ class GtfsRepository {
     });
 
     return dailyTrips;
+  }
+
+  List<BusTrip> findAllTripsBetween(
+      String startStopId,
+      String destStopId, {
+        DateTime? selectedTime,
+        int maxDaysToSearch = 7,
+      }) {
+    final DateTime startDate = selectedTime ?? DateTime.now();
+    List<BusTrip> allTrips = [];
+
+    for (int dayOffset = 0; dayOffset <= maxDaysToSearch; dayOffset++) {
+      final DateTime date = dayOffset == 0
+          ? startDate
+          : DateTime(startDate.year, startDate.month, startDate.day + dayOffset, 4, 0);
+
+      final List<BusTrip> dailyTrips = _findTripsForDate(startStopId, destStopId, date);
+      allTrips.addAll(dailyTrips);
+    }
+
+    return allTrips;
   }
 
   List<String> getServiceIds(DateTime targetDateTime) {

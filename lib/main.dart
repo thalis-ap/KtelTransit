@@ -3,7 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/screens/welcome_screen.dart';
-import 'package:ktel_transit/services/settings_controller.dart';
+import 'package:ktel_transit/services/settings_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';

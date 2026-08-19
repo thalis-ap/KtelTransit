@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @noTripsForDateShowingNext.
   ///
   /// In el, this message translates to:
-  /// **'Δεν βρέθηκαν δρομολόγια για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.'**
+  /// **'Δεν βρέθηκαν δρομολόγια λεωφορείων για την επιλεγμένη ημερομηνία. Εμφάνιση επόμενων διαθέσιμων.'**
   String get noTripsForDateShowingNext;
 
   /// No description provided for @tripsForDate.
@@ -349,6 +349,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Δεν βρέθηκαν δρομολόγια για αυτή τη διαδρομή.'**
   String get noTripsForRoute;
+
+  /// No description provided for @noBusTripsForRoute.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν βρέθηκαν δρομολόγια λεωφορείων για αυτή τη διαδρομή.'**
+  String get noBusTripsForRoute;
 
   /// No description provided for @costBreakdown.
   ///
@@ -583,6 +589,24 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Δοκιμή ξανά'**
   String get retryButton;
+
+  /// No description provided for @walking.
+  ///
+  /// In el, this message translates to:
+  /// **'Περπάτημα'**
+  String get walking;
+
+  /// No description provided for @walkFrom.
+  ///
+  /// In el, this message translates to:
+  /// **'Περπάτημα από'**
+  String get walkFrom;
+
+  /// No description provided for @walkTo.
+  ///
+  /// In el, this message translates to:
+  /// **'Περπάτημα προς'**
+  String get walkTo;
 }
 
 class _AppLocalizationsDelegate

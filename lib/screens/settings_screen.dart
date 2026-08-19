@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-import '../services/settings_controller.dart';
+import '../services/settings_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   final SettingsController settingsController;

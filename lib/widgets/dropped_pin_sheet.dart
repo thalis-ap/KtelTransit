@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
 import 'package:ktel_transit/services/osrm_service.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import '../models/stop.dart';
+import '../services/distance_service.dart';
 import '../services/geocoding_service.dart';
 import 'map_point_sheet.dart';
 
@@ -23,15 +25,18 @@ class WalkingTripLoader {
 }
 
 class DroppedPinSheet extends StatefulWidget {
-  final LatLng coordinates;
+  /// Represents the point we tapped on. Its name can be null and will be
+  /// updated as soon as we have it. See _fetchLocationName()
+  final MapPoint mapPoint;
   final GtfsRepository repository;
-  final VoidCallback onSetStart, onSetDestination, onClose;
+  final Function(MapPoint p) onSetStart, onSetDestination;
+  final VoidCallback onClose;
   final DraggableScrollableController controller;
 
   const DroppedPinSheet({
     super.key,
+    required this.mapPoint,
     required this.controller,
-    required this.coordinates,
     required this.repository,
     required this.onSetStart,
     required this.onSetDestination,
@@ -43,10 +48,10 @@ class DroppedPinSheet extends StatefulWidget {
 }
 
 class _DroppedPinSheetState extends State<DroppedPinSheet> {
-  String? fetchedName;
-  bool isWalkingRoutesLoading = true;
-
   // Used to find the nearest stops of a random map point
+  // We use the WalkingTrip's wrapper (WalkingTripLoader) to be able to access
+  // the isLoading variable (when a WalkingTrip's real distance/duration/route
+  // is being fetched from OSRM)
   List<MapEntry<Stop, WalkingTripLoader>> nearestStops = [];
 
   @override
@@ -61,10 +66,10 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
     super.didUpdateWidget(oldWidget);
 
     // Check if the coordinates actually changed
-    if (widget.coordinates != oldWidget.coordinates) {
+    if (widget.mapPoint.coordinates != oldWidget.mapPoint.coordinates) {
       // Clear the old data so the loading indicator shows up
       setState(() {
-        fetchedName = null;
+        widget.mapPoint.name = null;
         nearestStops = [];
       });
 
@@ -88,33 +93,29 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
   /// the distance from the pin to the stops. This way it remains fast, though
   /// not so correct (different from real distances)
   Future<void> _calculateNearestStopsSLD() async {
-    final distanceCalculator = const Distance();
     final allStops = widget.repository.stops;
 
-    final distances = allStops.map((stop) {
-      final stopDistance = distanceCalculator
-          .as(
-            LengthUnit.Meter,
-            widget.coordinates,
-            LatLng(stop.latitude, stop.longitude),
-          )
-          .toDouble();
-      return MapEntry(
-        stop,
-        WalkingTripLoader(
-          walkingTrip: WalkingTrip(
-            distance: stopDistance,
-            duration: WalkingTrip.getDurationFromDistance(stopDistance),
-            points: [],
-          ),
-        )..isLoading = true,
-      );
-    }).toList();
-
-    distances.sort((a, b) => a.value.distance.compareTo(b.value.distance));
+    final nearest = DistanceService.findNearestStops(
+      widget.mapPoint.coordinates,
+      allStops,
+    );
 
     setState(() {
-      nearestStops = distances.take(5).toList();
+      nearestStops = nearest.map((entry) {
+        final stop = entry.key;
+        final sldDistance = entry.value;
+
+        return MapEntry(
+          stop,
+          WalkingTripLoader(
+            walkingTrip: WalkingTrip(
+              distance: sldDistance,
+              duration: WalkingTrip.getDurationFromDistance(sldDistance),
+              points: [],
+            ),
+          )..isLoading = true,
+        );
+      }).toList();
     });
   }
 
@@ -136,22 +137,37 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final languageCode = Localizations.localeOf(context).languageCode;
 
+      // Try to retrieve a name and update point.name as soon as we can
       final name = await GeocodingService.getPlaceName(
-        widget.coordinates,
+        widget.mapPoint.coordinates,
         languageCode,
       );
 
-      // If the API found a name and the user hasn't closed the sheet yet, update the UI
-      if (mounted && name != null) {
-        setState(() {
-          fetchedName = name;
-        });
+      // Check if the API did not find a name
+      if (name == null) {
+        if (mounted) {
+          // Fallback to the default name, so as not to load forever
+          setState(() {
+            // fetchedName = AppLocalizations.of(context)!.chosenPoint;
+            widget.mapPoint.name = AppLocalizations.of(context)!.chosenPoint;
+          });
+        }
+      } else {
+        // If the API found a name and the user hasn't closed the sheet yet, update the UI
+        if (mounted) {
+          setState(() {
+            // fetchedName = name;
+            widget.mapPoint.name = name;
+          });
+        }
       }
     });
   }
 
   /// Actual distance not SLD
   Future<void> _fetchWalkingTripFromStop(int index) async {
+    // Guard from async calls
+    if (!mounted) return;
     setState(() {
       nearestStops[index].value.errored = false;
       nearestStops[index].value.isLoading = true;
@@ -160,9 +176,11 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
     MapEntry<Stop, WalkingTripLoader> entry = nearestStops[index];
 
     WalkingTrip? wt = await WalkingService.getRoute(
-      widget.coordinates,
+      widget.mapPoint.coordinates,
       LatLng(entry.key.latitude, entry.key.longitude),
     );
+
+    if (!mounted) return;
 
     if (wt == null) {
       // For some reason we retrieved a null object
@@ -180,10 +198,11 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
     });
   }
 
+  /// Refetches nearestStops[index] walking trip from widget.coordinates
   Future<void> _refetchWalkingTripFromStop(int index) async {
     Navigator.of(context).pop();
     await _fetchWalkingTripFromStop(index);
-    nearestStops.sort((a,b) => a.value.distance.compareTo(b.value.distance));
+    nearestStops.sort((a, b) => a.value.distance.compareTo(b.value.distance));
   }
 
   void _showErroredStopDialog(int index) {
@@ -234,7 +253,8 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
       Padding(
         padding: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 4.0),
         child: Text(
-          "${l10n.chosenPoint}: ${widget.coordinates.latitude.toStringAsFixed(4)}°, ${widget.coordinates.longitude.toStringAsFixed(4)}°",
+          // Use widget coordinates since we are inside the build method
+          "${l10n.chosenPoint}: ${widget.mapPoint.coordinates.latitude.toStringAsFixed(4)}°, ${widget.mapPoint.coordinates.longitude.toStringAsFixed(4)}°",
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -349,17 +369,16 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // The default title shows the coordinates until the API replies
-    final fallbackTitle = AppLocalizations.of(context)!.chosenPoint;
-    // "${widget.coordinates.latitude.toStringAsFixed(4)}°, ${widget.coordinates.longitude.toStringAsFixed(4)}°";
-
     return MapPointSheet(
+      mapPoint: widget.mapPoint,
       controller: widget.controller,
-      title: fetchedName ?? fallbackTitle,
-      coordinates: widget.coordinates,
       repository: widget.repository,
-      onSetStart: widget.onSetStart,
-      onSetDestination: widget.onSetDestination,
+      onSetStart: (MapPoint _) {
+        widget.onSetStart(widget.mapPoint);
+      },
+      onSetDestination: (MapPoint _) {
+        widget.onSetDestination(widget.mapPoint);
+      },
       onClose: widget.onClose,
       followUpWidgets: followUpWidgets(),
     );
