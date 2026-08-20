@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
@@ -140,6 +142,68 @@ class TripInfoSheet extends StatelessWidget {
     );
   }
 
+  Widget _buildTripWidget(
+    BuildContext context,
+    RoutingTrip trip,
+    int tripIndex, {
+    bool isPast = false,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: isPast
+          ? () {}
+          : () {
+              onTripSelected(tripIndex, trip);
+            },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.all(8),
+        child: Stack(
+          children: [
+            Opacity(
+              opacity: isPast ? 0.5 : 1,
+              child: TripDetailsCard(
+                routingTrip: trip,
+                startPoint: startPoint,
+                destinationPoint: destinationPoint,
+                allStops: allStops,
+                extra: false,
+              ),
+            ),
+            if (isPast)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: colorScheme.error.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.departed,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Builds the container that includes all trips found in the trips variable
   /// and nothing more, labels, warnings and other widgets must be built separately
   /// The parameter isPast is true for past trips for which the following are true
@@ -150,80 +214,87 @@ class TripInfoSheet extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
+    final now = DateTime.now();
+    List<RoutingTrip> possiblePastTrips = [], activeTrips = [];
+    for (RoutingTrip t in trips) {
+      // A trip can belong to the past only if it has a bus trip
+      // If the trip only consists of walking then past has no meaning
+      // as user can start walking when they wish
+      if (t.transitTrip != null &&
+          t.getDepartureDateTime(selectedSearchTime).compareTo(now) < 0) {
+        possiblePastTrips.add(t);
+      } else {
+        activeTrips.add(t);
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
-        ),
-        child: ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(12),
-          separatorBuilder: (_, _) => const Divider(height: 24),
-          itemCount: trips.length,
-          itemBuilder: (context, index) {
-            final trip = trips[index];
-            final isPast =
-                trip
-                    .getDepartureDateTime(selectedSearchTime)
-                    .compareTo(selectedSearchTime) <
-                0;
-            return Opacity(
-              opacity: isPast ? 0.5 : 1.0,
-              child: InkWell(
-                onTap: isPast
-                    ? null
-                    : () {
-                        onTripSelected(index, trip);
-                      },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  child: Stack(
-                    children: [
-                      TripDetailsCard(
-                        routingTrip: trip,
-                        startPoint: startPoint,
-                        destinationPoint: destinationPoint,
-                        allStops: allStops,
-                        extra: false,
-                      ),
-                      if (isPast)
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.errorContainer,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: colorScheme.error.withValues(alpha: 0.5),
-                              ),
-                            ),
-                            child: Text(
-                              l10n.departed,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.error,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+      child: Column(
+        children: [
+          if (possiblePastTrips.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: Container(
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.2),
                   ),
                 ),
+                child: ExpansionTile(
+                  initiallyExpanded: false,
+
+                  expansionAnimationStyle: AnimationStyle().copyWith(duration: Duration(milliseconds: 300)),
+                  title: Text(l10n.pastTrips, style: TextStyle(fontSize: 14),),
+                  shape: const Border(),
+                  collapsedShape: const Border(),
+                  children: [
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(12),
+                      separatorBuilder: (_, _) => const Divider(height: 24),
+                      itemCount: possiblePastTrips.length,
+                      itemBuilder: (context, tripIndex) {
+                        final trip = possiblePastTrips[tripIndex];
+
+                        return _buildTripWidget(
+                          context,
+                          trip,
+                          tripIndex,
+                          isPast: true,
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            );
-          },
-        ),
+            ),
+
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.2),
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(12),
+              separatorBuilder: (_, _) => const Divider(height: 24),
+              itemCount: activeTrips.length,
+              itemBuilder: (context, tripIndex) {
+                final trip = activeTrips[tripIndex];
+                return _buildTripWidget(context, trip, tripIndex);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -327,48 +398,43 @@ class TripInfoSheet extends StatelessWidget {
                       )
                       .toList();
 
-                  // All selected day trips, that have not departed yet (active)
-                  // Pure-walking trips are not included here since their
-                  // departureTime is equal to selectedSearchTime
-                  final List<RoutingTrip> activeTrips = todayTrips
-                      .where(
-                        (t) =>
-                            selectedSearchTime.compareTo(
-                              t.getDepartureDateTime(selectedSearchTime),
-                            ) <
-                            0,
-                      )
-                      .toList();
-
                   // All following days trips (haven't departed by default)
                   List<RoutingTrip> nextTrips = [];
 
-                  // We use firstWhere to find the first trip that includes a bus
-                  // trip (i.e. transitTrip != null), since we need the next
-                  // immediate seach time (walking only trips have time = now)
+                  // Find the next immediate bus that leaves after now, NOT
+                  // after selected time. If user changes their time to a past
+                  // time today trips will take on to show the past trips if
+                  // they exist, and next trips should ONLY show the next trips
+                  // from now on, regardless of the time the user selected
                   final DateTime immediateNextBusTripDepartureDateOnly = trips!
-                      .firstWhere((t) => t.transitTrip != null)
+                      .firstWhere(
+                        (t) =>
+                            t
+                                .getDepartureDateTime(DateTime.now())
+                                .compareTo(DateTime.now()) >
+                            0,
+                      )
                       .getDepartureDateOnly(selectedSearchTime);
 
-                  // No more bus routes scheduled for today, find past trips
-                  // and immediate future trips
-                  if (activeTrips.isEmpty) {
-                    // We should only show the trips for the 1st next available date
-                    // For example if there are buses on 20/8 and 22/8 and the user
-                    // finds no trips for 19/8, it only makes sense to show trips
-                    // for 20/8 and let the user change the selected time if they
-                    // wish to see the next ones (22/8)
-                    nextTrips = trips!
-                        .where(
-                          (t) =>
-                              immediateNextBusTripDepartureDateOnly.compareTo(
-                                t.getDepartureDateOnly(selectedSearchTime),
-                              ) ==
-                              0,
-                        )
-                        .toList();
-                  }
+                  // We should only show the trips for the 1st next available date
+                  // For example if there are buses on 20/8 and 22/8 and the user
+                  // finds no trips for 19/8, it only makes sense to show trips
+                  // for 20/8 and let the user change the selected time if they
+                  // wish to see the next ones (22/8)
+                  nextTrips = trips!
+                      .where(
+                        (t) =>
+                            t.transitTrip != null &&
+                            immediateNextBusTripDepartureDateOnly.compareTo(
+                                  t.getDepartureDateOnly(
+                                    immediateNextBusTripDepartureDateOnly,
+                                  ),
+                                ) ==
+                                0,
+                      )
+                      .toList();
 
+                  // print(todayTrips.length);
                   return Column(
                     children: todayTrips.isEmpty
                         ? [
@@ -377,11 +443,12 @@ class TripInfoSheet extends StatelessWidget {
                           ]
                         : [
                             // Will show either only the walking trip or today bus trips
+                            // This call builds past trips for today as well
                             _buildTodayTrips(context, todayTrips),
                             // Make sure not to show the banner in case we have
-                            // today bus trips, only show it when
-                            // activeTrips.isEmpty === nextTrips.isNotEmpty
-                            if (activeTrips.isEmpty)
+                            // today bus trips, only show it when there are next
+                            // trips
+                            if (nextTrips.isNotEmpty)
                               _buildNextTrips(context, nextTrips),
                           ],
                   );
@@ -419,48 +486,44 @@ class TripInfoSheet extends StatelessWidget {
           ),
           child: SingleChildScrollView(
             controller: scrollController,
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Sheet handle
-                  Center(
-                    child: Container(
-                      width: 48,
-                      height: 5,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.onSurfaceVariant.withValues(
-                          alpha: 0.4,
-                        ),
-                        borderRadius: BorderRadius.circular(3),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Sheet handle
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
                       ),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
+                ),
 
-                  // Title row (title, close button)
-                  _buildTitle(context),
+                // Title row (title, close button)
+                _buildTitle(context),
 
-                  const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                  // Time selection widget
-                  TimeSelectionBar(
-                    selectedSearchTime: selectedSearchTime,
-                    onChangeTime: onChangeTime,
-                  ),
+                // Time selection widget
+                TimeSelectionBar(
+                  selectedSearchTime: selectedSearchTime,
+                  onChangeTime: onChangeTime,
+                ),
 
-                  const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                  // Build selected trip or all trips
-                  if (selectedTripIndex != null && trips != null)
-                    _buildSelectedTrip(context)
-                  else
-                    _buildTripsSheet(context),
-                ],
-              ),
+                // Build selected trip or all trips
+                if (selectedTripIndex != null && trips != null)
+                  _buildSelectedTrip(context)
+                else
+                  _buildTripsSheet(context),
+              ],
             ),
           ),
         );
@@ -896,11 +959,15 @@ class TripDetailsCard extends StatelessWidget {
         (s) => s.getLocalizedNameByLangCode(languageCode) == bus.originStopName,
       );
       destStop = allStops.firstWhere(
-        (s) => s.getLocalizedNameByLangCode(languageCode) == bus.destinationStopName,
+        (s) =>
+            s.getLocalizedNameByLangCode(languageCode) ==
+            bus.destinationStopName,
       );
       if (bus.isTransfer && bus.transferStopName != null) {
         transferStop = allStops.firstWhere(
-          (s) => s.getLocalizedNameByLangCode(languageCode) == bus.transferStopName,
+          (s) =>
+              s.getLocalizedNameByLangCode(languageCode) ==
+              bus.transferStopName,
         );
       }
     } catch (_) {}
