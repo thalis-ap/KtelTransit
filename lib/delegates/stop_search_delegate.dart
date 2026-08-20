@@ -25,7 +25,7 @@ class StopSearchDelegate extends BaseSearchDelegate<Stop> {
 
     final suggestions = stops.where((stop) {
       // 2. Search against the localized name instead of just the Greek one
-      final localizedName = stop.getLocalizedName(languageCode);
+      final localizedName = stop.getLocalizedName(l10n);
       final normalizedStopName = normalizeGreek(localizedName);
       return normalizedStopName.contains(normalizedQuery);
     }).toList();
@@ -52,7 +52,7 @@ class StopSearchDelegate extends BaseSearchDelegate<Stop> {
                 leading: Icon(Icons.place, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 title: Text(
                   // 3. Display the localized name in the list
-                  stop.getLocalizedName(languageCode),
+                  stop.getLocalizedNameByLangCode(languageCode),
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
                 onTap: () {

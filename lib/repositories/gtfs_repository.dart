@@ -401,9 +401,9 @@ class GtfsRepository {
     startTimes.sort((a, b) => a.departureTime.compareTo(b.departureTime));
 
     final String destinationStopName =
-        (_stopsById[destStopId])?.getLocalizedName(languageCode) ?? '';
+        (_stopsById[destStopId])?.getLocalizedNameByLangCode(languageCode) ?? '';
     final String originStopName =
-        (_stopsById[startStopId])?.getLocalizedName(languageCode) ?? '';
+        (_stopsById[startStopId])?.getLocalizedNameByLangCode(languageCode) ?? '';
 
     List<BusTrip> dailyTrips = [];
 
@@ -523,7 +523,7 @@ class GtfsRepository {
               if (routeA == null || routeB == null) continue;
 
               final String transferStopName =
-                  _stopsById[transferA.stopId]?.getLocalizedName(
+                  _stopsById[transferA.stopId]?.getLocalizedNameByLangCode(
                     languageCode,
                   ) ??
                   '';

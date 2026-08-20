@@ -13,8 +13,7 @@ class Stop extends MapPoint {
     required super.coordinates,
   });
 
-  @override
-  String getLocalizedName(String languageCode) {
+  String getLocalizedNameByLangCode(String languageCode) {
     // In stops, the name is always not null so name! is safe
     return languageCode == 'en' ? englishName : name!;
   }

@@ -25,13 +25,13 @@ class StopSheet extends MapPointSheet {
     final l10n = AppLocalizations.of(context)!;
 
     if (dep.originStop.stopId == dep.departureStop.stopId) {
-      final stopName = dep.originStop.getLocalizedName(languageCode);
+      final stopName = dep.originStop.getLocalizedNameByLangCode(languageCode);
       final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.originDepartureTime);
 
       // Using your existing localization and appending the time
       return "${l10n.departureFrom(stopName)} - $time";
     } else {
-      final stopName = dep.departureStop.getLocalizedName(languageCode);
+      final stopName = dep.departureStop.getLocalizedNameByLangCode(languageCode);
       final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.departureTime);
 
       // Using your existing localization and appending the time

@@ -120,7 +120,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        "${index + 1}. ${stop.getLocalizedName(languageCode)}",
+                        "${index + 1}. ${stop.getLocalizedNameByLangCode(languageCode)}",
                         style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
                       ),
                     ),

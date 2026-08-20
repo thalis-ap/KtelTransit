@@ -1,3 +1,4 @@
+import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:latlong2/latlong.dart';
 
 class MapPoint {
@@ -9,7 +10,7 @@ class MapPoint {
   
   MapPoint({required this.coordinates, this.name});
 
-  String getLocalizedName(String languageCode) {
-    return name ?? (languageCode == "en" ? "Dropped pin" : "Επιλεγμένο σημείο");
+  String getLocalizedName(AppLocalizations l10n) {
+    return name ?? l10n.chosenPoint;
   }
 }

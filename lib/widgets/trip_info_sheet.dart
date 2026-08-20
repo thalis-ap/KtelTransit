@@ -636,7 +636,6 @@ class TripDetailsCard extends StatelessWidget {
     required AppLocalizations l10n,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final languageCode = Localizations.localeOf(context).languageCode;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -688,7 +687,7 @@ class TripDetailsCard extends StatelessWidget {
             const SizedBox(width: 2),
             Expanded(
               child: Text(
-                "${l10n.walkTo} ${destinationPoint.getLocalizedName(languageCode)}",
+                "${l10n.walkTo} ${destinationPoint.getLocalizedName(l10n)}",
                 style: TextStyle(color: colorScheme.onSurface, fontSize: 13),
               ),
             ),
@@ -710,7 +709,7 @@ class TripDetailsCard extends StatelessWidget {
             Expanded(
               child: Text(
                 l10n.estimatedArrivalAt(
-                  destinationPoint.getLocalizedName(languageCode),
+                  destinationPoint.getLocalizedName(l10n),
                 ),
                 style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
               ),
@@ -894,14 +893,14 @@ class TripDetailsCard extends StatelessWidget {
 
     try {
       originStop = allStops.firstWhere(
-        (s) => s.getLocalizedName(languageCode) == bus.originStopName,
+        (s) => s.getLocalizedNameByLangCode(languageCode) == bus.originStopName,
       );
       destStop = allStops.firstWhere(
-        (s) => s.getLocalizedName(languageCode) == bus.destinationStopName,
+        (s) => s.getLocalizedNameByLangCode(languageCode) == bus.destinationStopName,
       );
       if (bus.isTransfer && bus.transferStopName != null) {
         transferStop = allStops.firstWhere(
-          (s) => s.getLocalizedName(languageCode) == bus.transferStopName,
+          (s) => s.getLocalizedNameByLangCode(languageCode) == bus.transferStopName,
         );
       }
     } catch (_) {}
@@ -1079,7 +1078,7 @@ class TripDetailsCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.estimatedArrivalAt(
-                    destinationPoint.getLocalizedName(languageCode),
+                    destinationPoint.getLocalizedName(l10n),
                   ),
                   style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
                 ),

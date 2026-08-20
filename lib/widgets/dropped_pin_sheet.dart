@@ -224,7 +224,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
             ],
           ),
           content: Text(
-            l10n.routeErrorMessage(stop.getLocalizedName(languageCode)),
+            l10n.routeErrorMessage(stop.getLocalizedNameByLangCode(languageCode)),
           ),
           actions: [
             TextButton(
@@ -313,7 +313,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
                 child: const Icon(Icons.directions_bus, size: 20),
               ),
               title: Text(
-                stop.getLocalizedName(languageCode),
+                stop.getLocalizedNameByLangCode(languageCode),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               trailing: Row(

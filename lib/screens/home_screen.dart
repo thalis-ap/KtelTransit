@@ -256,11 +256,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final BusTrip busTrip = routingTrip.transitTrip!;
 
         final Stop busStart = repository.stops.firstWhere(
-          (s) => s.getLocalizedName(languageCode) == busTrip.originStopName,
+          (s) => s.getLocalizedNameByLangCode(languageCode) == busTrip.originStopName,
         );
         final Stop busDest = repository.stops.firstWhere(
           (s) =>
-              s.getLocalizedName(languageCode) == busTrip.destinationStopName,
+              s.getLocalizedNameByLangCode(languageCode) == busTrip.destinationStopName,
         );
 
         final LatLng startCoords = LatLng(
@@ -277,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         if (busTrip.isTransfer) {
           final Stop trStop = repository.stops.firstWhere(
             (s) =>
-                s.getLocalizedName(languageCode) ==
+                s.getLocalizedNameByLangCode(languageCode) ==
                 routingTrip.transitTrip!.transferStopName,
           );
 
@@ -819,7 +819,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         try {
           activeTransferStop = repository.stops.firstWhere(
             (s) =>
-                s.getLocalizedName(languageCode) ==
+                s.getLocalizedNameByLangCode(languageCode) ==
                 activeTrip.transitTrip!.transferStopName,
           );
         } catch (_) {}
