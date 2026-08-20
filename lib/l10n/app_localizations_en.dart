@@ -306,4 +306,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walkTo => 'Walk to';
+
+  @override
+  String get pastTrips => 'Past trips';
 }

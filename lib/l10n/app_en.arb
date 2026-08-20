@@ -91,6 +91,7 @@
   "retryButton": "Retry",
   "walking": "Walking",
   "walkFrom": "Walk from",
-  "walkTo": "Walk to"
+  "walkTo": "Walk to",
+  "pastTrips": "Past trips"
 
 }

@@ -309,4 +309,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get walkTo => 'Περπάτημα προς';
+
+  @override
+  String get pastTrips => 'Δρομολόγια που αναχώρησαν';
 }

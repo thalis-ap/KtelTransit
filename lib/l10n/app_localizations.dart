@@ -607,6 +607,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Περπάτημα προς'**
   String get walkTo;
+
+  /// No description provided for @pastTrips.
+  ///
+  /// In el, this message translates to:
+  /// **'Δρομολόγια που αναχώρησαν'**
+  String get pastTrips;
 }
 
 class _AppLocalizationsDelegate
