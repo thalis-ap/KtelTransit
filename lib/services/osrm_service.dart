@@ -5,6 +5,7 @@ import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:ktel_transit/services/distance_service.dart';
+import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/routing_trip.dart';
@@ -173,22 +174,16 @@ class RoutingService {
       },
     );
 
-    // Add walk route in case there are no today trips
-    final selectedDateOnly = DateTime(selectedTime.year, selectedTime.month, selectedTime.day);
-    if (trips.every((t) {
-      final tripDateOnly = DateTime(t.startDepartureDateTime.year, t.startDepartureDateTime.month, t.startDepartureDateTime.day);
-      // bus trip date is later than the selected date
-      return tripDateOnly.compareTo(selectedDateOnly) > 0;
-    })) {
-      final WalkingTrip? walkingTrip = await WalkingService.getRoute(start.coordinates, destination.coordinates);
+    // Always add a walking trip
+    final WalkingTrip? walkingTrip = await WalkingService.getRoute(start.coordinates, destination.coordinates);
 
-      // Insert the (non null) walking trip in the first position. Its arrival
-      // time will (probably) be less that the busses'. Either way, user should
-      // see it first since the other busses' trips depart on another day
-      if (walkingTrip != null) {
-        finalTrips.insert(0, RoutingTrip(accessTrip: walkingTrip));
-      }
+    // Insert the (non null) walking trip in the first position. Its arrival
+    // time will (probably) be less that the busses'. Either way, user should
+    // see it first since the other busses' trips depart on another day
+    if (walkingTrip != null) {
+      finalTrips.insert(0, RoutingTrip(accessTrip: walkingTrip));
     }
+
     return finalTrips;
   }
 
