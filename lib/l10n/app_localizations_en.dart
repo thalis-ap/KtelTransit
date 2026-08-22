@@ -38,7 +38,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchDestinationHint => 'Search destination...';
 
   @override
-  String get selectStartHint => 'Select departure...';
+  String get selectStartHint => 'Select origin...';
 
   @override
   String get selectDestinationHint => 'Select destination...';

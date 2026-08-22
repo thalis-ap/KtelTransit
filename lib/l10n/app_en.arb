@@ -9,7 +9,7 @@
   "letGoButton": "Let's go",
   "regionRequiredError": "You must select a region to proceed!",
   "searchDestinationHint": "Search destination...",
-  "selectStartHint": "Select departure...",
+  "selectStartHint": "Select origin...",
   "selectDestinationHint": "Select destination...",
   "swapDirectionTooltip": "Swap direction",
   "resetOrientationTooltip": "Reset orientation",
