@@ -92,6 +92,19 @@
   "walking": "Walking",
   "walkFrom": "Walk from",
   "walkTo": "Walk to",
-  "pastTrips": "Past trips"
+  "walk": "Walk",
+  "to": "to",
+  "pastTrips": "Past trips",
+  "availableRoutes": "Available routes",
+  "metersFormat": "{meters} m",
+  "@metersFormat": {
+    "placeholders": { "meters": { "type": "int" } }
+  },
+  "kilometersFormat": "{km} km",
+  "@kilometersFormat": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "disembarkAt": "Disembark at {stop}",
+  "tripStopsCount": "Trip: {count} stops"
 
 }

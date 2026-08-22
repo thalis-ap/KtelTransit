@@ -13,4 +13,8 @@ class MapPoint {
   String getLocalizedName(AppLocalizations l10n) {
     return name ?? l10n.chosenPoint;
   }
+
+  String getLatLngAsString() {
+    return "${latitude.toStringAsFixed(4)}°, ${longitude.toStringAsFixed(4)}°";
+  }
 }

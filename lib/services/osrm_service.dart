@@ -5,7 +5,6 @@ import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:ktel_transit/services/distance_service.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/routing_trip.dart';
@@ -149,39 +148,56 @@ class RoutingService {
       10; // cap bus trips considered per stop-pair
   static const int _maxFinalResults = 20; // cap what we ever return to the UI
 
-  static Future<List<RoutingTrip>> getStopToStopRoutes (
+  static Future<List<RoutingTrip>> getStopToStopRoutes(
     Stop start,
     Stop destination,
     DateTime selectedTime,
   ) async {
-
     final List<BusTrip> trips = repository.findAllTripsBetween(
       start.stopId,
       destination.stopId,
       selectedTime: selectedTime,
     );
 
-    List<RoutingTrip> finalTrips = trips.map((busTrip) => RoutingTrip(transitTrip: busTrip)).toList();
+    List<RoutingTrip> finalTrips = trips
+        .map(
+          (busTrip) => RoutingTrip(
+            startPoint: start,
+            destinationPoint: destination,
+            transitTrip: busTrip,
+          ),
+        )
+        .toList();
 
-    finalTrips.sort(
-          (a, b) {
-        int res = a.getArrivalDateTime(selectedTime).compareTo(b.getArrivalDateTime(selectedTime));
-        if (res == 0) {
-          return (a.duration).compareTo((b.duration));
-        }
+    finalTrips.sort((a, b) {
+      int res = a
+          .getArrivalDateTime(selectedTime)
+          .compareTo(b.getArrivalDateTime(selectedTime));
+      if (res == 0) {
+        return (a.duration).compareTo((b.duration));
+      }
 
-        return res;
-      },
-    );
+      return res;
+    });
 
     // Always add a walking trip
-    final WalkingTrip? walkingTrip = await WalkingService.getRoute(start.coordinates, destination.coordinates);
+    final WalkingTrip? walkingTrip = await WalkingService.getRoute(
+      start.coordinates,
+      destination.coordinates,
+    );
 
     // Insert the (non null) walking trip in the first position. Its arrival
     // time will (probably) be less that the busses'. Either way, user should
     // see it first since the other busses' trips depart on another day
     if (walkingTrip != null) {
-      finalTrips.insert(0, RoutingTrip(accessTrip: walkingTrip));
+      finalTrips.insert(
+        0,
+        RoutingTrip(
+          startPoint: start,
+          destinationPoint: destination,
+          accessTrip: walkingTrip,
+        ),
+      );
     }
 
     return finalTrips;
@@ -217,7 +233,13 @@ class RoutingService {
       // If walking to the nearest stop already takes longer than pure walking,
       // no bus trip can be faster (bus adds extra time on top of that walk).
       if (estimatedWalkToNearestStop >= pureWalkingTrip.duration) {
-        return [RoutingTrip(accessTrip: pureWalkingTrip)];
+        return [
+          RoutingTrip(
+            startPoint: start,
+            destinationPoint: destination,
+            accessTrip: pureWalkingTrip,
+          ),
+        ];
       }
     }
 
@@ -247,8 +269,12 @@ class RoutingService {
 
         return busTrips
             .map(
-              (busTrip) =>
-                  RoutingTrip(accessTrip: accessTrip, transitTrip: busTrip),
+              (busTrip) => RoutingTrip(
+                startPoint: start,
+                destinationPoint: destination,
+                accessTrip: accessTrip,
+                transitTrip: busTrip,
+              ),
             )
             .toList();
       }),
@@ -261,7 +287,13 @@ class RoutingService {
     List<RoutingTrip> finalTrips = [];
     if (pureWalkingTrip != null) {
       // Add the walking trip always
-      finalTrips.add(RoutingTrip(accessTrip: pureWalkingTrip));
+      finalTrips.add(
+        RoutingTrip(
+          startPoint: start,
+          destinationPoint: destination,
+          accessTrip: pureWalkingTrip,
+        ),
+      );
 
       // Only add transit results (ones with buses invloved) whose access time
       // to the start stop is less than the pure walk time. We don't use
@@ -277,16 +309,16 @@ class RoutingService {
       finalTrips.addAll(transitResults);
     }
 
-    finalTrips.sort(
-      (a, b) {
-        int res = a.getArrivalDateTime(selectedTime).compareTo(b.getArrivalDateTime(selectedTime));
-        if (res == 0) {
-          return a.duration.compareTo(b.duration);
-        }
+    finalTrips.sort((a, b) {
+      int res = a
+          .getArrivalDateTime(selectedTime)
+          .compareTo(b.getArrivalDateTime(selectedTime));
+      if (res == 0) {
+        return a.duration.compareTo(b.duration);
+      }
 
-        return res;
-      },
-    );
+      return res;
+    });
 
     return finalTrips.take(_maxFinalResults).toList();
   }
@@ -318,7 +350,13 @@ class RoutingService {
       // If walking from the nearest stop to the pin already takes longer than pure walking,
       // no bus trip can be faster (bus adds extra time on top of that walk).
       if (estimatedWalkFromNearestStop >= pureWalkingTrip.duration) {
-        return [RoutingTrip(accessTrip: pureWalkingTrip)];
+        return [
+          RoutingTrip(
+            startPoint: start,
+            destinationPoint: destination,
+            accessTrip: pureWalkingTrip,
+          ),
+        ];
       }
     }
 
@@ -350,8 +388,12 @@ class RoutingService {
 
         return busTrips
             .map(
-              (busTrip) =>
-                  RoutingTrip(transitTrip: busTrip, egressTrip: egressTrip),
+              (busTrip) => RoutingTrip(
+                startPoint: start,
+                destinationPoint: destination,
+                transitTrip: busTrip,
+                egressTrip: egressTrip,
+              ),
             )
             .toList();
       }),
@@ -363,7 +405,13 @@ class RoutingService {
 
     List<RoutingTrip> finalTrips = [];
     if (pureWalkingTrip != null) {
-      finalTrips.add(RoutingTrip(accessTrip: pureWalkingTrip));
+      finalTrips.add(
+        RoutingTrip(
+          startPoint: start,
+          destinationPoint: destination,
+          accessTrip: pureWalkingTrip,
+        ),
+      );
 
       // Only add transit results whose egress walk is shorter than the pure walk
       for (RoutingTrip trip in transitResults) {
@@ -375,16 +423,16 @@ class RoutingService {
       finalTrips.addAll(transitResults);
     }
 
-    finalTrips.sort(
-          (a, b) {
-        int res = a.getArrivalDateTime(selectedTime).compareTo(b.getArrivalDateTime(selectedTime));
-        if (res == 0) {
-          return a.duration.compareTo(b.duration);
-        }
+    finalTrips.sort((a, b) {
+      int res = a
+          .getArrivalDateTime(selectedTime)
+          .compareTo(b.getArrivalDateTime(selectedTime));
+      if (res == 0) {
+        return a.duration.compareTo(b.duration);
+      }
 
-        return res;
-      },
-    );
+      return res;
+    });
 
     return finalTrips.take(_maxFinalResults).toList();
   }
@@ -429,7 +477,13 @@ class RoutingService {
       // no bus trip can be faster.
       if (estimatedTotalWalkToStartStop >= pureWalkingTrip.duration ||
           estimatedTotalWalkToDestStop >= pureWalkingTrip.duration) {
-        return [RoutingTrip(accessTrip: pureWalkingTrip)];
+        return [
+          RoutingTrip(
+            startPoint: start,
+            destinationPoint: destination,
+            accessTrip: pureWalkingTrip,
+          ),
+        ];
       }
     }
 
@@ -469,6 +523,8 @@ class RoutingService {
             return busTrips
                 .map(
                   (busTrip) => RoutingTrip(
+                    startPoint: start,
+                    destinationPoint: destination,
                     accessTrip: accessTrip,
                     transitTrip: busTrip,
                     egressTrip: egressTrip,
@@ -488,7 +544,13 @@ class RoutingService {
 
     List<RoutingTrip> finalTrips = [];
     if (pureWalkingTrip != null) {
-      finalTrips.add(RoutingTrip(accessTrip: pureWalkingTrip));
+      finalTrips.add(
+        RoutingTrip(
+          startPoint: start,
+          destinationPoint: destination,
+          accessTrip: pureWalkingTrip,
+        ),
+      );
 
       // Keep only transit trips where both access and egress walks are each
       // shorter than the pure walk (user prefers less walking overall)
@@ -502,16 +564,16 @@ class RoutingService {
       finalTrips.addAll(transitResults);
     }
 
-    finalTrips.sort(
-          (a, b) {
-        int res = a.getArrivalDateTime(selectedTime).compareTo(b.getArrivalDateTime(selectedTime));
-        if (res == 0) {
-          return a.duration.compareTo(b.duration);
-        }
+    finalTrips.sort((a, b) {
+      int res = a
+          .getArrivalDateTime(selectedTime)
+          .compareTo(b.getArrivalDateTime(selectedTime));
+      if (res == 0) {
+        return a.duration.compareTo(b.duration);
+      }
 
-        return res;
-      },
-    );
+      return res;
+    });
 
     return finalTrips.take(_maxFinalResults).toList();
   }

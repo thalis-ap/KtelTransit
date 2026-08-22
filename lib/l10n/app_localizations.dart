@@ -608,11 +608,53 @@ abstract class AppLocalizations {
   /// **'Περπάτημα προς'**
   String get walkTo;
 
+  /// No description provided for @walk.
+  ///
+  /// In el, this message translates to:
+  /// **'Περπατήστε'**
+  String get walk;
+
+  /// No description provided for @to.
+  ///
+  /// In el, this message translates to:
+  /// **'προς'**
+  String get to;
+
   /// No description provided for @pastTrips.
   ///
   /// In el, this message translates to:
   /// **'Δρομολόγια που αναχώρησαν'**
   String get pastTrips;
+
+  /// No description provided for @availableRoutes.
+  ///
+  /// In el, this message translates to:
+  /// **'Διαθέσιμα δρομολόγια'**
+  String get availableRoutes;
+
+  /// No description provided for @metersFormat.
+  ///
+  /// In el, this message translates to:
+  /// **'{meters} μ'**
+  String metersFormat(int meters);
+
+  /// No description provided for @kilometersFormat.
+  ///
+  /// In el, this message translates to:
+  /// **'{km} χλμ'**
+  String kilometersFormat(String km);
+
+  /// No description provided for @disembarkAt.
+  ///
+  /// In el, this message translates to:
+  /// **'Αποβίβαση: {stop}'**
+  String disembarkAt(String stop);
+
+  /// No description provided for @tripStopsCount.
+  ///
+  /// In el, this message translates to:
+  /// **'Διαδρομή: {count} στάσεις'**
+  String tripStopsCount(int count);
 }
 
 class _AppLocalizationsDelegate

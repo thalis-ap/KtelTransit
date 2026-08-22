@@ -441,9 +441,10 @@ class GtfsRepository {
         final StopTime firstStop = allTripStops.first;
 
         dailyTrips.add(
+          // No secondRouteName, trip is not transfer
           BusTrip(
             isStartAlsoOrigin: firstStop.stopId == startStopId,
-            routeName: displayName,
+            firstRouteName: displayName,
             originStopName: originStopName,
             destinationStopName: destinationStopName,
             originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
@@ -535,10 +536,12 @@ class GtfsRepository {
                 routeB.getLocalizedLongName(languageCode),
               );
 
+              // We have transfer route, pass secondRouteName
               dailyTrips.add(
                 BusTrip(
                   isStartAlsoOrigin: true,
-                  routeName: '1. $rAName\n2. $rBName',
+                  firstRouteName: rAName,
+                  secondRouteName: rBName,
                   originStopName: originStopName,
                   destinationStopName: destinationStopName,
                   originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(

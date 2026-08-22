@@ -3,6 +3,8 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
+import '../services/sheet_manager_service.dart';
+
 /// This class acts as a base widget for any point the user presses on the map
 /// It has the basic features: title, start/dest buttons, scrollable sheet
 /// To use it just do:
@@ -50,11 +52,11 @@ class MapPointSheet extends StatelessWidget {
 
     return DraggableScrollableSheet(
       controller: controller,
-      initialChildSize: 0.45,
-      minChildSize: 0.15,
-      maxChildSize: 0.85,
+      initialChildSize: SheetSizes.middle,
+      minChildSize: SheetSizes.low,
+      maxChildSize: SheetSizes.high,
       snap: true,
-      snapSizes: const [0.45],
+      snapSizes: const [SheetSizes.middle],
       shouldCloseOnMinExtent: false,
       builder: (context, scrollController) {
         return Container(

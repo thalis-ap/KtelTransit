@@ -16,11 +16,19 @@ class BusTrip {
 
   // Required locally fetched info
   final bool isTransfer, isStartAlsoOrigin;
-  final String routeName, originStopName, destinationStopName;
+  final String originStopName, destinationStopName;
   final DateTime originDepartureDateTime,
       startDepartureDateTime,
       destArrivalDateTime;
-
+  
+  
+  // If the trip has a transfer then this is the first route name,
+  // If not then its just the route name
+  final String firstRouteName;
+  
+  // If the trip has a transfer trip then this is not null
+  final String? secondRouteName;
+  
   // This is the duration of the trip computed using the stop_times.txt local
   // file. It should not be confused with safeDuration which uses OSRM data.
   final int estimatedDuration; // in seconds
@@ -28,10 +36,10 @@ class BusTrip {
   // Transfer related - can be null
   final String? transferStopName;
   final DateTime? transferArrivalDateTime, transferDepartureDateTime;
-
+  
   BusTrip({
     required this.isStartAlsoOrigin,
-    required this.routeName,
+    required this.firstRouteName,
     required this.originStopName,
     required this.originDepartureDateTime,
     required this.destinationStopName,
@@ -44,6 +52,7 @@ class BusTrip {
     this.transferStopName,
     this.transferArrivalDateTime,
     this.transferDepartureDateTime,
+    this.secondRouteName,
   });
 
   BusTrip copyWith({
@@ -51,7 +60,7 @@ class BusTrip {
     int? safeDuration,
     bool? isTransfer,
     bool? isStartAlsoOrigin,
-    String? routeName,
+    String? firstRouteName,
     String? originStopName,
     String? destinationStopName,
     DateTime? originDepartureDateTime,
@@ -61,13 +70,14 @@ class BusTrip {
     String? transferStopName,
     DateTime? transferArrivalDateTime,
     DateTime? transferDepartureDateTime,
+    String? secondRouteName,
   }) {
     return BusTrip(
       points: points ?? this.points,
       safeDuration: safeDuration ?? this.safeDuration,
       isTransfer: isTransfer ?? this.isTransfer,
       isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
-      routeName: routeName ?? this.routeName,
+      firstRouteName: firstRouteName ?? this.firstRouteName,
       originStopName: originStopName ?? this.originStopName,
       destinationStopName: destinationStopName ?? this.destinationStopName,
       originDepartureDateTime:
@@ -81,6 +91,7 @@ class BusTrip {
           transferArrivalDateTime ?? this.transferArrivalDateTime,
       transferDepartureDateTime:
           transferDepartureDateTime ?? this.transferDepartureDateTime,
+      secondRouteName: secondRouteName ?? this.secondRouteName,
     );
   }
 }

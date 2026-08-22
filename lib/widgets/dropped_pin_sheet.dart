@@ -254,7 +254,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
         padding: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 4.0),
         child: Text(
           // Use widget coordinates since we are inside the build method
-          "${l10n.chosenPoint}: ${widget.mapPoint.coordinates.latitude.toStringAsFixed(4)}°, ${widget.mapPoint.coordinates.longitude.toStringAsFixed(4)}°",
+          "${l10n.chosenPoint}: ${widget.mapPoint.getLatLngAsString()}",
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

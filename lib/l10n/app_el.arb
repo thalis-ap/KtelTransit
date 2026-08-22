@@ -182,5 +182,26 @@
   "walking": "Περπάτημα",
   "walkFrom": "Περπάτημα από",
   "walkTo": "Περπάτημα προς",
-  "pastTrips": "Δρομολόγια που αναχώρησαν"
+  "walk": "Περπατήστε",
+  "to": "προς",
+  "pastTrips": "Δρομολόγια που αναχώρησαν",
+  "availableRoutes": "Διαθέσιμα δρομολόγια",
+  "metersFormat": "{meters} μ",
+  "@metersFormat": {
+    "placeholders": { "meters": { "type": "int" } }
+  },
+  "kilometersFormat": "{km} χλμ",
+  "@kilometersFormat": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "disembarkAt": "Αποβίβαση: {stop}",
+  "@disembarkAt": {
+    "placeholders": { "stop": { "type": "String" } }
+  },
+  "tripStopsCount": "Διαδρομή: {count} στάσεις",
+  "@tripStopsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

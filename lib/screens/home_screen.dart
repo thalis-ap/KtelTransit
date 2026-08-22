@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/region.dart';
@@ -11,6 +10,9 @@ import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:ktel_transit/services/compass_service.dart';
+import 'package:ktel_transit/services/map_movement_service.dart';
+import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
@@ -22,6 +24,7 @@ import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 import '../models/map_point.dart';
 import '../models/stop.dart';
+import '../services/location_service.dart';
 import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
 import '../services/settings_service.dart';
@@ -39,6 +42,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final GtfsRepository repository = GtfsRepository();
+  final LocationService _locationService = LocationService();
 
   // Loading variables
   bool isLoading = true;
@@ -59,44 +63,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int? selectedTripIndex;
 
   // Sheets
-  static const String tripInfoSheetName = 'trip';
-  static const String droppedPinSheetName = 'pin';
-  static const String stopSheetName = 'stop';
-
-  final DraggableScrollableController _tripInfoSheetController =
-      DraggableScrollableController();
-  final DraggableScrollableController _droppedPinSheetController =
-      DraggableScrollableController();
-  final DraggableScrollableController _stopSheetController =
-      DraggableScrollableController();
-
-  // Keeps an order of the sheets so that we know which one is on top
-  // Last means first in the stack (top of the others)
-  final List<String> _sheetStackOrder = [
-    tripInfoSheetName,
-    stopSheetName,
-    droppedPinSheetName,
-  ];
+  final SheetManagerService _sheetManager = SheetManagerService();
 
   // Map related
   final MapController mapController = MapController();
 
-  double mapRotation = 0; // in rad
   bool isMapReady = false;
 
   MapPoint? userLocation;
   MapPoint? selectedMapPoint;
 
+  late MapMovementService _mapMovementService;
+
   // Compass
-
-  // Used to animate rotation back to 0 degrees
-  late final AnimationController _rotationController;
-  late Animation<double> _rotationAnimation;
-
-  // Direction of the phone looking
-  StreamSubscription<CompassEvent>? _compassSubscription;
-  double? deviceHeading;
-  bool _hasShownCalibrationDialog = false;
+  final CompassService _compassService = CompassService();
 
   // Keys - state related
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -111,43 +91,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // changeRegion function runs.
     repository.currentRegionNotifier.addListener(_onRegionChanged);
     _loadData();
+    _loadUserLocation(showDialogs: false);
 
-    // Track the compass to show the correct direction of which the phone is looking
-    _compassSubscription = FlutterCompass.events?.listen((CompassEvent event) {
-      if (mounted && event.heading != null) {
-        setState(() {
-          deviceHeading = event.heading;
-        });
-      }
+    _mapMovementService = MapMovementService(
+      mapController: mapController,
+      vsync: this,
+    );
 
-      // 0.0 is Android's "Unreliable" status. < 0 is iOS's "Invalid" status.
-      if (event.accuracy != null &&
-          (event.accuracy == 0.0 || event.accuracy! < 0)) {
-        if (!_hasShownCalibrationDialog) {
-          _hasShownCalibrationDialog = true; // Lock it so it only shows once
-          _showCalibrationDialog();
-        }
-      }
-    });
+    _compassService.startListening();
 
-    _rotationController = AnimationController(vsync: this);
-
-    _rotationAnimation = const AlwaysStoppedAnimation(0);
-
-    _rotationController.addListener(() {
-      mapRotation = _rotationAnimation.value;
-      mapController.rotate(mapRotation * 180 / math.pi);
-    });
+    // Listen for calibration requests
+    _compassService.addListener(_onCompassStateChanged);
   }
 
   @override
   void dispose() {
-    _rotationController.dispose();
-    _compassSubscription?.cancel();
+    _mapMovementService.dispose();
+    _compassService.removeListener(_onCompassStateChanged); // We'll use a separate method or inline
+    _compassService.dispose(); // Handles subscription cancellation
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
-    _tripInfoSheetController.dispose();
-    _droppedPinSheetController.dispose();
-    _stopSheetController.dispose();
+    _sheetManager.dispose();
     super.dispose();
   }
 
@@ -157,53 +120,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() {
       isLoading = false;
     });
-
-    _loadUserLocation();
   }
 
-  /// Tries to fetch user location upon successfull permission check
-  Future<void> _loadUserLocation() async {
-    // Fails quietly when the app first opens
-    if (!await _handleLocationPermissions(showDialogs: false)) return;
+  /// Tries to fetch user location. Shows dialogs if [showDialogs] is true.
+  Future<void> _loadUserLocation({bool showDialogs = false}) async {
+    // Check status (this handles permissions and service enablement)
+    final status = await _locationService.getPermissionStatus();
 
-    // Get the last known position fast, so as not to let the user wait without
-    // any feedback. We will get the actual position below.
-    final lastPosition = await Geolocator.getLastKnownPosition();
-    if (lastPosition != null && mounted) {
-      setState(() {
-        userLocation = MapPoint(
-          coordinates: LatLng(lastPosition.latitude, lastPosition.longitude),
-        );
-      });
-    }
-
-    // We have now set the userLocation to the last known position. We now need
-    // to find the actual position of the user and update userLocation.
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-        ),
-      );
-      // Re-update the userLocation, to the newly fetched one
-      if (mounted) {
-        setState(() {
-          userLocation = MapPoint(
-            coordinates: LatLng(position.latitude, position.longitude),
-          );
-        });
-      }
-    } catch (_) {}
-  }
-
-  /// Handles location permissions. If the user has denied the permission in the
-  /// past, we prompt them with a dialog to open the settings. If they accept,
-  /// we return true, so that Geolocator can continue with the correct location
-  Future<bool> _handleLocationPermissions({bool showDialogs = false}) async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    // Case where location is not on, tell user (on showDialogs = true) that
-    // they need to turn on location on settings
-    if (!serviceEnabled) {
+    if (status == LocationPermissionStatus.serviceDisabled) {
       if (showDialogs && mounted) {
         final l10n = AppLocalizations.of(context)!;
         await _showLocationErrorDialog(
@@ -212,22 +136,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Geolocator.openLocationSettings,
         );
       }
-      return false;
+      return;
     }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      // User pressed the button, ask them for permission even if they had
-      // denied it in the past
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return false;
-      }
-    }
-
-    // Show them the location error dialog as above, if they have denied access
-    // to location forever in the settings
-    if (permission == LocationPermission.deniedForever) {
+    if (status == LocationPermissionStatus.deniedForever) {
       if (showDialogs && mounted) {
         final l10n = AppLocalizations.of(context)!;
         await _showLocationErrorDialog(
@@ -236,11 +148,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Geolocator.openAppSettings,
         );
       }
-      return false;
+      return;
     }
 
-    // If all goes well, then we have permission to use the location
-    return true;
+    if (status != LocationPermissionStatus.granted) {
+      return; // Permission denied, silently fail
+    }
+
+    // Get the best available location
+    final location = await _locationService.getBestAvailableLocation();
+    if (location != null && mounted) {
+      setState(() {
+        userLocation = MapPoint(coordinates: location);
+      });
+    }
   }
 
   /// Fetches the route(s) (i.e. the map points) for a given OsrmTrip object
@@ -256,11 +177,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final BusTrip busTrip = routingTrip.transitTrip!;
 
         final Stop busStart = repository.stops.firstWhere(
-          (s) => s.getLocalizedNameByLangCode(languageCode) == busTrip.originStopName,
+          (s) =>
+              s.getLocalizedNameByLangCode(languageCode) ==
+              busTrip.originStopName,
         );
         final Stop busDest = repository.stops.firstWhere(
           (s) =>
-              s.getLocalizedNameByLangCode(languageCode) == busTrip.destinationStopName,
+              s.getLocalizedNameByLangCode(languageCode) ==
+              busTrip.destinationStopName,
         );
 
         final LatLng startCoords = LatLng(
@@ -421,23 +345,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     await _refreshTripInfo();
   }
 
+  void _onGoBackToAllTrips() {
+    setState(() {
+      selectedTripIndex = null;
+      activeRoute = null;
+    });
+
+    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.high);
+  }
+
   /// Handles a back button press on each case
   void _onBackPressed() {
-    setState(() {
-      if (isDepartureBoardOpen) {
-        Navigator.pop(context);
-        return;
+    final topmostOpenSheet = _sheetManager.getTopmostOpenSheet();
+    if (topmostOpenSheet != null) {
+      switch (topmostOpenSheet) {
+        case SheetKeys.tripInfo:
+        // If a trip is selected, go back to all trips view
+          if (selectedTripIndex != null) {
+            _onGoBackToAllTrips();
+            return;
+          }
+        // If both points are selected, we need to decide whether to clear one or both.
+        // Current logic: if lastChosenStopIsStart == null, clear both; else clear the most recent.
+          if (lastChosenStopIsStart == null) {
+            _closeTripInfoSheet();
+          } else {
+            _clearLastPointAndCloseTripSheet();
+          }
+          break;
+        case SheetKeys.stop:
+          _closeStopSheet();
+          break;
+        case SheetKeys.droppedPin:
+          _closeDroppedPinSheet();
+          break;
       }
+      return;
+    }
+
+    // No sheets open – handle normal back logic
+    setState(() {
       if (startPoint == null && destinationPoint == null) {
         _showExitDialog();
-      } else if (startPoint != null && destinationPoint != null) {
-        if (lastChosenStopIsStart == null) {
-          startPoint = destinationPoint = null;
-        } else if (lastChosenStopIsStart == true) {
-          startPoint = null;
-        } else {
-          destinationPoint = null;
-        }
       } else if (startPoint != null) {
         startPoint = null;
       } else {
@@ -446,7 +395,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       activeRoute = null;
       selectedTripIndex = null;
       selectedSearchTime = DateTime.now();
-
       cachedTrips = null;
     });
   }
@@ -455,7 +403,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// GtfsRepository() in any way (through the drawer, delegates)
   void _onRegionChanged() {
     final Region region = repository.currentRegion!;
-    _animatedMapMove(region.center, region.defaultZoom);
+
+    // Only animate if the map is ready
+    if (isMapReady) {
+      _mapMovementService.animatedMove(region.center, region.defaultZoom);
+
+    }
 
     setState(() {
       startPoint = null;
@@ -465,182 +418,112 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _onCompassPressed() {
-    final start = mapRotation;
+    _mapMovementService.resetRotation();
+  }
 
-    final degrees = start.abs() * 180 / math.pi;
+  void _onCompassStateChanged() {
+    // Trigger rebuild so the compass cone rotates
+    if (mounted) setState(() {});
 
-    const degreesPerSecond = 360.0;
-
-    final milliseconds = (degrees / degreesPerSecond * 1000).clamp(150, 1000);
-
-    _rotationController.duration = Duration(milliseconds: milliseconds.round());
-
-    _rotationAnimation = Tween<double>(
-      begin: start,
-      end: 0,
-    ).animate(_rotationController);
-
-    _rotationController.forward(from: 0);
+    // Show calibration dialog if needed
+    if (_compassService.needsCalibration &&
+        !_compassService.hasShownCalibrationDialog &&
+        mounted) {
+      _showCalibrationDialog();
+    }
   }
 
   /// Moves the map to the user's current location, upon successfully retrieving
   /// it. On error accessing user's location it prompts them to either accept
   /// the permission or change it in settings, depending on their choice.
   Future<void> _onMyLocationPressed() async {
-    // Shows the dialog if location is disabled/denied when the user clicks the button
-    if (!await _handleLocationPermissions(showDialogs: true)) return;
+    // First, check status and show dialogs if needed
+    final status = await _locationService.getPermissionStatus();
 
-    // Safe check
-    if (userLocation != null) {
-      _animatedMapMove(userLocation!.coordinates, 15.0);
-    } else {
-      final lastPosition = await Geolocator.getLastKnownPosition();
-      if (lastPosition != null) {
-        setState(() {
-          userLocation = MapPoint(coordinates: LatLng(lastPosition.latitude, lastPosition.longitude));
-        });
-        _animatedMapMove(userLocation!.coordinates, 15.0);
+    if (status == LocationPermissionStatus.serviceDisabled) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        await _showLocationErrorDialog(
+          l10n.locationDisabledTitle,
+          l10n.locationDisabledMessage,
+          Geolocator.openLocationSettings,
+        );
       }
+      return;
     }
 
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
+    if (status == LocationPermissionStatus.deniedForever) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        await _showLocationErrorDialog(
+          l10n.locationDeniedTitle,
+          l10n.locationDeniedMessage,
+          Geolocator.openAppSettings,
+        );
+      }
+      return;
+    }
 
-      final actualLocation = LatLng(position.latitude, position.longitude);
+    if (status != LocationPermissionStatus.granted) {
+      return; // Silently fail if permission not granted
+    }
 
-      if (userLocation == null ||
-          userLocation!.latitude != actualLocation.latitude ||
-          userLocation!.longitude != actualLocation.longitude) {
+    // Get location and move map
+    final location = await _locationService.getCurrentPosition(
+      accuracy: LocationAccuracy.high,
+    );
+
+    if (location != null && mounted) {
+      setState(() {
+        userLocation = MapPoint(coordinates: location);
+      });
+      _mapMovementService.animatedMove(location, 15.0);
+    } else {
+      // Fallback to last known if current fails
+      final lastKnown = await _locationService.getLastKnownPosition();
+      if (lastKnown != null && mounted) {
         setState(() {
-          userLocation = MapPoint(coordinates: actualLocation);
+          userLocation = MapPoint(coordinates: lastKnown);
         });
-        _animatedMapMove(userLocation!.coordinates, 15.0);
+        _mapMovementService.animatedMove(lastKnown, 15.0);
       }
-    } catch (_) {}
-  }
-
-  /// A function to transition to a new location on the map smoothly by
-  /// animating from the old location to the new on
-  void _animatedMapMove(LatLng destLocation, double destZoom) {
-    if (!isMapReady || !mounted) return;
-
-    final latTween = Tween<double>(
-      begin: mapController.camera.center.latitude,
-      end: destLocation.latitude,
-    );
-    final lngTween = Tween<double>(
-      begin: mapController.camera.center.longitude,
-      end: destLocation.longitude,
-    );
-    final zoomTween = Tween<double>(
-      begin: mapController.camera.zoom,
-      end: destZoom,
-    );
-
-    final animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-
-    final Animation<double> animation = CurvedAnimation(
-      parent: animationController,
-      curve: Curves.fastOutSlowIn,
-    );
-
-    animationController.addListener(() {
-      mapController.move(
-        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
-        zoomTween.evaluate(animation),
-      );
-    });
-
-    animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed) {
-        animationController.dispose();
-      }
-    });
-
-    animationController.forward();
-  }
-
-  void _bringSheetToFront(String sheetName) {
-    setState(() {
-      _sheetStackOrder.remove(sheetName);
-      // Moves to the end of the list - top of the stack
-      _sheetStackOrder.add(sheetName);
-    });
+    }
   }
 
   void _showDroppedPinSheet(LatLng coordinates) {
-    _bringSheetToFront(droppedPinSheetName);
     setState(() {
       selectedMapPoint = MapPoint(coordinates: coordinates);
     });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_droppedPinSheetController.isAttached) {
-        _droppedPinSheetController.animateTo(
-          0.45,
-          duration: const Duration(milliseconds: 300),
-          // Matched to the new AnimatedSwitcher speed
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
+    _sheetManager.showSheet(SheetKeys.droppedPin);
   }
 
   void _closeDroppedPinSheet() {
     setState(() {
       selectedMapPoint = null;
     });
+    _sheetManager.closeSheet(SheetKeys.droppedPin);
   }
 
   void _showStopSheet(Stop stop) {
-    _bringSheetToFront(stopSheetName);
     setState(() {
       activeStop = stop;
     });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_stopSheetController.isAttached) {
-        _stopSheetController.animateTo(
-          0.45,
-          duration: const Duration(milliseconds: 300),
-          // Matched to the new AnimatedSwitcher speed
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
+    _sheetManager.showSheet(SheetKeys.stop);
   }
 
   void _closeStopSheet() {
     setState(() {
       activeStop = null;
     });
+    _sheetManager.closeSheet(SheetKeys.stop);
   }
 
-  void _showTripInfoSheet() {
+  void _showTripInfoSheet({double dragAt = SheetSizes.middle}) {
     if (startPoint == null || destinationPoint == null) return;
-
-    _bringSheetToFront(tripInfoSheetName);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_tripInfoSheetController.isAttached) {
-        _tripInfoSheetController.animateTo(
-          0.45,
-          duration: const Duration(milliseconds: 300),
-          // Matched to the new AnimatedSwitcher speed
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
+    _sheetManager.showSheet(SheetKeys.tripInfo, size: dragAt);
   }
 
+  /// Clears all points and closes the trip info sheet
   void _closeTripInfoSheet() {
     setState(() {
       startPoint = null;
@@ -650,6 +533,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedSearchTime = DateTime.now();
       selectedTripIndex = null;
     });
+    _sheetManager.closeSheet(SheetKeys.tripInfo);
+  }
+
+  /// Clears the most recently added point (start or destination) and closes the trip info sheet.
+  void _clearLastPointAndCloseTripSheet() {
+    setState(() {
+      if (lastChosenStopIsStart == true) {
+        startPoint = null;
+      } else {
+        destinationPoint = null;
+      }
+      // Reset trip-related state to avoid stale data
+      selectedTripIndex = null;
+      activeRoute = null;
+      cachedTrips = null;
+      selectedSearchTime = DateTime.now();
+    });
+    // Explicitly close the sheet
+    _sheetManager.closeSheet(SheetKeys.tripInfo);
   }
 
   /// Error dialog prompting the user to enable location service in the phone
@@ -743,7 +645,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Mark the dialog as shown so it doesn't reappear
+                _compassService.markCalibrationDialogShown();
+              },
               child: Text(l10n.gotItLabel),
             ),
           ],
@@ -793,13 +699,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       transitionBuilder: (child, animation) {
         return SlideTransition(
           position: Tween<Offset>(
-            begin: const Offset(0, 1.2), // Starts off-screen at the bottom
-            end: Offset.zero, // Slides to normal position
+            begin: const Offset(0, 1.2),
+            end: Offset.zero,
           ).animate(animation),
           child: child,
         );
       },
-      // The ValueKey is required so AnimatedSwitcher knows when the widget changes
       child: sheetWidget ?? const SizedBox.shrink(key: ValueKey('empty_sheet')),
     );
   }
@@ -858,10 +763,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             });
                           },
                           onPositionChanged: (position, hasGesture) {
-                            if (position.rotationRad != mapRotation) {
-                              setState(() {
-                                mapRotation = position.rotationRad;
-                              });
+                            if (position.rotationRad != _mapMovementService.mapRotation) {
+                              _mapMovementService.setRotation(position.rotationRad);
+                              // We still need to notify the UI that the rotation changed (for the compass icon)
+                              setState(() {});
                             }
                           },
                           interactionOptions: const InteractionOptions(
@@ -998,10 +903,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     alignment: Alignment.center,
                                     children: [
                                       // The rotating cone (Bottom layer)
-                                      if (deviceHeading != null)
+                                      if (_compassService.heading != null)
                                         Transform.rotate(
                                           angle:
-                                              deviceHeading! * (math.pi / 180),
+                                              _compassService.heading! * (math.pi / 180),
                                           child: CustomPaint(
                                             size: const Size(80, 80),
                                             painter: CompassConePainter(
@@ -1121,7 +1026,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           child: IconButton(
                             icon: Transform.rotate(
-                              angle: mapRotation,
+                              angle: _mapMovementService.mapRotation,
                               child: Image.asset(
                                 AppTheme.compassIconPath,
                                 width: 26,
@@ -1134,27 +1039,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      ..._sheetStackOrder.map((sheetName) {
-                        if (sheetName == tripInfoSheetName) {
+                      ..._sheetManager.stackOrder.map((sheetName) {
+                        if (sheetName == SheetKeys.tripInfo) {
                           return // TripInfoSheet
                           _buildAnimatedSheet(
                             (startPoint != null && destinationPoint != null)
                                 ? TripInfoSheet(
-                                    key: const ValueKey('trip_sheet'),
+                                    key: ValueKey('${sheetName}_sheet'),
                                     isLoading: isLoadingTrips,
-                                    controller: _tripInfoSheetController,
+                                    controller: _sheetManager.tripInfoController,
                                     startPoint: startPoint!,
                                     destinationPoint: destinationPoint!,
                                     trips: trips,
                                     selectedTripIndex: selectedTripIndex,
                                     selectedSearchTime: selectedSearchTime,
                                     allStops: repository.stops,
-                                    onBackToAllTrips: () {
-                                      setState(() {
-                                        selectedTripIndex = null;
-                                        activeRoute = null;
-                                      });
-                                    },
+                                    onBackToAllTrips: _onGoBackToAllTrips,
                                     onClose: _closeTripInfoSheet,
 
                                     onChangeTime: _showDateTimePickerDialog,
@@ -1162,23 +1062,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       setState(() {
                                         selectedTripIndex = index;
                                       });
-                                      // Make sure the trip sheet is at 0.45 size so that
+                                      // Make sure the trip sheet is at SheetSizes.middle size so that
                                       // when user selects a trip, the map shows the route
-                                      _showTripInfoSheet();
+                                      _showTripInfoSheet(dragAt: SheetSizes.middle);
                                       _fetchRouteForSelectedTrip(trip);
                                     },
                                   )
                                 : null,
                             sheetName,
                           );
-                        } else if (sheetName == stopSheetName) {
+                        } else if (sheetName == SheetKeys.stop) {
                           return // StopSheet
                           _buildAnimatedSheet(
                             (activeStop != null)
                                 ? StopSheet(
-                                    key: ValueKey('stop_sheet'),
+                                    key: ValueKey('${sheetName}_sheet'),
                                     stop: activeStop!,
-                                    controller: _stopSheetController,
+                                    controller: _sheetManager.stopController,
                                     repository: repository,
                                     onSetStart: (MapPoint _) {
                                       _onSetStartPoint(activeStop!);
@@ -1193,14 +1093,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 : null,
                             sheetName,
                           );
-                        } else if (sheetName == droppedPinSheetName) {
+                        } else if (sheetName == SheetKeys.droppedPin) {
                           return // DroppedPinSheet
                           _buildAnimatedSheet(
                             (selectedMapPoint != null)
                                 ? DroppedPinSheet(
-                                    key: ValueKey('dropped_pin_sheet'),
+                                    key: ValueKey('${sheetName}_sheet'),
                                     mapPoint: selectedMapPoint!,
-                                    controller: _droppedPinSheetController,
+                                    controller: _sheetManager.droppedPinController,
                                     repository: repository,
                                     onSetStart: (MapPoint p) {
                                       _onSetStartPoint(selectedMapPoint!);

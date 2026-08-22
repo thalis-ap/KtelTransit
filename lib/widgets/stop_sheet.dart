@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ktel_transit/models/departure.dart';
 import 'package:ktel_transit/widgets/map_point_sheet.dart';
-import 'package:ktel_transit/widgets/trip_info_sheet.dart';
+import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import '../utilities/time_format.dart';

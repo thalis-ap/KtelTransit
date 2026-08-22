@@ -308,5 +308,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walkTo => 'Walk to';
 
   @override
+  String get walk => 'Walk';
+
+  @override
+  String get to => 'to';
+
+  @override
   String get pastTrips => 'Past trips';
+
+  @override
+  String get availableRoutes => 'Available routes';
+
+  @override
+  String metersFormat(int meters) {
+    return '$meters m';
+  }
+
+  @override
+  String kilometersFormat(String km) {
+    return '$km km';
+  }
+
+  @override
+  String disembarkAt(String stop) {
+    return 'Disembark at $stop';
+  }
+
+  @override
+  String tripStopsCount(int count) {
+    return 'Trip: $count stops';
+  }
 }

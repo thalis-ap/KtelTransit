@@ -311,5 +311,34 @@ class AppLocalizationsEl extends AppLocalizations {
   String get walkTo => 'Περπάτημα προς';
 
   @override
+  String get walk => 'Περπατήστε';
+
+  @override
+  String get to => 'προς';
+
+  @override
   String get pastTrips => 'Δρομολόγια που αναχώρησαν';
+
+  @override
+  String get availableRoutes => 'Διαθέσιμα δρομολόγια';
+
+  @override
+  String metersFormat(int meters) {
+    return '$meters μ';
+  }
+
+  @override
+  String kilometersFormat(String km) {
+    return '$km χλμ';
+  }
+
+  @override
+  String disembarkAt(String stop) {
+    return 'Αποβίβαση: $stop';
+  }
+
+  @override
+  String tripStopsCount(int count) {
+    return 'Διαδρομή: $count στάσεις';
+  }
 }
