@@ -14,22 +14,22 @@ class RoutingTrip {
   WalkingTrip? accessTrip;
 
   // The bus trip from start stop to destination stop (not point!)
-  BusTrip? transitTrip;
+  BusTrip? busTrip;
 
   // The walk trip that takes you from the desintation bus stop to the destination point
   WalkingTrip? egressTrip;
 
   double get duration =>
       (accessTrip?.duration ?? 0) +
-      (transitTrip?.estimatedDuration ?? 0) +
+      (busTrip?.estimatedDuration ?? 0) +
       (egressTrip?.duration ?? 0);
 
   double get accessDuration => accessTrip?.duration ?? 0;
 
   double get transitEstimatedDuration =>
-      (transitTrip?.estimatedDuration ?? 0).toDouble();
+      (busTrip?.estimatedDuration ?? 0).toDouble();
 
-  double get transitSafeDuration => (transitTrip?.safeDuration ?? 0).toDouble();
+  double get transitSafeDuration => (busTrip?.safeDuration ?? 0).toDouble();
 
   double get egressDuration => egressTrip?.duration ?? 0;
 
@@ -40,11 +40,11 @@ class RoutingTrip {
     required this.startPoint,
     required this.destinationPoint,
     this.accessTrip,
-    this.transitTrip,
+    this.busTrip,
     this.egressTrip,
   });
 
-  // -------------------- DRAFT --------------------
+  // -------------------- DRAFT START --------------------
   // TODO: Replace all fare related function with region-specific GTFS fare data (fare_attributes.txt, fare_rules.txt)
   double get estimatedFare => calculateFare(startPoint, destinationPoint);
 
@@ -73,23 +73,23 @@ class RoutingTrip {
     return fare > 0 ? "${fare.toStringAsFixed(2)}€" : "-€";
   }
 
-  // -------------------- DRAFT --------------------
+  // -------------------- DRAFT END --------------------
 
   DateTime getDepartureDateOnly(DateTime selectedTime) {
     return TimeFormat.dateTimeToDateOnly(getDepartureDateTime(selectedTime));
   }
 
   DateTime getDepartureDateTime(DateTime selectedTime) {
-    if (transitTrip == null) return selectedTime;
+    if (busTrip == null) return selectedTime;
 
-    return transitTrip!.startDepartureDateTime.subtract(
+    return busTrip!.startDepartureDateTime.subtract(
       Duration(seconds: accessTrip?.duration.toInt() ?? 0),
     );
   }
 
   DateTime getArrivalDateTime(DateTime departureTime) {
     // Edge Case: No bus involved, just pure walking!
-    if (transitTrip == null) {
+    if (busTrip == null) {
       int totalWalkSeconds = 0;
       if (accessTrip != null) totalWalkSeconds += accessTrip!.duration.toInt();
       if (egressTrip != null) totalWalkSeconds += egressTrip!.duration.toInt();
@@ -98,7 +98,7 @@ class RoutingTrip {
     }
 
     // Standard Case: The anchor is the time the bus arrives at the destination stop
-    DateTime finalArrival = transitTrip!.destArrivalDateTime;
+    DateTime finalArrival = busTrip!.destArrivalDateTime;
 
     // Add egress walk duration if it exists
     if (egressTrip != null) {

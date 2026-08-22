@@ -42,7 +42,7 @@ class TripFilterService {
     // Step 2: From active trips, filter those that depart on the selected date.
     final todayTrips = _getTodayTrips(activeTrips, selectedTime);
 
-    bool hasAnyBusTripsToday = todayTrips.any((t) => t.transitTrip != null);
+    bool hasAnyBusTripsToday = todayTrips.any((t) => t.busTrip != null);
 
     // Step 3: If there are no today trips, find the next available day's trips.
     final nextTrips = hasAnyBusTripsToday
@@ -68,7 +68,7 @@ class TripFilterService {
       // A trip is past if:
       // 1. It has a bus component (transitTrip != null)
       // 2. Its calculated departure time is BEFORE the current time (now)
-      if (trip.transitTrip != null &&
+      if (trip.busTrip != null &&
           trip.getDepartureDateTime(now).compareTo(now) < 0) {
         past.add(trip);
       } else {
@@ -105,7 +105,7 @@ class TripFilterService {
     // - Have a bus component (transitTrip != null)
     // - Depart strictly after 'now'
     final futureBusTrips = activeTrips.where((trip) {
-      return trip.transitTrip != null &&
+      return trip.busTrip != null &&
           trip.getDepartureDateTime(now).compareTo(now) > 0;
     }).toList();
 

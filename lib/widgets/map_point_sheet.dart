@@ -97,8 +97,7 @@ class MapPointSheet extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        // Default to chosenPoint string if name is null
-                        mapPoint.name ?? l10n.chosenPoint,
+                        mapPoint.getLocalizedName(l10n),
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),

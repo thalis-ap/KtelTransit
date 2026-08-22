@@ -283,6 +283,20 @@ class GtfsRepository {
     _stopsById = {for (final s in stops) s.stopId: s};
   }
 
+  /// Returns the ordered list of stop names for a trip ID.
+  List<String> _getStopNamesForTrip(String tripId, String languageCode) {
+    final stopTimes = _stopTimesByTripId[tripId] ?? [];
+    if (stopTimes.isEmpty) return [];
+
+    final sorted = List<StopTime>.from(stopTimes)
+      ..sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
+
+    return sorted.map((st) {
+      final stop = _stopsById[st.stopId];
+      return stop?.getLocalizedNameByLangCode(languageCode) ?? st.stopId;
+    }).toList();
+  }
+
   List<Departure> getDeparturesForStop(
     String departureStopId, {
     DateTime? selectedTime,
@@ -438,31 +452,23 @@ class GtfsRepository {
           _stopTimesByTripId[trip.tripId] ?? [],
         );
         allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
-        final StopTime firstStop = allTripStops.first;
 
-        dailyTrips.add(
-          // No secondRouteName, trip is not transfer
-          BusTrip(
-            isStartAlsoOrigin: firstStop.stopId == startStopId,
-            firstRouteName: displayName,
-            originStopName: originStopName,
-            destinationStopName: destinationStopName,
-            originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-              date,
-              firstStop.departureTime,
-            ),
-            startDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-              date,
-              stStart.departureTime,
-            ),
-            destArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
-              date,
-              stDest.arrivalTime,
-            ),
-            isTransfer: false,
-            estimatedDuration: durationSecs,
-          ),
+        final stopNames = _getStopNamesForTrip(trip.tripId, languageCode);
+
+        final leg = BusLeg(
+          routeName: displayName,
+          originStopName: originStopName,
+          destinationStopName: destinationStopName,
+          departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
+          arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
+          estimatedDuration: durationSecs,
+          stopNames: stopNames,
         );
+
+        dailyTrips.add(BusTrip(
+          isStartAlsoOrigin: true,
+          legs: [leg],
+        ));
       } catch (_) {
         continue;
       }
@@ -514,10 +520,6 @@ class GtfsRepository {
 
               final StopTime stDest = destTimes.first;
 
-              final int durationSecs = TimeFormat.gtfsTimesToDiffSeconds(
-                stDest.arrivalTime,
-                stStart.departureTime,
-              );
 
               final Route? routeA = _routesById[tripA.routeId];
               final Route? routeB = _routesById[tripB.routeId];
@@ -536,39 +538,43 @@ class GtfsRepository {
                 routeB.getLocalizedLongName(languageCode),
               );
 
-              // We have transfer route, pass secondRouteName
-              dailyTrips.add(
-                BusTrip(
-                  isStartAlsoOrigin: true,
-                  firstRouteName: rAName,
-                  secondRouteName: rBName,
-                  originStopName: originStopName,
-                  destinationStopName: destinationStopName,
-                  originDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-                    date,
-                    stStart.departureTime,
-                  ),
-                  startDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-                    date,
-                    stStart.departureTime,
-                  ),
-                  destArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
-                    date,
-                    stDest.arrivalTime,
-                  ),
-                  isTransfer: true,
-                  estimatedDuration: durationSecs,
-                  transferStopName: transferStopName,
-                  transferArrivalDateTime: TimeFormat.gtfsTimeToDateTime(
-                    date,
-                    transferA.arrivalTime,
-                  ),
-                  transferDepartureDateTime: TimeFormat.gtfsTimeToDateTime(
-                    date,
-                    stTransB.departureTime,
-                  ),
-                ),
+              final int durationLeg1 = TimeFormat.gtfsTimesToDiffSeconds(
+                transferA.arrivalTime,
+                stStart.departureTime,
               );
+              final int durationLeg2 = TimeFormat.gtfsTimesToDiffSeconds(
+                stDest.arrivalTime,
+                stTransB.departureTime,
+              );
+
+              // We have transfer route, pass secondRouteName
+              final stopNamesA = _getStopNamesForTrip(tripA.tripId, languageCode);
+              final stopNamesB = _getStopNamesForTrip(tripB.tripId, languageCode);
+
+              final leg1 = BusLeg(
+                routeName: rAName,
+                originStopName: originStopName,
+                destinationStopName: transferStopName,
+                departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
+                arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, transferA.arrivalTime),
+                estimatedDuration: durationLeg1,
+                stopNames: stopNamesA,
+              );
+
+              final leg2 = BusLeg(
+                routeName: rBName,
+                originStopName: transferStopName,
+                destinationStopName: destinationStopName,
+                departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stTransB.departureTime),
+                arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
+                estimatedDuration: durationLeg2,
+                stopNames: stopNamesB,
+              );
+
+              dailyTrips.add(BusTrip(
+                isStartAlsoOrigin: true,
+                legs: [leg1, leg2],
+              ));
             }
           }
         } catch (_) {

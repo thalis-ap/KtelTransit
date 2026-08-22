@@ -1,97 +1,102 @@
 import 'package:latlong2/latlong.dart';
 
+/// A single bus ride on one route, from one stop to another, with no
+/// transfers in between. A BusTrip with a transfer is just 2+ of these.
+class BusLeg {
+  final String routeName;
+  final String originStopName;
+  final String destinationStopName;
+  final DateTime departureDateTime;
+  final DateTime arrivalDateTime;
+  final int estimatedDuration; // seconds, from stop_times.txt
+
+  // Ordered stop names for this leg, INCLUDING origin and destination.
+  // stopNames.length - 1 == number of stops passed.
+  final List<String> stopNames;
+
+  BusLeg({
+    required this.routeName,
+    required this.originStopName,
+    required this.destinationStopName,
+    required this.departureDateTime,
+    required this.arrivalDateTime,
+    required this.estimatedDuration,
+    required this.stopNames,
+  });
+
+  BusLeg copyWith({
+    String? routeName,
+    String? originStopName,
+    String? destinationStopName,
+    DateTime? departureDateTime,
+    DateTime? arrivalDateTime,
+    int? estimatedDuration,
+    List<String>? stopNames,
+  }) {
+    return BusLeg(
+      routeName: routeName ?? this.routeName,
+      originStopName: originStopName ?? this.originStopName,
+      destinationStopName: destinationStopName ?? this.destinationStopName,
+      departureDateTime: departureDateTime ?? this.departureDateTime,
+      arrivalDateTime: arrivalDateTime ?? this.arrivalDateTime,
+      estimatedDuration: estimatedDuration ?? this.estimatedDuration,
+      stopNames: stopNames ?? this.stopNames,
+    );
+  }
+}
+
 /// This class is used for the actual osrm-computed trip and must not be
 /// confused with the Trip class, which is a generic class to hold basic info
 class BusTrip {
-  /// Points and duration attributes are online based data. Keep them null
-  /// until we retrieve them from OSRM. This is done because we are mixiing
-  /// online with offline data (for example routeName can be fetched offline
-  /// from the routes.txt file, while points list must be fetched through
-  /// osrm)
   final List<LatLng>? points;
+  final int? safeDuration; // seconds, from OSRM
 
-  // This is the duration computed using safe duration factor+offset
-  // Note: It can be different from estimatedDuration
-  final int? safeDuration; // in seconds2
+  final bool isStartAlsoOrigin;
 
-  // Required locally fetched info
-  final bool isTransfer, isStartAlsoOrigin;
-  final String originStopName, destinationStopName;
-  final DateTime originDepartureDateTime,
-      startDepartureDateTime,
-      destArrivalDateTime;
-  
-  
-  // If the trip has a transfer then this is the first route name,
-  // If not then its just the route name
-  final String firstRouteName;
-  
-  // If the trip has a transfer trip then this is not null
-  final String? secondRouteName;
-  
-  // This is the duration of the trip computed using the stop_times.txt local
-  // file. It should not be confused with safeDuration which uses OSRM data.
-  final int estimatedDuration; // in seconds
+  // Ordered legs of the journey. length == 1 for a direct trip,
+  // length >= 2 for any number of transfers.
+  final List<BusLeg> legs;
 
-  // Transfer related - can be null
-  final String? transferStopName;
-  final DateTime? transferArrivalDateTime, transferDepartureDateTime;
-  
   BusTrip({
     required this.isStartAlsoOrigin,
-    required this.firstRouteName,
-    required this.originStopName,
-    required this.originDepartureDateTime,
-    required this.destinationStopName,
-    required this.startDepartureDateTime,
-    required this.destArrivalDateTime,
-    required this.isTransfer,
-    required this.estimatedDuration,
+    required this.legs,
     this.points,
     this.safeDuration,
-    this.transferStopName,
-    this.transferArrivalDateTime,
-    this.transferDepartureDateTime,
-    this.secondRouteName,
-  });
+  }) : assert(legs.isNotEmpty, 'BusTrip must have at least one leg');
+
+  // ---- Convenience getters so most existing call sites don't need to change ----
+
+  bool get isTransfer => legs.length > 1;
+  int get transferCount => legs.length - 1;
+
+  String get originStopName => legs.first.originStopName;
+  String get destinationStopName => legs.last.destinationStopName;
+  DateTime get startDepartureDateTime => legs.first.departureDateTime;
+  DateTime get destArrivalDateTime => legs.last.arrivalDateTime;
+
+  /// Sum of riding time across all legs (does NOT include transfer wait time).
+  int get estimatedDuration =>
+      legs.fold(0, (sum, leg) => sum + leg.estimatedDuration);
+
+  /// Wait time between leg[i] and leg[i+1], keyed by transfer index (0-based).
+  Duration waitTimeAfterLeg(int legIndex) {
+    if (legIndex < 0 || legIndex >= legs.length - 1) return Duration.zero;
+    return legs[legIndex + 1].departureDateTime.difference(
+      legs[legIndex].arrivalDateTime,
+    );
+  }
 
   BusTrip copyWith({
     List<LatLng>? points,
     int? safeDuration,
-    bool? isTransfer,
     bool? isStartAlsoOrigin,
-    String? firstRouteName,
-    String? originStopName,
-    String? destinationStopName,
-    DateTime? originDepartureDateTime,
-    DateTime? startDepartureDateTime,
-    DateTime? destArrivalDateTime,
-    int? estimatedDuration,
-    String? transferStopName,
-    DateTime? transferArrivalDateTime,
-    DateTime? transferDepartureDateTime,
-    String? secondRouteName,
+    List<BusLeg>? legs,
   }) {
     return BusTrip(
       points: points ?? this.points,
       safeDuration: safeDuration ?? this.safeDuration,
-      isTransfer: isTransfer ?? this.isTransfer,
       isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
-      firstRouteName: firstRouteName ?? this.firstRouteName,
-      originStopName: originStopName ?? this.originStopName,
-      destinationStopName: destinationStopName ?? this.destinationStopName,
-      originDepartureDateTime:
-          originDepartureDateTime ?? this.originDepartureDateTime,
-      startDepartureDateTime:
-          startDepartureDateTime ?? this.startDepartureDateTime,
-      destArrivalDateTime: destArrivalDateTime ?? this.destArrivalDateTime,
-      estimatedDuration: estimatedDuration ?? this.estimatedDuration,
-      transferStopName: transferStopName ?? this.transferStopName,
-      transferArrivalDateTime:
-          transferArrivalDateTime ?? this.transferArrivalDateTime,
-      transferDepartureDateTime:
-          transferDepartureDateTime ?? this.transferDepartureDateTime,
-      secondRouteName: secondRouteName ?? this.secondRouteName,
+      legs: legs ?? this.legs,
     );
   }
 }

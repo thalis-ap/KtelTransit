@@ -173,8 +173,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final languageCode = Localizations.localeOf(context).languageCode;
 
     try {
-      if (routingTrip.transitTrip != null) {
-        final BusTrip busTrip = routingTrip.transitTrip!;
+      if (routingTrip.busTrip != null) {
+        final BusTrip busTrip = routingTrip.busTrip!;
 
         final Stop busStart = repository.stops.firstWhere(
           (s) =>
@@ -202,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final Stop trStop = repository.stops.firstWhere(
             (s) =>
                 s.getLocalizedNameByLangCode(languageCode) ==
-                routingTrip.transitTrip!.transferStopName,
+                routingTrip.busTrip!.legs[1].originStopName,
           );
 
           final BusTrip leg1 = await BusService.getRoute(
@@ -228,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           );
         }
 
-        routingTrip.transitTrip = updatedBusTrip;
+        routingTrip.busTrip = updatedBusTrip;
       }
 
       setState(() {
@@ -720,12 +720,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Stop? activeTransferStop;
     if (selectedTripIndex != null && trips != null) {
       final activeTrip = trips[selectedTripIndex!];
-      if (activeTrip.transitTrip?.isTransfer ?? false) {
+      if (activeTrip.busTrip?.isTransfer ?? false) {
         try {
           activeTransferStop = repository.stops.firstWhere(
             (s) =>
                 s.getLocalizedNameByLangCode(languageCode) ==
-                activeTrip.transitTrip!.transferStopName,
+                activeTrip.busTrip!.legs[1].originStopName,
           );
         } catch (_) {}
       }
@@ -805,9 +805,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 // Transit Ride (The Bus)
-                                if (activeRoute!.transitTrip?.points != null)
+                                if (activeRoute!.busTrip?.points != null)
                                   Polyline(
-                                    points: activeRoute!.transitTrip!.points!,
+                                    points: activeRoute!.busTrip!.points!,
                                     color: AppTheme.blueish,
                                     strokeWidth: 4.0,
                                   ),

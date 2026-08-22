@@ -164,7 +164,7 @@ class RoutingService {
           (busTrip) => RoutingTrip(
             startPoint: start,
             destinationPoint: destination,
-            transitTrip: busTrip,
+            busTrip: busTrip,
           ),
         )
         .toList();
@@ -244,7 +244,7 @@ class RoutingService {
     }
 
     // Fetch all access-walk legs concurrently instead of one at a time
-    final transitFuture = Future.wait(
+    final busFuture = Future.wait(
       nearestStopsToStart.map((entry) async {
         final WalkingTrip? accessTrip = await WalkingService.getRoute(
           start.coordinates,
@@ -273,14 +273,14 @@ class RoutingService {
                 startPoint: start,
                 destinationPoint: destination,
                 accessTrip: accessTrip,
-                transitTrip: busTrip,
+                busTrip: busTrip,
               ),
             )
             .toList();
       }),
     );
 
-    final List<RoutingTrip> transitResults = (await transitFuture)
+    final List<RoutingTrip> busResults = (await busFuture)
         .expand((e) => e)
         .toList();
 
@@ -295,18 +295,18 @@ class RoutingService {
         ),
       );
 
-      // Only add transit results (ones with buses invloved) whose access time
+      // Only add bus results (ones with buses invloved) whose access time
       // to the start stop is less than the pure walk time. We don't use
       // (accessDuration + busDuration < pureWalkDuration) because the user
       // might prefer to walk less
-      for (RoutingTrip trip in transitResults) {
+      for (RoutingTrip trip in busResults) {
         if (trip.accessDuration < pureWalkingTrip.duration) {
           finalTrips.add(trip);
         }
       }
     } else {
-      // No walking trip found - add all transit results
-      finalTrips.addAll(transitResults);
+      // No walking trip found - add all bus results
+      finalTrips.addAll(busResults);
     }
 
     finalTrips.sort((a, b) {
@@ -361,7 +361,7 @@ class RoutingService {
     }
 
     // Fetch all egress-walk legs concurrently, while also fetching bus trips in parallel
-    final transitFuture = Future.wait(
+    final busFuture = Future.wait(
       nearestStopsToDestination.map((entry) async {
         // Bus search doesn't depend on the egress walk, so run it concurrently
         final busTripsFuture = Future(
@@ -391,7 +391,7 @@ class RoutingService {
               (busTrip) => RoutingTrip(
                 startPoint: start,
                 destinationPoint: destination,
-                transitTrip: busTrip,
+                busTrip: busTrip,
                 egressTrip: egressTrip,
               ),
             )
@@ -399,7 +399,7 @@ class RoutingService {
       }),
     );
 
-    final List<RoutingTrip> transitResults = (await transitFuture)
+    final List<RoutingTrip> busResults = (await busFuture)
         .expand((e) => e)
         .toList();
 
@@ -413,14 +413,14 @@ class RoutingService {
         ),
       );
 
-      // Only add transit results whose egress walk is shorter than the pure walk
-      for (RoutingTrip trip in transitResults) {
+      // Only add bus results whose egress walk is shorter than the pure walk
+      for (RoutingTrip trip in busResults) {
         if (trip.egressDuration < pureWalkingTrip.duration) {
           finalTrips.add(trip);
         }
       }
     } else {
-      finalTrips.addAll(transitResults);
+      finalTrips.addAll(busResults);
     }
 
     finalTrips.sort((a, b) {
@@ -488,7 +488,7 @@ class RoutingService {
     }
 
     // Fetch all combinations of access + egress walks concurrently
-    final transitFuture = Future.wait(
+    final busFuture = Future.wait(
       nearestStopsToStart.map((startEntry) async {
         final WalkingTrip? accessTrip = await WalkingService.getRoute(
           start.coordinates,
@@ -526,7 +526,7 @@ class RoutingService {
                     startPoint: start,
                     destinationPoint: destination,
                     accessTrip: accessTrip,
-                    transitTrip: busTrip,
+                    busTrip: busTrip,
                     egressTrip: egressTrip,
                   ),
                 )
@@ -538,7 +538,7 @@ class RoutingService {
       }),
     );
 
-    final List<RoutingTrip> transitResults = (await transitFuture)
+    final List<RoutingTrip> busResults = (await busFuture)
         .expand((e) => e)
         .toList();
 
@@ -552,16 +552,16 @@ class RoutingService {
         ),
       );
 
-      // Keep only transit trips where both access and egress walks are each
+      // Keep only bus trips where both access and egress walks are each
       // shorter than the pure walk (user prefers less walking overall)
-      for (RoutingTrip trip in transitResults) {
+      for (RoutingTrip trip in busResults) {
         if (trip.accessDuration < pureWalkingTrip.duration &&
             trip.egressDuration < pureWalkingTrip.duration) {
           finalTrips.add(trip);
         }
       }
     } else {
-      finalTrips.addAll(transitResults);
+      finalTrips.addAll(busResults);
     }
 
     finalTrips.sort((a, b) {

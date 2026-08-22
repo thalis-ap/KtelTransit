@@ -13,6 +13,8 @@ class Stop extends MapPoint {
     required super.coordinates,
   });
 
+  // Fallback function in case we have no context to use AppLocalizations
+  // Example: GtfsRepository
   String getLocalizedNameByLangCode(String languageCode) {
     // In stops, the name is always not null so name! is safe
     return languageCode == 'en' ? englishName : name!;

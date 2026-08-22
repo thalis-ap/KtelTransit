@@ -123,7 +123,7 @@ class TripGroupsView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     // Check if there is at least one bus trip today
-    final hasBusTripsToday = groups.todayTrips.any((trip) => trip.transitTrip != null);
+    final hasBusTripsToday = groups.todayTrips.any((trip) => trip.busTrip != null);
 
     // Show warning only if there are NO bus trips today
     final showWarning = !hasBusTripsToday;
