@@ -4,6 +4,8 @@ import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 
+import '../models/bus_trip.dart';
+
 /// A pure UI widget that transforms any routing trip into a nice looking
 /// detailed card for the trip. Departed trips and callbacks on tap are handled
 /// by TripCard (see explanation in trip_card.dart)
@@ -20,10 +22,10 @@ class TripDetailsCard extends StatelessWidget {
   });
 
   Widget _buildPureWalking(
-      ColorScheme colorScheme, {
-        required DateTime selectedTime,
-        required AppLocalizations l10n,
-      }) {
+    ColorScheme colorScheme, {
+    required DateTime selectedTime,
+    required AppLocalizations l10n,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,7 +39,9 @@ class TripDetailsCard extends StatelessWidget {
         const SizedBox(height: 10),
         _buildArrivalRow(
           colorScheme,
-          l10n.estimatedArrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
+          l10n.estimatedArrivalAt(
+            routingTrip.destinationPoint.getLocalizedName(l10n),
+          ),
           TimeFormat.dateTimeToFormattedStringHoursMinutes(
             routingTrip.getArrivalDateTime(selectedTime),
           ),
@@ -47,11 +51,11 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildWalkingRow(
-      ColorScheme colorScheme,
-      String mainText,
-      String departureTimeText, {
-        String walkingTimeText = "",
-      }) {
+    ColorScheme colorScheme,
+    String mainText,
+    String departureTimeText, {
+    String walkingTimeText = "",
+  }) {
     return Row(
       children: [
         Transform.translate(
@@ -82,18 +86,24 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildHeader(
-      ColorScheme colorScheme, {
-        required double fare,
-        required AppLocalizations l10n,
-      }) {
-
+    ColorScheme colorScheme, {
+    required double fare,
+    required AppLocalizations l10n,
+  }) {
     String routeText;
-    if (routingTrip.transitTrip == null) {
+    if (routingTrip.busTrip == null) {
       routeText = l10n.walking;
-    } else if (routingTrip.transitTrip!.secondRouteName == null) {
-      routeText = routingTrip.transitTrip!.firstRouteName;
+    } else if (!routingTrip.busTrip!.isTransfer) {
+      // Grab the first (only) leg's route name
+      routeText = routingTrip.busTrip!.legs.first.routeName;
     } else {
-      routeText = "1. ${routingTrip.transitTrip!.firstRouteName}\n2. ${routingTrip.transitTrip!.secondRouteName}";
+      // Create a title that looks like this:
+      // 1. First routeName
+      // 2. Second routeName ...
+      routeText = List.generate(
+        routingTrip.busTrip!.legs.length,
+        (i) => "${i + 1}. ${routingTrip.busTrip!.legs[i].routeName}",
+      ).join("\n");
     }
 
     return Column(
@@ -156,24 +166,24 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildWalkAccess(
-      ColorScheme colorScheme, {
-        required String departureTime,
-        required AppLocalizations l10n,
-      }) {
+    ColorScheme colorScheme, {
+    required String departureTime,
+    required AppLocalizations l10n,
+  }) {
     return _buildWalkingRow(
       colorScheme,
-      "${l10n.walkTo} ${routingTrip.transitTrip!.originStopName}",
+      "${l10n.walkTo} ${routingTrip.busTrip!.originStopName}",
       departureTime,
       walkingTimeText:
-      "(${TimeFormat.secondsToFormattedString(routingTrip.accessDuration, l10n)})",
+          "(${TimeFormat.secondsToFormattedString(routingTrip.accessDuration, l10n)})",
     );
   }
 
   Widget _buildDepartureRow(
-      ColorScheme colorScheme,
-      String departureFromText,
-      String departureTimeText,
-      ) {
+    ColorScheme colorScheme,
+    String departureFromText,
+    String departureTimeText,
+  ) {
     return Row(
       children: [
         Icon(Icons.circle, size: 10, color: colorScheme.secondary),
@@ -194,10 +204,10 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildArrivalAtTransferRow(
-      ColorScheme colorScheme,
-      String arrivalAtText,
-      String arrivalAtTime,
-      ) {
+    ColorScheme colorScheme,
+    String arrivalAtText,
+    String arrivalAtTime,
+  ) {
     return Row(
       children: [
         Icon(Icons.circle_outlined, size: 10, color: colorScheme.tertiary),
@@ -235,10 +245,10 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildDepartureFromTransferRow(
-      ColorScheme colorScheme,
-      String departureFromText,
-      String departureFromTime,
-      ) {
+    ColorScheme colorScheme,
+    String departureFromText,
+    String departureFromTime,
+  ) {
     return Row(
       children: [
         Icon(Icons.circle_outlined, size: 10, color: colorScheme.tertiary),
@@ -262,11 +272,11 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildArrivalRow(
-      ColorScheme colorScheme,
-      String arrivalAtText,
-      String arrivalTimeText, {
-        bool walkEgressPresent = false,
-      }) {
+    ColorScheme colorScheme,
+    String arrivalAtText,
+    String arrivalTimeText, {
+    bool walkEgressPresent = false,
+  }) {
     return Row(
       children: [
         Icon(
@@ -291,17 +301,174 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildWalkEgress(
-      ColorScheme colorScheme, {
-        required AppLocalizations l10n,
-      }) {
+    ColorScheme colorScheme, {
+    required AppLocalizations l10n,
+  }) {
     return _buildWalkingRow(
       colorScheme,
-      "${l10n.walkFrom} ${routingTrip.transitTrip!.destinationStopName}",
+      "${l10n.walkFrom} ${routingTrip.busTrip!.destinationStopName}",
       TimeFormat.dateTimeToFormattedStringHoursMinutes(
-        routingTrip.transitTrip!.destArrivalDateTime,
+        routingTrip.busTrip!.destArrivalDateTime,
       ),
       walkingTimeText:
-      "(${TimeFormat.secondsToFormattedString(routingTrip.egressDuration, l10n)})",
+          "(${TimeFormat.secondsToFormattedString(routingTrip.egressDuration, l10n)})",
+    );
+  }
+
+  /// Builds all the widgets inside a TripDetailsCard for a routing trip
+  /// with a bus, with at least one bus transfer, i.e. 2 or more legs
+  Widget _buildBusWithTransfer(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
+    // The BusTrip object that contains all the legs
+    final BusTrip busTrip = routingTrip.busTrip!;
+    final access = routingTrip.accessTrip;
+    final egress = routingTrip.egressTrip;
+
+    final firstLeg = busTrip.legs.first;
+    final lastLeg = busTrip.legs.last;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // TODO get correct fare
+        _buildHeader(colorScheme, fare: routingTrip.estimatedFare, l10n: l10n),
+        const SizedBox(height: 6),
+        if (access != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: _buildWalkAccess(
+              colorScheme,
+              departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                busTrip.startDepartureDateTime,
+              ),
+              l10n: l10n,
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: _buildDepartureRow(
+            colorScheme,
+            l10n.departureFrom(firstLeg.originStopName),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              firstLeg.departureDateTime,
+            ),
+          ),
+        ),
+
+        // Transfers start here
+
+        // First of all, show the first arrival separately
+        _buildArrivalAtTransferRow(
+          colorScheme,
+          l10n.arrivalAt(firstLeg.destinationStopName),
+          TimeFormat.dateTimeToFormattedStringHoursMinutes(
+            firstLeg.arrivalDateTime,
+          ),
+        ),
+
+        // Loop through the legs, for each one, add a wait time and a departure
+        // from widget. This way there will be consequent wait, departure, wait
+        // departure texts, which is the desired output. The user arrives
+        // somewhere, waits then somewhere else, all over again, in the case of
+        // multiple transfers
+        for (
+          int legIndex = 0;
+          legIndex < busTrip.legs.length - 1;
+          legIndex++
+        ) ...[
+          _buildWaitTimeRow(
+            colorScheme,
+            l10n.waitingTime(
+              TimeFormat.secondsToFormattedString(
+                busTrip.waitTimeAfterLeg(legIndex).inSeconds.toDouble(),
+                l10n,
+              ),
+            ),
+          ),
+          _buildDepartureFromTransferRow(
+            colorScheme,
+            l10n.departureFrom(busTrip.legs[legIndex + 1].originStopName),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              busTrip.legs[legIndex + 1].departureDateTime,
+            ),
+          ),
+        ],
+
+        // Transfers end here
+        if (egress != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: _buildWalkEgress(colorScheme, l10n: l10n),
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: _buildArrivalRow(
+            colorScheme,
+            l10n.arrivalAt(lastLeg.destinationStopName),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              lastLeg.arrivalDateTime,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds all the widgets inside a TripDetailsCard for a routing trip
+  /// with a bus, but not bus transfers, i.e. 1 leg only
+  Widget _buildBusWoTransfer(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
+    // Get the first and only leg (we are in a no transfer case)
+    final leg = routingTrip.busTrip!.legs.first;
+    final access = routingTrip.accessTrip;
+    final egress = routingTrip.egressTrip;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHeader(colorScheme, fare: routingTrip.estimatedFare, l10n: l10n),
+        const SizedBox(height: 6),
+        if (access != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: _buildWalkAccess(
+              colorScheme,
+              departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                routingTrip.getDepartureDateTime(selectedDepartureTime),
+              ),
+              l10n: l10n,
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: _buildDepartureRow(
+            colorScheme,
+            l10n.departureFrom(leg.originStopName),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              leg.departureDateTime,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: _buildArrivalRow(
+            colorScheme,
+            l10n.arrivalAt(leg.destinationStopName),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              leg.arrivalDateTime,
+            ),
+          ),
+        ),
+        if (egress != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: _buildWalkEgress(colorScheme, l10n: l10n),
+          ),
+      ],
     );
   }
 
@@ -309,11 +476,8 @@ class TripDetailsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    final languageCode = Localizations.localeOf(context).languageCode;
 
-    final bus = routingTrip.transitTrip;
-    final walkAccess = routingTrip.accessTrip;
-    final walkEgress = routingTrip.egressTrip;
+    final bus = routingTrip.busTrip;
 
     if (bus == null) {
       return _buildPureWalking(
@@ -323,119 +487,124 @@ class TripDetailsCard extends StatelessWidget {
       );
     }
 
-    Stop? originStop;
-    Stop? destStop;
-    Stop? transferStop;
+    return bus.isTransfer
+        ? _buildBusWithTransfer(context)
+        : _buildBusWoTransfer(context);
 
-    try {
-      originStop = allStops.firstWhere(
-            (s) => s.getLocalizedNameByLangCode(languageCode) == bus.originStopName,
-      );
-      destStop = allStops.firstWhere(
-            (s) =>
-        s.getLocalizedNameByLangCode(languageCode) ==
-            bus.destinationStopName,
-      );
-      if (bus.isTransfer && bus.transferStopName != null) {
-        transferStop = allStops.firstWhere(
-              (s) =>
-          s.getLocalizedNameByLangCode(languageCode) ==
-              bus.transferStopName,
-        );
-      }
-    } catch (_) {}
-
-    // Compute fares
-    double estimatedFare = 0.0;
-    double fare1 = 0.0;
-    double fare2 = 0.0;
-
-    if (bus.isTransfer &&
-        transferStop != null &&
-        originStop != null &&
-        destStop != null) {
-      // Use the custom calculate fare functions because we have a transfer stop
-      fare1 = RoutingTrip.calculateFare(originStop, transferStop);
-      fare2 = RoutingTrip.calculateFare(transferStop, destStop);
-      estimatedFare = fare1 + fare2;
-    } else if (originStop != null && destStop != null) {
-      // Use the default estimatedFare (start to dest)
-      estimatedFare = routingTrip.estimatedFare;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeader(colorScheme, fare: estimatedFare, l10n: l10n),
-        const SizedBox(height: 12),
-        if (walkAccess != null) ...[
-          _buildWalkAccess(
-            colorScheme,
-            departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              routingTrip.getDepartureDateTime(bus.startDepartureDateTime),
-            ),
-            l10n: l10n,
-          ),
-          const SizedBox(height: 8),
-        ],
-        _buildDepartureRow(
-          colorScheme,
-          l10n.departureFrom(bus.originStopName),
-          TimeFormat.dateTimeToFormattedStringHoursMinutes(
-            bus.startDepartureDateTime,
-          ),
-        ),
-        const SizedBox(height: 6),
-        if (bus.isTransfer) ...[
-          const SizedBox(height: 6),
-          _buildArrivalAtTransferRow(
-            colorScheme,
-            l10n.arrivalAt(bus.transferStopName ?? ''),
-            TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              bus.transferArrivalDateTime!,
-            ),
-          ),
-          _buildWaitTimeRow(
-            colorScheme,
-            l10n.waitingTime(
-              TimeFormat.waitTimeToFormattedString(
-                bus.transferDepartureDateTime!,
-                bus.transferArrivalDateTime!,
-                l10n,
-              ),
-            ),
-          ),
-          _buildDepartureFromTransferRow(
-            colorScheme,
-            l10n.departureFrom(bus.transferStopName ?? ''),
-            TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              bus.transferDepartureDateTime!,
-            ),
-          ),
-          const SizedBox(height: 6),
-        ],
-        _buildArrivalRow(
-          colorScheme,
-          l10n.estimatedArrivalAt(bus.destinationStopName),
-          TimeFormat.dateTimeToFormattedStringHoursMinutes(
-            bus.destArrivalDateTime,
-          ),
-          walkEgressPresent: walkEgress != null,
-        ),
-        if (walkEgress != null) ...[
-          const SizedBox(height: 8),
-          _buildWalkEgress(colorScheme, l10n: l10n),
-          const SizedBox(height: 4),
-          _buildArrivalRow(
-            colorScheme,
-            l10n.estimatedArrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
-            TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              routingTrip.getArrivalDateTime(DateTime.now()),
-            ),
-          ),
-        ],
-        // TODO: Fare analysis is commented out for now; will be re-enabled in ExtendedTripCard
-      ],
-    );
+    //
+    // Stop? originStop;
+    // Stop? destStop;
+    // Stop? transferStop;
+    //
+    // try {
+    //   originStop = allStops.firstWhere(
+    //         (s) => s.getLocalizedNameByLangCode(languageCode) == bus.originStopName,
+    //   );
+    //   destStop = allStops.firstWhere(
+    //         (s) =>
+    //     s.getLocalizedNameByLangCode(languageCode) ==
+    //         bus.destinationStopName,
+    //   );
+    //   if (bus.isTransfer && bus.transferStopName != null) {
+    //     transferStop = allStops.firstWhere(
+    //           (s) =>
+    //       s.getLocalizedNameByLangCode(languageCode) ==
+    //           bus.transferStopName,
+    //     );
+    //   }
+    // } catch (_) {}
+    //
+    // // Compute fares
+    // double estimatedFare = 0.0;
+    // double fare1 = 0.0;
+    // double fare2 = 0.0;
+    //
+    // if (bus.isTransfer &&
+    //     transferStop != null &&
+    //     originStop != null &&
+    //     destStop != null) {
+    //   // Use the custom calculate fare functions because we have a transfer stop
+    //   fare1 = RoutingTrip.calculateFare(originStop, transferStop);
+    //   fare2 = RoutingTrip.calculateFare(transferStop, destStop);
+    //   estimatedFare = fare1 + fare2;
+    // } else if (originStop != null && destStop != null) {
+    //   // Use the default estimatedFare (start to dest)
+    //   estimatedFare = routingTrip.estimatedFare;
+    // }
+    //
+    // return Column(
+    //   crossAxisAlignment: CrossAxisAlignment.start,
+    //   children: [
+    //     _buildHeader(colorScheme, fare: estimatedFare, l10n: l10n),
+    //     const SizedBox(height: 12),
+    //     if (walkAccess != null) ...[
+    //       _buildWalkAccess(
+    //         colorScheme,
+    //         departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+    //           routingTrip.getDepartureDateTime(bus.startDepartureDateTime),
+    //         ),
+    //         l10n: l10n,
+    //       ),
+    //       const SizedBox(height: 8),
+    //     ],
+    //     _buildDepartureRow(
+    //       colorScheme,
+    //       l10n.departureFrom(bus.originStopName),
+    //       TimeFormat.dateTimeToFormattedStringHoursMinutes(
+    //         bus.startDepartureDateTime,
+    //       ),
+    //     ),
+    //     const SizedBox(height: 6),
+    //     if (bus.isTransfer) ...[
+    //       const SizedBox(height: 6),
+    //       _buildArrivalAtTransferRow(
+    //         colorScheme,
+    //         l10n.arrivalAt(bus.transferStopName ?? ''),
+    //         TimeFormat.dateTimeToFormattedStringHoursMinutes(
+    //           bus.transferArrivalDateTime!,
+    //         ),
+    //       ),
+    //       _buildWaitTimeRow(
+    //         colorScheme,
+    //         l10n.waitingTime(
+    //           TimeFormat.waitTimeToFormattedString(
+    //             bus.transferDepartureDateTime!,
+    //             bus.transferArrivalDateTime!,
+    //             l10n,
+    //           ),
+    //         ),
+    //       ),
+    //       _buildDepartureFromTransferRow(
+    //         colorScheme,
+    //         l10n.departureFrom(bus.transferStopName ?? ''),
+    //         TimeFormat.dateTimeToFormattedStringHoursMinutes(
+    //           bus.transferDepartureDateTime!,
+    //         ),
+    //       ),
+    //       const SizedBox(height: 6),
+    //     ],
+    //     _buildArrivalRow(
+    //       colorScheme,
+    //       l10n.estimatedArrivalAt(bus.destinationStopName),
+    //       TimeFormat.dateTimeToFormattedStringHoursMinutes(
+    //         bus.destArrivalDateTime,
+    //       ),
+    //       walkEgressPresent: walkEgress != null,
+    //     ),
+    //     if (walkEgress != null) ...[
+    //       const SizedBox(height: 8),
+    //       _buildWalkEgress(colorScheme, l10n: l10n),
+    //       const SizedBox(height: 4),
+    //       _buildArrivalRow(
+    //         colorScheme,
+    //         l10n.estimatedArrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
+    //         TimeFormat.dateTimeToFormattedStringHoursMinutes(
+    //           routingTrip.getArrivalDateTime(DateTime.now()),
+    //         ),
+    //       ),
+    //     ],
+    //     // TODO: Fare analysis is commented out for now; will be re-enabled in ExtendedTripCard
+    //   ],
+    // );
   }
 }
