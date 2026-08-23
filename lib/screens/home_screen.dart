@@ -16,6 +16,7 @@ import 'package:ktel_transit/services/map_movement_service.dart';
 import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
+import 'package:ktel_transit/widgets/choose_on_map_bar.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
 import 'package:ktel_transit/widgets/stop_sheet.dart';
@@ -77,6 +78,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   late MapMovementService _mapMovementService;
 
+  // This is true when we are in the 'Choose on map' mode where user can drag
+  // the map to select a point as their start/dest
+  bool isSelectingMapPoint = false;
+  bool isSelectingMapPointStart = false;
+
   // Compass
   final CompassService _compassService = CompassService();
 
@@ -100,13 +106,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     _startServices();
     _checkInternetConnection();
-
   }
 
   @override
   void dispose() {
     _mapMovementService.dispose();
-    _compassService.removeListener(_onCompassStateChanged); // We'll use a separate method or inline
+    _compassService.removeListener(
+      _onCompassStateChanged,
+    ); // We'll use a separate method or inline
     _compassService.dispose(); // Handles subscription cancellation
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
     _sheetManager.dispose();
@@ -130,7 +137,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _checkInternetConnection() async {
     await connectionService.checkConnection();
     if (mounted && !connectionService.isConnected) {
-      CustomSnackBar.show(context, message: AppLocalizations.of(context)!.noInternetConnection, color: Theme.of(context).colorScheme.error);
+      CustomSnackBar.show(
+        context,
+        message: AppLocalizations.of(context)!.noInternetConnection,
+        color: Theme.of(context).colorScheme.error,
+      );
     }
   }
 
@@ -291,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!;
     final languageCode = widget.settingsController.locale.languageCode;
 
-    final Stop? selectedStop = await showSearch<Stop?>(
+    final MapPoint? selectedPoint = await showSearch<MapPoint?>(
       context: context,
       delegate: StopSearchDelegate(
         repository.stops,
@@ -304,18 +315,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           repository,
           availableRegions,
         ),
+        userLocation: userLocation,
       ),
     );
 
-    if (selectedStop != null) {
-      if (isStart) {
-        if (destinationPoint?.coordinates != selectedStop.coordinates) {
-          _onSetStartPoint(selectedStop);
-        }
-      } else {
-        if (startPoint?.coordinates != selectedStop.coordinates) {
-          _onSetDestinationPoint(selectedStop);
-        }
+    // User selected nothing, just return
+    if (selectedPoint == null) return;
+
+    if (selectedPoint.name == l10n.chooseInMap && mounted) {
+      setState(() {
+        isSelectingMapPoint = true;
+        isSelectingMapPointStart = isStart;
+      });
+      return;
+    }
+
+    if (isStart) {
+      if (destinationPoint?.coordinates != selectedPoint.coordinates) {
+        _onSetStartPoint(selectedPoint);
+      }
+    } else {
+      if (startPoint?.coordinates != selectedPoint.coordinates) {
+        _onSetDestinationPoint(selectedPoint);
       }
     }
   }
@@ -376,17 +397,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Handles a back button press on each case
   void _onBackPressed() {
+    // Check if we are at the mode where we are choosing a point
+    // on back pressed should disable this mode if its on
+    if (isSelectingMapPoint) {
+      _onCloseChooseOnMap();
+      return;
+    }
+
     final topmostOpenSheet = _sheetManager.getTopmostOpenSheet();
     if (topmostOpenSheet != null) {
       switch (topmostOpenSheet) {
         case SheetKeys.tripInfo:
-        // If a trip is selected, go back to all trips view
+          // If a trip is selected, go back to all trips view
           if (selectedTripIndex != null) {
             _onGoBackToAllTrips();
             return;
           }
-        // If both points are selected, we need to decide whether to clear one or both.
-        // Current logic: if lastChosenStopIsStart == null, clear both; else clear the most recent.
+          // If both points are selected, we need to decide whether to clear one or both.
+          // Current logic: if lastChosenStopIsStart == null, clear both; else clear the most recent.
           if (lastChosenStopIsStart == null) {
             _closeTripInfoSheet();
           } else {
@@ -419,6 +447,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  void _onConfirmChooseOnMap() {
+    // Get the current map center
+    final center = mapController.camera.center;
+    final l10n = AppLocalizations.of(context)!;
+
+    // Create a MapPoint with the center coordinates
+    final point = MapPoint(
+      coordinates: center,
+      name: l10n.chosenPoint, // "Chosen Point" or you can use "Selected location"
+    );
+
+    // Set it as start or destination based on isSelectingMapPointStart
+    if (isSelectingMapPointStart) {
+      _onSetStartPoint(point);
+    } else {
+      _onSetDestinationPoint(point);
+    }
+
+    // Exit choose mode (the _onSetStartPoint will already trigger trip search)
+    setState(() {
+      isSelectingMapPoint = false;
+      isSelectingMapPointStart = false;
+    });
+  }
+
+  /// Disables the choosing point on map mode
+  void _onCloseChooseOnMap() {
+    setState(() {
+      isSelectingMapPoint = false;
+      isSelectingMapPointStart = false;
+    });
+  }
+
   /// This function will run each time the user changes the region of
   /// GtfsRepository() in any way (through the drawer, delegates)
   void _onRegionChanged() {
@@ -427,7 +488,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Only animate if the map is ready
     if (isMapReady) {
       _mapMovementService.animatedMove(region.center, region.defaultZoom);
-
     }
 
     setState(() {
@@ -511,6 +571,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showDroppedPinSheet(LatLng coordinates) {
+    // Do not allow user to open the sheet if they are in selecting mode
+    if (isSelectingMapPoint) return;
+
     setState(() {
       selectedMapPoint = MapPoint(coordinates: coordinates);
     });
@@ -525,6 +588,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showStopSheet(Stop stop) {
+    // Do not allow user to open the sheet if they are in selecting mode
+    if (isSelectingMapPoint) return;
     setState(() {
       activeStop = stop;
     });
@@ -539,6 +604,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showTripInfoSheet({double dragAt = SheetSizes.middle}) {
+    // Do not allow user to open the sheet if they are in selecting mode
+    if (isSelectingMapPoint) return; // should not happen
+
     if (startPoint == null || destinationPoint == null) return;
     _sheetManager.showSheet(SheetKeys.tripInfo, size: dragAt);
   }
@@ -783,8 +851,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             });
                           },
                           onPositionChanged: (position, hasGesture) {
-                            if (position.rotationRad != _mapMovementService.mapRotation) {
-                              _mapMovementService.setRotation(position.rotationRad);
+                            if (position.rotationRad !=
+                                _mapMovementService.mapRotation) {
+                              _mapMovementService.setRotation(
+                                position.rotationRad,
+                              );
                               // We still need to notify the UI that the rotation changed (for the compass icon)
                               setState(() {});
                             }
@@ -926,7 +997,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       if (_compassService.heading != null)
                                         Transform.rotate(
                                           angle:
-                                              _compassService.heading! * (math.pi / 180),
+                                              _compassService.heading! *
+                                              (math.pi / 180),
                                           child: CustomPaint(
                                             size: const Size(80, 80),
                                             painter: CompassConePainter(
@@ -1004,25 +1076,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-
                       // Search bar
-                      if (selectedTripIndex == null) Positioned(
-                        top: MediaQuery.of(context).padding.top + 16,
-                        left: 16,
-                        right: 16,
-                        child: TripSearchBar(
-                          startPoint: startPoint,
-                          destinationPoint: destinationPoint,
-                          onMenuPressed: () {
-                            FocusScope.of(context).unfocus();
-                            _scaffoldKey.currentState?.openDrawer();
-                          },
-                          onBackPressed: _onBackPressed,
-                          onSwap: _onSwapDirectionPressed,
-                          onSearch: (isStart) =>
-                              _searchAndSetStop(isStart: isStart),
+                      if (selectedTripIndex == null)
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top + 16,
+                          left: 16,
+                          right: 16,
+                          child: isSelectingMapPoint
+                              ? ChooseOnMapBar(
+                                  onBackPressed: _onCloseChooseOnMap,
+                                  isSelectingMapPointStart:
+                                      isSelectingMapPointStart,
+                                )
+                              : TripSearchBar(
+                                  startPoint: startPoint,
+                                  destinationPoint: destinationPoint,
+                                  onMenuPressed: () {
+                                    FocusScope.of(context).unfocus();
+                                    _scaffoldKey.currentState?.openDrawer();
+                                  },
+                                  onBackPressed: _onBackPressed,
+                                  onSwap: _onSwapDirectionPressed,
+                                  onSearch: (isStart) =>
+                                      _searchAndSetStop(isStart: isStart),
+                                ),
                         ),
-                      ),
 
                       // Compass
                       Positioned(
@@ -1059,6 +1137,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
 
+                      // Centered pin overlay (only visible when choosing on map)
+                      if (isSelectingMapPoint)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Center(
+                              child: Icon(
+                                Icons.push_pin_rounded,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.tertiary,
+                                shadows: const [
+                                  Shadow(
+                                    blurRadius: 8,
+                                    color: Colors.black26,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Confirm button when choosing on map
+                      if (isSelectingMapPoint)
+                        Positioned(
+                          bottom: MediaQuery.of(context).padding.bottom + 32,
+                          left: 32,
+                          right: 32,
+                          child: FilledButton(
+                            onPressed: _onConfirmChooseOnMap,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colorScheme.tertiary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.setLocation,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+
                       ..._sheetManager.stackOrder.map((sheetName) {
                         if (sheetName == SheetKeys.tripInfo) {
                           return // TripInfoSheet
@@ -1067,7 +1188,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ? TripInfoSheet(
                                     key: ValueKey('${sheetName}_sheet'),
                                     isLoading: isLoadingTrips,
-                                    controller: _sheetManager.tripInfoController,
+                                    controller:
+                                        _sheetManager.tripInfoController,
                                     startPoint: startPoint!,
                                     destinationPoint: destinationPoint!,
                                     trips: trips,
@@ -1083,7 +1205,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       });
                                       // Make sure the trip sheet is at SheetSizes.middle size so that
                                       // when user selects a trip, the map shows the route
-                                      _showTripInfoSheet(dragAt: SheetSizes.middle);
+                                      _showTripInfoSheet(
+                                        dragAt: SheetSizes.middle,
+                                      );
                                       _fetchRouteForSelectedTrip(trip);
                                     },
                                   )
@@ -1119,7 +1243,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ? DroppedPinSheet(
                                     key: ValueKey('${sheetName}_sheet'),
                                     mapPoint: selectedMapPoint!,
-                                    controller: _sheetManager.droppedPinController,
+                                    controller:
+                                        _sheetManager.droppedPinController,
                                     repository: repository,
                                     onSetStart: (MapPoint p) {
                                       _onSetStartPoint(selectedMapPoint!);
@@ -1200,6 +1325,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         // Hide it if any sheet is open
         floatingActionButton:
+            isSelectingMapPoint ||
             (startPoint != null && destinationPoint != null) ||
                 (selectedMapPoint != null) ||
                 (activeStop != null)

@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
+import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
+import '../models/map_point.dart';
 import '../models/stop.dart';
 import 'base_search_delegate.dart';
 
-
-class StopSearchDelegate extends BaseSearchDelegate<Stop> {
+class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
   final List<Stop> stops;
   final String currentRegionName;
   final VoidCallback onChangeRegionTap;
 
+  final MapPoint? userLocation;
+
   StopSearchDelegate(
-      this.stops, {
-        required this.currentRegionName,
-        required this.onChangeRegionTap,
-        super.searchFieldLabel,
-      });
+    this.stops, {
+    required this.currentRegionName,
+    required this.onChangeRegionTap,
+    required this.userLocation,
+    super.searchFieldLabel,
+  });
 
   Widget _buildSuggestionsList(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -36,31 +40,73 @@ class StopSearchDelegate extends BaseSearchDelegate<Stop> {
           regionName: currentRegionName,
           onChangeTap: onChangeRegionTap,
         ),
+        ListTile(
+          leading: Icon(
+            Icons.my_location,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          title: Text(
+            l10n.myLocation,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          onTap: () {
+            close(
+              context,
+              // Return null if userLocation is null for any reason.
+              // Create a new map point that will hold on the localized 'my location' name
+              userLocation == null
+                  ? null
+                  : MapPoint(
+                      name: l10n.myLocation,
+                      coordinates: userLocation!.coordinates,
+                    ),
+            );
+          },
+        ),
+        ListTile(
+          leading: Icon(
+            Icons.push_pin_rounded,
+            color: Theme.of(context).colorScheme.tertiary,
+          ),
+          title: Text(
+            l10n.chooseInMap,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          onTap: () {
+            close(
+              // Special name, and placeholder coordinates to separate it from others
+              context, MapPoint(name: l10n.chooseInMap, coordinates: LatLng(0, 0))
+            );
+          },
+        ),
         Expanded(
           child: suggestions.isEmpty
               ? Center(
-            child: Text(
-              l10n.noStopFound,
-              style: const TextStyle(fontSize: 20,),
-            ),
-          )
+                  child: Text(
+                    l10n.noStopFound,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                )
               : ListView.builder(
-            itemCount: suggestions.length,
-            itemBuilder: (context, index) {
-              final stop = suggestions[index];
-              return ListTile(
-                leading: Icon(Icons.place, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                title: Text(
-                  // 3. Display the localized name in the list
-                  stop.getLocalizedNameByLangCode(languageCode),
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  itemCount: suggestions.length,
+                  itemBuilder: (context, index) {
+                    final stop = suggestions[index];
+                    return ListTile(
+                      leading: Icon(
+                        Icons.place,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      title: Text(
+                        // 3. Display the localized name in the list
+                        stop.getLocalizedNameByLangCode(languageCode),
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      onTap: () {
+                        close(context, stop);
+                      },
+                    );
+                  },
                 ),
-                onTap: () {
-                  close(context, stop);
-                },
-              );
-            },
-          ),
         ),
       ],
     );
