@@ -30,7 +30,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     final trip = widget.routingTrip;
     final bus = trip.busTrip;
 
-    // None for pure walking trips. // TODO make estimatedFare work for transfer trips multiple legs
+    // None for pure walking trips
     double estimatedFare = bus == null ? -1 : trip.estimatedFare;
 
     return Column(

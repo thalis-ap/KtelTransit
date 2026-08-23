@@ -350,7 +350,6 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // TODO get correct fare
         _buildHeader(colorScheme, l10n: l10n),
         const SizedBox(height: 6),
         if (access != null)
