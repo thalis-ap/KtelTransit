@@ -156,6 +156,7 @@
   "outbound": "Μετάβαση",
   "returnTrip": "Επιστροφή",
   "loadingStops": "Φόρτωση στάσεων...",
+  "myLocation": "Η τοποθεσία μου",
   "locationDisabledTitle": "Τοποθεσία ανενεργή",
   "locationDisabledMessage": "Παρακαλώ ενεργοποιήστε την τοποθεσία στη συσκευή σας για να δείτε τη θέση σας.",
   "locationDeniedTitle": "Δεν υπάρχει πρόσβαση",
@@ -204,5 +205,9 @@
       "count": { "type": "int" }
     }
   },
-  "noInternetConnection": "Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας."
+  "noInternetConnection": "Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.",
+  "chooseInMap": "Επιλέξτε στον χάρτη",
+  "chooseStartLocation": "Επιλογή τοποθεσίας εκκίνησης",
+  "chooseDestinationLocation": "Επιλογή τοποθεσίας προορισμού",
+  "setLocation": "Ορισμός"
 }

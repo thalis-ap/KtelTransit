@@ -246,6 +246,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadingStops => 'Loading stops...';
 
   @override
+  String get myLocation => 'My location';
+
+  @override
   String get locationDisabledTitle => 'Location disabled';
 
   @override
@@ -342,4 +345,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'No internet connection. Please check your network.';
+
+  @override
+  String get chooseInMap => 'Select on the map';
+
+  @override
+  String get chooseStartLocation => 'Choose start location';
+
+  @override
+  String get chooseDestinationLocation => 'Choose destination location';
+
+  @override
+  String get setLocation => 'Set location';
 }

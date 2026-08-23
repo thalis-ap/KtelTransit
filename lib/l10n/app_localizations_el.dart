@@ -249,6 +249,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get loadingStops => 'Φόρτωση στάσεων...';
 
   @override
+  String get myLocation => 'Η τοποθεσία μου';
+
+  @override
   String get locationDisabledTitle => 'Τοποθεσία ανενεργή';
 
   @override
@@ -345,4 +348,16 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get noInternetConnection =>
       'Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.';
+
+  @override
+  String get chooseInMap => 'Επιλέξτε στον χάρτη';
+
+  @override
+  String get chooseStartLocation => 'Επιλογή τοποθεσίας εκκίνησης';
+
+  @override
+  String get chooseDestinationLocation => 'Επιλογή τοποθεσίας προορισμού';
+
+  @override
+  String get setLocation => 'Ορισμός';
 }

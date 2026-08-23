@@ -66,6 +66,7 @@
   "outbound": "Outbound",
   "returnTrip": "Return",
   "loadingStops": "Loading stops...",
+  "myLocation": "My location",
   "locationDisabledTitle": "Location disabled",
   "locationDisabledMessage": "Please enable location services on your device to see your position.",
   "locationDeniedTitle": "Access denied",
@@ -106,5 +107,9 @@
   },
   "disembarkAt": "Disembark at {stop}",
   "tripStopsCount": "Trip: {count} stops",
-  "noInternetConnection": "No internet connection. Please check your network."
+  "noInternetConnection": "No internet connection. Please check your network.",
+  "chooseInMap": "Select on the map",
+  "chooseStartLocation": "Choose start location",
+  "chooseDestinationLocation": "Choose destination location",
+  "setLocation": "Set location"
 }

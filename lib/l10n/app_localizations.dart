@@ -494,6 +494,12 @@ abstract class AppLocalizations {
   /// **'Φόρτωση στάσεων...'**
   String get loadingStops;
 
+  /// No description provided for @myLocation.
+  ///
+  /// In el, this message translates to:
+  /// **'Η τοποθεσία μου'**
+  String get myLocation;
+
   /// No description provided for @locationDisabledTitle.
   ///
   /// In el, this message translates to:
@@ -661,6 +667,30 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.'**
   String get noInternetConnection;
+
+  /// No description provided for @chooseInMap.
+  ///
+  /// In el, this message translates to:
+  /// **'Επιλέξτε στον χάρτη'**
+  String get chooseInMap;
+
+  /// No description provided for @chooseStartLocation.
+  ///
+  /// In el, this message translates to:
+  /// **'Επιλογή τοποθεσίας εκκίνησης'**
+  String get chooseStartLocation;
+
+  /// No description provided for @chooseDestinationLocation.
+  ///
+  /// In el, this message translates to:
+  /// **'Επιλογή τοποθεσίας προορισμού'**
+  String get chooseDestinationLocation;
+
+  /// No description provided for @setLocation.
+  ///
+  /// In el, this message translates to:
+  /// **'Ορισμός'**
+  String get setLocation;
 }
 
 class _AppLocalizationsDelegate
