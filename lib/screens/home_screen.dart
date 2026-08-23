@@ -11,10 +11,12 @@ import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:ktel_transit/services/compass_service.dart';
+import 'package:ktel_transit/services/connection_service.dart';
 import 'package:ktel_transit/services/map_movement_service.dart';
 import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
+import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
 import 'package:ktel_transit/widgets/stop_sheet.dart';
 import 'package:ktel_transit/widgets/side_drawer.dart';
@@ -81,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Keys - state related
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Connection
+  final ConnectionService connectionService = ConnectionService();
+
   // Other
   bool isDepartureBoardOpen = false;
 
@@ -93,15 +98,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _loadData();
     _loadUserLocation(showDialogs: false);
 
-    _mapMovementService = MapMovementService(
-      mapController: mapController,
-      vsync: this,
-    );
+    _startServices();
+    _checkInternetConnection();
 
-    _compassService.startListening();
-
-    // Listen for calibration requests
-    _compassService.addListener(_onCompassStateChanged);
   }
 
   @override
@@ -112,6 +111,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     repository.currentRegionNotifier.removeListener(_onRegionChanged);
     _sheetManager.dispose();
     super.dispose();
+  }
+
+  void _startServices() {
+    _mapMovementService = MapMovementService(
+      mapController: mapController,
+      vsync: this,
+    );
+
+    _compassService.startListening();
+
+    // Listen for calibration requests
+    _compassService.addListener(_onCompassStateChanged);
+
+    connectionService.startMonitoring();
+  }
+
+  void _checkInternetConnection() async {
+    await connectionService.checkConnection();
+    if (mounted && !connectionService.isConnected) {
+      CustomSnackBar.show(context, message: AppLocalizations.of(context)!.noInternetConnection, color: Theme.of(context).colorScheme.error);
+    }
   }
 
   /// Asynchronous function to load repository data and user location

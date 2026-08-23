@@ -20,7 +20,7 @@ class TripWarningBanner extends StatelessWidget {
       padding: EdgeInsets.all(isCompact ? 12.0 : 20.0),
       margin: const EdgeInsets.only(bottom: 12.0),
       decoration: BoxDecoration(
-        color: colorScheme.errorContainer,
+        color: colorScheme.tertiary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(isCompact ? 12.0 : 20.0),
         border: isCompact
             ? Border.all(width: 2.0, color: colorScheme.error)
@@ -28,13 +28,13 @@ class TripWarningBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: colorScheme.error, size: isCompact ? 24 : 26),
+          Icon(icon, color: colorScheme.tertiary, size: isCompact ? 24 : 26),
           SizedBox(width: isCompact ? 8.0 : 12.0),
           Expanded(
             child: Text(
               message,
               style: TextStyle(
-                color: colorScheme.error,
+                color: colorScheme.tertiary,
                 fontSize: isCompact ? 14.0 : 16.0,
               ),
             ),

@@ -338,4 +338,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String tripStopsCount(int count) {
     return 'Trip: $count stops';
   }
+
+  @override
+  String get noInternetConnection =>
+      'No internet connection. Please check your network.';
 }

@@ -341,4 +341,8 @@ class AppLocalizationsEl extends AppLocalizations {
   String tripStopsCount(int count) {
     return 'Διαδρομή: $count στάσεις';
   }
+
+  @override
+  String get noInternetConnection =>
+      'Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.';
 }

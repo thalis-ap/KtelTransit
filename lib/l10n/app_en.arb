@@ -105,6 +105,6 @@
     "placeholders": { "km": { "type": "String" } }
   },
   "disembarkAt": "Disembark at {stop}",
-  "tripStopsCount": "Trip: {count} stops"
-
+  "tripStopsCount": "Trip: {count} stops",
+  "noInternetConnection": "No internet connection. Please check your network."
 }

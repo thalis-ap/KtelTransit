@@ -203,5 +203,6 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "noInternetConnection": "Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας."
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
+import 'package:ktel_transit/services/connection_service.dart';
 import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/services/trip_filter_service.dart';
 import 'package:ktel_transit/widgets/time_selection_bar.dart';
@@ -9,6 +10,8 @@ import 'package:ktel_transit/widgets/trip_groups_view.dart';
 import 'package:ktel_transit/widgets/trips_loading_skeleton.dart';
 import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 import '../l10n/app_localizations.dart';
+import '../models/stop.dart';
+import 'offline_banner.dart';
 
 class TripInfoSheet extends StatelessWidget {
   final bool isLoading;
@@ -214,6 +217,7 @@ class TripInfoSheet extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final l10n = AppLocalizations.of(context)!;
+    final connectionService = ConnectionService();
 
     return DraggableScrollableSheet(
       controller: controller,
@@ -229,93 +233,120 @@ class TripInfoSheet extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: const [BoxShadow(blurRadius: 15, spreadRadius: 2)],
           ),
-          child: AnimatedBuilder(
-            animation: controller,
+          child: ListenableBuilder(
+            listenable: connectionService,
             builder: (context, _) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // --- Fixed header: handle, title, close button, time bar ---
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onVerticalDragUpdate: (details) =>
-                        _handleHeaderDragUpdate(details, screenHeight),
-                    onVerticalDragEnd: (details) =>
-                        _handleHeaderDragEnd(details, screenHeight),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 12.0,
-                        left: 24.0,
-                        right: 24.0,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Sheet handle
-                          Center(
-                            child: Container(
-                              width: 48,
-                              height: 5,
-                              margin: const EdgeInsets.only(bottom: 16),
-                              decoration: BoxDecoration(
-                                color: colorScheme.onSurfaceVariant.withValues(
-                                  alpha: 0.4,
-                                ),
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          ),
+              return AnimatedBuilder(
+                animation: controller,
+                builder: (context, _) {
+                  final bool showConnectionBanner =
+                      (startPoint is! Stop || destinationPoint is! Stop) &&
+                      !connectionService.isConnected;
 
-                          if (selectedTripIndex == null)
-                            _buildHeader(context)
-                          else
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                TextButton.icon(
-                                  onPressed: onBackToAllTrips,
-                                  icon: const Icon(Icons.arrow_back, size: 20),
-                                  label: Text(
-                                    l10n.allTrips,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.primary,
-                                    ),
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // --- Fixed header: handle, title, close button, time bar ---
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onVerticalDragUpdate: (details) =>
+                            _handleHeaderDragUpdate(details, screenHeight),
+                        onVerticalDragEnd: (details) =>
+                            _handleHeaderDragEnd(details, screenHeight),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 12.0,
+                            left: 24.0,
+                            right: 24.0,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Sheet handle
+                              Center(
+                                child: Container(
+                                  width: 48,
+                                  height: 5,
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.4),
+                                    borderRadius: BorderRadius.circular(3),
                                   ),
                                 ),
-                              ],
-                            ),
-                          const SizedBox(height: 8),
-                        ],
-                      ),
-                    ),
-                  ),
+                              ),
 
-                  // --- Scrollable body: trip list or selected trip details ---
-                  Expanded(
-                    child: SingleChildScrollView(
-                      controller: scrollController,
-                      padding: const EdgeInsets.only(
-                        left: 24.0,
-                        right: 24.0,
-                        bottom: 16.0,
+                              if (selectedTripIndex == null)
+                                _buildHeader(context)
+                              else
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextButton.icon(
+                                      onPressed: onBackToAllTrips,
+                                      icon: const Icon(
+                                        Icons.arrow_back,
+                                        size: 20,
+                                      ),
+                                      label: Text(
+                                        l10n.allTrips,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (selectedTripIndex != null && trips != null)
-                            _buildSelectedTripWidget(context)
-                          else
-                            _buildTripsSheet(context),
-                        ],
+
+                      // --- Offline Banner (shows only when offline) ---
+                      if (showConnectionBanner)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 8.0,
+                          ),
+                          child: OfflineBanner(
+                            onRetry: () {
+                              // TODO add correct on retry
+                              connectionService.checkConnection();
+                            },
+                          ),
+                        ),
+
+                      // --- Scrollable body: trip list or selected trip details ---
+                      Expanded(
+                        child: SingleChildScrollView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.only(
+                            left: 24.0,
+                            right: 24.0,
+                            bottom: 16.0,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (selectedTripIndex != null && trips != null)
+                                _buildSelectedTripWidget(context)
+                              else
+                                _buildTripsSheet(context),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               );
             },
           ),

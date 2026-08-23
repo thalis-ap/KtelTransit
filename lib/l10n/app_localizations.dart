@@ -655,6 +655,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Διαδρομή: {count} στάσεις'**
   String tripStopsCount(int count);
+
+  /// No description provided for @noInternetConnection.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.'**
+  String get noInternetConnection;
 }
 
 class _AppLocalizationsDelegate
