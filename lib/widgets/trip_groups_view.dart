@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/services/trip_filter_service.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/trip_card.dart';
@@ -10,7 +9,6 @@ import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 
 class TripGroupsView extends StatelessWidget {
   final TripGroups groups;
-  final List<Stop> allStops;
   final DateTime selectedDepartureTime;
   final bool isLoading;
   final Function(RoutingTrip trip) onTripSelected;
@@ -18,7 +16,6 @@ class TripGroupsView extends StatelessWidget {
   const TripGroupsView({
     super.key,
     required this.groups,
-    required this.allStops,
     required this.selectedDepartureTime,
     this.isLoading = false,
     required this.onTripSelected,
@@ -81,7 +78,6 @@ class TripGroupsView extends StatelessWidget {
               final trip = groups.pastTrips[index];
               return TripCard(
                 trip: trip,
-                allStops: allStops,
                 selectedDepartureTime: selectedDepartureTime,
                 isPast: true,
                 onTap: null,
@@ -186,7 +182,6 @@ class TripGroupsView extends StatelessWidget {
           final trip = trips[index];
           return TripCard(
             trip: trip,
-            allStops: allStops,
             selectedDepartureTime: selectedDepartureTime,
             isPast: isPast,
             onTap: () => onTripSelected(trip),

@@ -1,11 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/models/stop.dart';
-import 'package:ktel_transit/models/walking_trip.dart';
+import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/timeline_node.dart';
 
@@ -14,13 +10,11 @@ import '../utilities/distance_format.dart';
 
 class ExtendedDetailsCard extends StatefulWidget {
   final RoutingTrip routingTrip;
-  final List<Stop> allStops;
   final DateTime selectedDepartureTime;
 
   const ExtendedDetailsCard({
     super.key,
     required this.routingTrip,
-    required this.allStops,
     required this.selectedDepartureTime,
   });
 
@@ -29,136 +23,6 @@ class ExtendedDetailsCard extends StatefulWidget {
 }
 
 class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
-  // Fare Analysis UI
-  Widget _buildFareAnalysis({
-    required ColorScheme colorScheme,
-    required AppLocalizations l10n,
-    required double totalFare,
-    required String leg1Text,
-    required double leg1Fare,
-    String? leg2Text,
-    double? leg2Fare,
-  }) {
-    return Column(
-      children: [
-        const Divider(height: 30),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.costBreakdown,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Leg 1
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  leg1Text,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.confirmation_num_outlined,
-                      size: 14,
-                      color: colorScheme.secondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      RoutingTrip.calculateEstimatedFareAsString(leg1Fare),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.secondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            // Leg 2 (if transfer)
-            if (leg2Text != null && leg2Fare != null) ...[
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    leg2Text,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.confirmation_num_outlined,
-                        size: 14,
-                        color: colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        RoutingTrip.calculateEstimatedFareAsString(leg2Fare),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-            const Divider(height: 20),
-            // Total
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  l10n.totalTicketCost,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.confirmation_num_outlined,
-                      size: 16,
-                      color: colorScheme.secondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      RoutingTrip.calculateEstimatedFareAsString(totalFare),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.secondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildHeader(
     ColorScheme colorScheme, {
     required AppLocalizations l10n,
@@ -214,7 +78,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    RoutingTrip.calculateEstimatedFareAsString(estimatedFare),
+                    FareService.fareAsString(estimatedFare),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -230,6 +94,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     );
   }
 
+  /// Pure walking card, origin name walking text and arrival at text
   Widget _buildPureWalkingWidget(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
@@ -277,6 +142,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     );
   }
 
+  /// Contains title, possibly subtitle and walking text
   Widget _buildWalkingWidget(
     String title,
     String departureTime,
@@ -298,7 +164,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     if (subtitle.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
@@ -312,7 +181,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                   ],
                 ),
               ),
-              Text(departureTime, style: const TextStyle(fontWeight: FontWeight.bold),),
+              Text(
+                departureTime,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -351,9 +223,11 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     required String routeName,
     required String stopName,
     required String time,
-    required String stopsText,
+    required List<String> stopNames,
+    required int estimatedDuration,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,9 +242,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 children: [
                   Text(
                     stopName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 4),
@@ -384,25 +256,17 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 ],
               ),
             ),
-            Text(
-              time,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text(time, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                stopsText,
-                style: TextStyle(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
+        StopsExpander(
+          stopNames: stopNames,
+          label: l10n.tripStopsCount(stopNames.length),
+          durationText: TimeFormat.secondsToFormattedString(
+            estimatedDuration.toDouble(),
+            l10n,
+          ),
         ),
       ],
     );
@@ -425,7 +289,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
-        const SizedBox(width: 10,),
+        const SizedBox(width: 10),
         Text(
           arrivalTime,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -434,6 +298,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     );
   }
 
+  /// Builds the whole widget for a bus trip (surely one leg) without transfers
   Widget _buildBusWoTransfer(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
@@ -481,10 +346,11 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.departureDateTime,
             ),
-            stopsText: l10n.tripStopsCount(widget.allStops.length),
+            stopNames: leg.stopNames,
+            estimatedDuration: leg.estimatedDuration,
           ),
         ),
-        
+
         if (egress != null)
           TimelineNode(
             indicator: Icon(
@@ -498,7 +364,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 leg.arrivalDateTime,
               ),
-              "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})"
+              "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
             ),
           ),
 
@@ -517,35 +383,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     );
   }
 
-  Widget _buildTransfer(String waitText) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 4.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.transfer,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.tertiary,
-            ),
-          ),
-          Row(
-            children: [
-              Icon(Icons.access_time_rounded, size: 14),
-              const SizedBox(width: 8),
-              Text(waitText, style: TextStyle(fontSize: 12),),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
+  /// Builds the whole widgets for bus trips with 1 or more transfers (i.e. legs > 2)
   Widget _buildBusWithTransfer(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
@@ -594,9 +432,12 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           content: _buildBusLegWidget(
             routeName: firstLeg.routeName,
             stopName: firstLeg.originStopName,
-            time: TimeFormat.dateTimeToFormattedStringHoursMinutes(firstLeg.departureDateTime),
-            stopsText: "these stops",
-          ),
+            time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              firstLeg.departureDateTime,
+            ),
+            stopNames: firstLeg.stopNames,
+            estimatedDuration: firstLeg.estimatedDuration,
+            ),
         ),
 
         for (int legIndex = 1; legIndex < legs.length; legIndex++) ...[
@@ -614,7 +455,9 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               child: _buildArrivalWidget(
                 l10n: l10n,
                 title: legs[legIndex - 1].destinationStopName,
-                arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(legs[legIndex - 1].arrivalDateTime),
+                arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                  legs[legIndex - 1].arrivalDateTime,
+                ),
               ),
             ),
           ),
@@ -627,12 +470,38 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
             lineColor: colorScheme.tertiary,
             lineStyle: LineStyle.dotted,
-            content: _buildTransfer(
-              l10n.waitingTime(
-                TimeFormat.secondsToFormattedString(
-                  bus.waitTimeAfterLeg(legIndex - 1).inSeconds.toDouble(),
-                  l10n,
-                ),
+            content: Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.transfer,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.tertiary,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.access_time_rounded, size: 14),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.waitingTime(
+                          TimeFormat.secondsToFormattedString(
+                            bus
+                                .waitTimeAfterLeg(legIndex - 1)
+                                .inSeconds
+                                .toDouble(),
+                            l10n,
+                          ),
+                        ),
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -647,9 +516,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             content: _buildBusLegWidget(
               routeName: legs[legIndex].routeName,
               stopName: legs[legIndex].originStopName,
-              time: TimeFormat.dateTimeToFormattedStringHoursMinutes(legs[legIndex].departureDateTime),
-              stopsText: "these stops",
-            ),
+              time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                legs[legIndex].departureDateTime,
+              ),
+              stopNames: legs[legIndex].stopNames,
+              estimatedDuration: legs[legIndex].estimatedDuration,
+             ),
+
           ),
         ],
 
@@ -685,6 +558,104 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     );
   }
 
+  Widget _buildFareBreakdown(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final busTrip = widget.routingTrip.busTrip;
+    if (busTrip == null) return const SizedBox.shrink();
+
+    final legs = busTrip.legs;
+    if (legs.isEmpty) return const SizedBox.shrink();
+
+    final totalFare = widget.routingTrip.estimatedFare;
+
+    return Column(
+      children: [
+        const Divider(height: 30),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.costBreakdown,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.secondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            for (int i = 0; i < legs.length; i++) ...[
+              if (i > 0) const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${i + 1}. ${legs[i].originStopName} → ${legs[i].destinationStopName}",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.confirmation_num_outlined,
+                        size: 14,
+                        color: colorScheme.secondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        FareService.fareAsString(legs[i].estimatedFare),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+            const Divider(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.totalTicketCost,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.confirmation_num_outlined,
+                      size: 16,
+                      color: colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      FareService.fareAsString(totalFare),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final BusTrip? busTrip = widget.routingTrip.busTrip;
@@ -693,325 +664,116 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
       return _buildPureWalkingWidget(context);
     }
 
-    return busTrip.isTransfer
-        ? _buildBusWithTransfer(context)
-        : _buildBusWoTransfer(context);
+    return Column(
+      children: [
+        busTrip.isTransfer
+            ? _buildBusWithTransfer(context)
+            : _buildBusWoTransfer(context),
+        _buildFareBreakdown(context),
+      ],
+    );
+  }
+}
 
-    // final WalkingTrip? accessTrip = trip.accessTrip;
-    // final WalkingTrip? egressTrip = trip.egressTrip;
-    //
-    // // Calculate fares for the breakdown
-    // Stop? originStop;
-    // Stop? destStop;
-    // Stop? transferStop;
+class StopsExpander extends StatefulWidget {
+  final List<String> stopNames;
+  final String label; // e.g., "3 stops"
+  final String? durationText; // optional, shown in header
+  final bool initiallyExpanded;
 
-    // if (busTrip != null) {
-    //   try {
-    //     originStop = widget.allStops.firstWhere(
-    //       (s) =>
-    //           s.getLocalizedNameByLangCode(languageCode) ==
-    //           busTrip.originStopName,
-    //     );
-    //     destStop = widget.allStops.firstWhere(
-    //       (s) =>
-    //           s.getLocalizedNameByLangCode(languageCode) ==
-    //           busTrip.destinationStopName,
-    //     );
-    //     if (busTrip.isTransfer) {
-    //       transferStop = widget.allStops.firstWhere(
-    //         (s) =>
-    //             s.getLocalizedNameByLangCode(languageCode) ==
-    //             busTrip.legs.first.destinationStopName,
-    //       );
-    //     }
-    //   } catch (_) {}
-    // }
-    //
-    // double estimatedFare = 0.0;
-    // double fare1 = 0.0;
-    // double fare2 = 0.0;
-    //
-    // if (busTrip != null &&
-    //     busTrip.isTransfer &&
-    //     transferStop != null &&
-    //     originStop != null &&
-    //     destStop != null) {
-    //   fare1 = RoutingTrip.calculateFare(originStop, transferStop);
-    //   fare2 = RoutingTrip.calculateFare(transferStop, destStop);
-    //   estimatedFare = fare1 + fare2;
-    // } else if (busTrip != null && originStop != null && destStop != null) {
-    //   estimatedFare = trip.estimatedFare;
-    // }
-    //
-    // // Wait time at the transfer stop, shown as a subtitle on leg 2.
-    // String transferWaitSubtitle = "";
-    // if (busTrip.isTransfer &&
-    //     busTrip!.transferArrivalDateTime != null &&
-    //     busTrip.transferDepartureDateTime != null) {
-    //   final waitDuration = busTrip.transferDepartureDateTime!.difference(
-    //     busTrip.transferArrivalDateTime!,
-    //   );
-    //   if (waitDuration.inSeconds > 0) {
-    //     transferWaitSubtitle = l10n.waitingTime(
-    //       TimeFormat.waitTimeToFormattedString(
-    //         busTrip.transferDepartureDateTime!,
-    //         busTrip.transferArrivalDateTime!,
-    //         l10n,
-    //       ),
-    //     );
-    //   }
-    // }
+  const StopsExpander({
+    super.key,
+    required this.stopNames,
+    required this.label,
+    this.durationText,
+    this.initiallyExpanded = false,
+  });
 
-    // return Container(color: Colors.yellow);
-    // return Column(
-    //   children: [
-    //     Row(
-    //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //       children: [
-    //         Icon(Icons.schedule, size: 20, color: colorScheme.onSurfaceVariant),
-    //         const SizedBox(width: 4),
-    //         Expanded(
-    //           child: Text(
-    //             TimeFormat.secondsToFormattedString(trip.duration, l10n),
-    //             style: TextStyle(
-    //               fontSize: 16,
-    //               fontWeight: FontWeight.bold,
-    //               color: colorScheme.onSurfaceVariant,
-    //             ),
-    //           ),
-    //         ),
-    //         Row(
-    //           children: [
-    //             if (estimatedFare > 0) ...[
-    //               Icon(
-    //                 Icons.confirmation_num_outlined,
-    //                 size: 18,
-    //                 color: colorScheme.secondary,
-    //               ),
-    //               const SizedBox(width: 4),
-    //               Text(
-    //                 RoutingTrip.calculateEstimatedFareAsString(estimatedFare),
-    //                 style: TextStyle(
-    //                   fontSize: 16,
-    //                   fontWeight: FontWeight.bold,
-    //                   color: colorScheme.secondary,
-    //                 ),
-    //               ),
-    //             ],
-    //           ],
-    //         ),
-    //       ],
-    //     ),
-    //     Divider(height: 32,),
-    //     // Access Walk (Timeline)
-    //     if (accessTrip != null)
-    //       TimelineNode(
-    //         indicator: Padding(
-    //           padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //           child: Icon(
-    //             Icons.my_location,
-    //             size: 20,
-    //             color: colorScheme.secondary,
-    //           ),
-    //         ),
-    //         lineStyle: LineStyle.dotted,
-    //         lineColor: colorScheme.onSurfaceVariant,
-    //         content: _buildWalkingWidget(
-    //           trip.startPoint.name ?? l10n.chosenPoint,
-    //           TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //             trip.getDepartureDateTime(widget.selectedDepartureTime),
-    //           ),
-    //           "${l10n.walk} ${TimeFormat.secondsToFormattedString(accessTrip.duration, l10n)} (${DistanceFormat.metersToFormattedString(accessTrip.distance, l10n)})",
-    //         ),
-    //       ),
-    //
-    //     // Bus Trip - Leg 1 (Timeline)
-    //     if (busTrip != null)
-    //       TimelineNode(
-    //         indicator: Padding(
-    //           padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //           child: Icon(
-    //             Icons.directions_bus,
-    //             size: 20,
-    //             color: colorScheme.primary,
-    //           ),
-    //         ),
-    //         lineStyle: LineStyle.solid,
-    //         lineColor: colorScheme.primary,
-    //         content: _buildBusLegWidget(
-    //           routeName: busTrip.firstRouteName,
-    //           stopName: busTrip.originStopName,
-    //           time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //             busTrip.startDepartureDateTime,
-    //           ),
-    //           stopsText:
-    //               "${l10n.tripStopsCount(widget.allStops.length)} (${TimeFormat.secondsToFormattedString(busTrip.estimatedDuration.toDouble(), l10n)})",
-    //         ),
-    //       ),
-    //
-    //     if (isTransfer) ...[
-    //       TimelineNode(
-    //         indicator: Padding(
-    //           padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //           child: Icon(
-    //             Icons.directions_bus_rounded,
-    //             size: 20,
-    //             color: colorScheme.primary,
-    //           ),
-    //         ),
-    //         lineStyle: LineStyle.dotted,
-    //         lineColor: colorScheme.tertiary,
-    //         content: Padding(
-    //           padding: const EdgeInsets.only(bottom: 8.0),
-    //           child: Row(
-    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //             crossAxisAlignment: CrossAxisAlignment.start,
-    //             children: [
-    //               Expanded(
-    //                 child: Column(
-    //                   crossAxisAlignment: CrossAxisAlignment.start,
-    //                   children: [
-    //                     Text(
-    //                       transferStop!.getLocalizedName(l10n),
-    //                       style: const TextStyle(
-    //                         fontWeight: FontWeight.bold,
-    //                         fontSize: 16,
-    //                       ),
-    //                     ),
-    //                   ],
-    //                 ),
-    //               ),
-    //               Text(
-    //                 TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //                   busTrip!.transferArrivalDateTime!,
-    //                 ),
-    //                 style: const TextStyle(
-    //                   fontWeight: FontWeight.bold,
-    //                   fontSize: 14,
-    //                 ),
-    //               ),
-    //             ],
-    //           ),
-    //         ),
-    //       ),
-    //
-    //       TimelineNode(
-    //         indicator: Padding(
-    //           padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //           child: Icon(
-    //             Icons.transfer_within_a_station,
-    //             size: 20,
-    //             color: colorScheme.tertiary,
-    //           ),
-    //         ),
-    //         lineStyle: LineStyle.dotted,
-    //         lineColor: colorScheme.tertiary,
-    //         // lineColor: colorScheme.primary,
-    //         content: Row(
-    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //           crossAxisAlignment: CrossAxisAlignment.start,
-    //           children: [
-    //             Padding(
-    //               padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
-    //               child: Column(
-    //                 crossAxisAlignment: CrossAxisAlignment.start,
-    //                 children: [
-    //                   Text(l10n.transfer, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.tertiary),),
-    //                   const SizedBox(height: 4),
-    //                   Text(
-    //                     transferWaitSubtitle,
-    //                     style: TextStyle(
-    //                       color: colorScheme.onSurfaceVariant,
-    //                       fontSize: 13,
-    //                     ),
-    //                   ),
-    //                 ],
-    //               ),
-    //             )
-    //           ],
-    //         )
-    //       ),
-    //
-    //       TimelineNode(
-    //         indicator: Padding(
-    //           padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //           child: Icon(
-    //             Icons.directions_bus,
-    //             size: 20,
-    //             color: colorScheme.primary,
-    //           ),
-    //         ),
-    //         lineStyle: LineStyle.solid,
-    //         lineColor: colorScheme.primary,
-    //         content: _buildBusLegWidget(
-    //           routeName: busTrip.secondRouteName!,
-    //           stopName: transferStop.getLocalizedName(l10n),
-    //           time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //             busTrip.transferDepartureDateTime!,
-    //           ),
-    //           stopsText:
-    //               "${l10n.tripStopsCount(widget.allStops.length)} (${TimeFormat.secondsToFormattedString(busTrip.estimatedDuration.toDouble(), l10n)})",
-    //         ),
-    //       ),
-    //     ],
-    //
-    //     // Egress Walk (Timeline) — indicator marks the stop you get OFF at,
-    //     // not another bus icon (that was a copy/paste leftover before).
-    //     if (egressTrip != null && busTrip != null)
-    //       TimelineNode(
-    //         indicator: Padding(
-    //           padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //           child: Icon(
-    //             Icons.directions_bus_rounded,
-    //             size: 20,
-    //             color: colorScheme.primary,
-    //           ),
-    //         ),
-    //         lineStyle: LineStyle.dotted,
-    //         lineColor: colorScheme.primary,
-    //         content: _buildWalkingWidget(
-    //           busTrip.destinationStopName,
-    //           TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //             busTrip.destArrivalDateTime,
-    //           ),
-    //           "${l10n.walk} ${TimeFormat.secondsToFormattedString(egressTrip.duration, l10n)} ${l10n.to} ${trip.destinationPoint.getLocalizedName(l10n)} (${DistanceFormat.metersToFormattedString(egressTrip.distance, l10n)})",
-    //         ),
-    //       ),
-    //
-    //     // Final destination marker — closes the timeline (was previously missing).
-    //     TimelineNode(
-    //       indicator: Padding(
-    //         padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //         child: Icon(Icons.location_on, size: 20, color: colorScheme.error),
-    //       ),
-    //       lineStyle: LineStyle.none,
-    //       content: _buildArrivalWidget(
-    //         l10n: l10n,
-    //         title: trip.destinationPoint.name ?? l10n.chosenPoint,
-    //         arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //           trip.getArrivalDateTime(
-    //             trip.getDepartureDateTime(widget.selectedDepartureTime),
-    //           ),
-    //         ),
-    //       ),
-    //     ),
-    //
-    //     // Fare analysis
-    //     if (busTrip != null && estimatedFare > 0)
-    //       _buildFareAnalysis(
-    //         colorScheme: colorScheme,
-    //         l10n: l10n,
-    //         totalFare: estimatedFare,
-    //         leg1Text: isTransfer
-    //             ? "${busTrip.originStopName} → ${busTrip.transferStopName}"
-    //             : "${busTrip.originStopName} → ${busTrip.destinationStopName}",
-    //         leg1Fare: fare1 > 0 ? fare1 : estimatedFare,
-    //         leg2Text: isTransfer && destStop != null
-    //             ? "${busTrip.transferStopName} → ${busTrip.destinationStopName}"
-    //             : null,
-    //         leg2Fare: isTransfer && destStop != null ? fare2 : null,
-    //       ),
-    //   ],
-    // );
+  @override
+  State<StopsExpander> createState() => _StopsExpanderState();
+}
+
+class _StopsExpanderState extends State<StopsExpander> {
+  bool _expanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _expanded = widget.initiallyExpanded;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final headerText = widget.durationText != null && widget.durationText!.isNotEmpty
+        ? "${widget.label} (${widget.durationText})"
+        : widget.label;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            setState(() {
+              _expanded = !_expanded;
+            });
+          },
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  headerText,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Icon(
+                _expanded ? Icons.expand_less : Icons.expand_more,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+        if (_expanded)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: widget.stopNames.asMap().entries.map((entry) {
+                final index = entry.key + 1;
+                final name = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 28,
+                        child: Text(
+                          "$index.",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
+    );
   }
 }

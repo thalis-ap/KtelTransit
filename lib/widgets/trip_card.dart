@@ -10,7 +10,6 @@ import 'package:ktel_transit/widgets/trip_details_card.dart';
 /// TODO: Pass down the fare as well so that TripDetails card does not have to deal with it after implementing the fare service
 class TripCard extends StatelessWidget {
   final RoutingTrip trip;
-  final List<Stop> allStops;
   final DateTime selectedDepartureTime;
   final bool isPast;
   final VoidCallback? onTap;
@@ -18,7 +17,6 @@ class TripCard extends StatelessWidget {
   const TripCard({
     super.key,
     required this.trip,
-    required this.allStops,
     required this.selectedDepartureTime,
     this.isPast = false,
     this.onTap,
@@ -40,7 +38,6 @@ class TripCard extends StatelessWidget {
               opacity: isPast ? 0.5 : 1.0,
               child: TripDetailsCard(
                 routingTrip: trip,
-                allStops: allStops,
                 selectedDepartureTime: selectedDepartureTime,
               ),
             ),

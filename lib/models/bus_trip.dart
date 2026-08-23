@@ -1,3 +1,5 @@
+import 'package:ktel_transit/models/stop.dart';
+import 'package:ktel_transit/services/fare_service.dart';
 import 'package:latlong2/latlong.dart';
 
 /// A single bus ride on one route, from one stop to another, with no
@@ -10,9 +12,17 @@ class BusLeg {
   final DateTime arrivalDateTime;
   final int estimatedDuration; // seconds, from stop_times.txt
 
+  final Stop originStop;
+  final Stop destinationStop;
+
   // Ordered stop names for this leg, INCLUDING origin and destination.
   // stopNames.length - 1 == number of stops passed.
   final List<String> stopNames;
+
+  double get estimatedFare =>
+      FareService.calculateFare(originStop, destinationStop);
+
+  String get estimatedFareAsString => FareService.fareAsString(estimatedFare);
 
   BusLeg({
     required this.routeName,
@@ -22,6 +32,8 @@ class BusLeg {
     required this.arrivalDateTime,
     required this.estimatedDuration,
     required this.stopNames,
+    required this.originStop,
+    required this.destinationStop,
   });
 
   BusLeg copyWith({
@@ -32,6 +44,8 @@ class BusLeg {
     DateTime? arrivalDateTime,
     int? estimatedDuration,
     List<String>? stopNames,
+    Stop? originStop,
+    Stop? destinationStop,
   }) {
     return BusLeg(
       routeName: routeName ?? this.routeName,
@@ -41,6 +55,8 @@ class BusLeg {
       arrivalDateTime: arrivalDateTime ?? this.arrivalDateTime,
       estimatedDuration: estimatedDuration ?? this.estimatedDuration,
       stopNames: stopNames ?? this.stopNames,
+      originStop: originStop ?? this.originStop,
+      destinationStop: destinationStop ?? this.destinationStop,
     );
   }
 }
@@ -67,11 +83,15 @@ class BusTrip {
   // ---- Convenience getters so most existing call sites don't need to change ----
 
   bool get isTransfer => legs.length > 1;
+
   int get transferCount => legs.length - 1;
 
   String get originStopName => legs.first.originStopName;
+
   String get destinationStopName => legs.last.destinationStopName;
+
   DateTime get startDepartureDateTime => legs.first.departureDateTime;
+
   DateTime get destArrivalDateTime => legs.last.arrivalDateTime;
 
   /// Sum of riding time across all legs (does NOT include transfer wait time).

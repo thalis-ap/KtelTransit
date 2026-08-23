@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/models/stop.dart';
+import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 
 import '../models/bus_trip.dart';
@@ -12,13 +12,11 @@ import '../utilities/distance_format.dart';
 /// by TripCard (see explanation in trip_card.dart)
 class TripDetailsCard extends StatelessWidget {
   final RoutingTrip routingTrip;
-  final List<Stop> allStops;
   final DateTime selectedDepartureTime;
 
   const TripDetailsCard({
     super.key,
     required this.routingTrip,
-    required this.allStops,
     required this.selectedDepartureTime,
   });
 
@@ -105,10 +103,9 @@ class TripDetailsCard extends StatelessWidget {
         (i) => "${i + 1}. ${routingTrip.busTrip!.legs[i].routeName}",
       ).join("\n");
     }
-
-    final double estimatedFare = routingTrip.busTrip == null
-        ? -1
-        : routingTrip.estimatedFare;
+    
+    // Get the estimated fare (-1 if no bus legs exist)
+    final double estimatedFare = routingTrip.estimatedFare;
 
     return Column(
       children: [
@@ -155,7 +152,7 @@ class TripDetailsCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    RoutingTrip.calculateEstimatedFareAsString(estimatedFare),
+                    FareService.fareAsString(estimatedFare),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -529,121 +526,5 @@ class TripDetailsCard extends StatelessWidget {
     return bus.isTransfer
         ? _buildBusWithTransfer(context)
         : _buildBusWoTransfer(context);
-
-    //
-    // Stop? originStop;
-    // Stop? destStop;
-    // Stop? transferStop;
-    //
-    // try {
-    //   originStop = allStops.firstWhere(
-    //         (s) => s.getLocalizedNameByLangCode(languageCode) == bus.originStopName,
-    //   );
-    //   destStop = allStops.firstWhere(
-    //         (s) =>
-    //     s.getLocalizedNameByLangCode(languageCode) ==
-    //         bus.destinationStopName,
-    //   );
-    //   if (bus.isTransfer && bus.transferStopName != null) {
-    //     transferStop = allStops.firstWhere(
-    //           (s) =>
-    //       s.getLocalizedNameByLangCode(languageCode) ==
-    //           bus.transferStopName,
-    //     );
-    //   }
-    // } catch (_) {}
-    //
-    // // Compute fares
-    // double estimatedFare = 0.0;
-    // double fare1 = 0.0;
-    // double fare2 = 0.0;
-    //
-    // if (bus.isTransfer &&
-    //     transferStop != null &&
-    //     originStop != null &&
-    //     destStop != null) {
-    //   // Use the custom calculate fare functions because we have a transfer stop
-    //   fare1 = RoutingTrip.calculateFare(originStop, transferStop);
-    //   fare2 = RoutingTrip.calculateFare(transferStop, destStop);
-    //   estimatedFare = fare1 + fare2;
-    // } else if (originStop != null && destStop != null) {
-    //   // Use the default estimatedFare (start to dest)
-    //   estimatedFare = routingTrip.estimatedFare;
-    // }
-    //
-    // return Column(
-    //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   children: [
-    //     _buildHeader(colorScheme, fare: estimatedFare, l10n: l10n),
-    //     const SizedBox(height: 12),
-    //     if (walkAccess != null) ...[
-    //       _buildWalkAccess(
-    //         colorScheme,
-    //         departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //           routingTrip.getDepartureDateTime(bus.startDepartureDateTime),
-    //         ),
-    //         l10n: l10n,
-    //       ),
-    //       const SizedBox(height: 8),
-    //     ],
-    //     _buildDepartureRow(
-    //       colorScheme,
-    //       l10n.departureFrom(bus.originStopName),
-    //       TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //         bus.startDepartureDateTime,
-    //       ),
-    //     ),
-    //     const SizedBox(height: 6),
-    //     if (bus.isTransfer) ...[
-    //       const SizedBox(height: 6),
-    //       _buildArrivalAtTransferRow(
-    //         colorScheme,
-    //         l10n.arrivalAt(bus.transferStopName ?? ''),
-    //         TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //           bus.transferArrivalDateTime!,
-    //         ),
-    //       ),
-    //       _buildWaitTimeRow(
-    //         colorScheme,
-    //         l10n.waitingTime(
-    //           TimeFormat.waitTimeToFormattedString(
-    //             bus.transferDepartureDateTime!,
-    //             bus.transferArrivalDateTime!,
-    //             l10n,
-    //           ),
-    //         ),
-    //       ),
-    //       _buildDepartureFromTransferRow(
-    //         colorScheme,
-    //         l10n.departureFrom(bus.transferStopName ?? ''),
-    //         TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //           bus.transferDepartureDateTime!,
-    //         ),
-    //       ),
-    //       const SizedBox(height: 6),
-    //     ],
-    //     _buildArrivalRow(
-    //       colorScheme,
-    //       l10n.estimatedArrivalAt(bus.destinationStopName),
-    //       TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //         bus.destArrivalDateTime,
-    //       ),
-    //       walkEgressPresent: walkEgress != null,
-    //     ),
-    //     if (walkEgress != null) ...[
-    //       const SizedBox(height: 8),
-    //       _buildWalkEgress(colorScheme, l10n: l10n),
-    //       const SizedBox(height: 4),
-    //       _buildArrivalRow(
-    //         colorScheme,
-    //         l10n.estimatedArrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
-    //         TimeFormat.dateTimeToFormattedStringHoursMinutes(
-    //           routingTrip.getArrivalDateTime(DateTime.now()),
-    //         ),
-    //       ),
-    //     ],
-    //     // TODO: Fare analysis is commented out for now; will be re-enabled in ExtendedTripCard
-    //   ],
-    // );
   }
 }

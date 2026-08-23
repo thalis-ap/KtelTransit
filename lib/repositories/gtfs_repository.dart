@@ -463,6 +463,8 @@ class GtfsRepository {
           arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
           estimatedDuration: durationSecs,
           stopNames: stopNames,
+          originStop: _stopsById[startStopId]!,
+          destinationStop: _stopsById[destStopId]!,
         );
 
         dailyTrips.add(BusTrip(
@@ -559,6 +561,8 @@ class GtfsRepository {
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, transferA.arrivalTime),
                 estimatedDuration: durationLeg1,
                 stopNames: stopNamesA,
+                originStop: _stopsById[startStopId]!,
+                destinationStop: _stopsById[transferA.stopId]!,
               );
 
               final leg2 = BusLeg(
@@ -569,6 +573,8 @@ class GtfsRepository {
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
                 estimatedDuration: durationLeg2,
                 stopNames: stopNamesB,
+                originStop: _stopsById[transferA.stopId]!,
+                destinationStop: _stopsById[destStopId]!,
               );
 
               dailyTrips.add(BusTrip(

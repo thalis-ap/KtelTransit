@@ -1,7 +1,7 @@
 import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
+import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
-import 'package:latlong2/latlong.dart';
 
 import 'map_point.dart';
 
@@ -46,32 +46,19 @@ class RoutingTrip {
 
   // -------------------- DRAFT START --------------------
   // TODO: Replace all fare related function with region-specific GTFS fare data (fare_attributes.txt, fare_rules.txt)
-  double get estimatedFare => calculateFare(startPoint, destinationPoint);
+  double get estimatedFare {
+    // Return 0 for no bus (pure walking trips_
+    if (busTrip == null || busTrip!.legs.isEmpty) return -1;
 
-  // This is a temporary distance-based placeholder until multiple regions with different
-  // pricing are supported. Remove this duplication when a proper FareService is implemented.
-  static double calculateFare(MapPoint start, MapPoint dest) {
-    final distanceCalc = const Distance();
-    final meters = distanceCalc(
-      LatLng(start.latitude, start.longitude),
-      LatLng(dest.latitude, dest.longitude),
-    );
-
-    final km = meters / 1000;
-    if (km <= 14) return 2.2;
-
-    double calculatedPrice = 2.20 + ((km - 14) * 0.137);
-    if (calculatedPrice > 4.20) calculatedPrice = 4.20;
-
-    return (calculatedPrice * 10).round() / 10.0;
+    // ✅ If there's a bus trip with legs, sum the fare for each leg
+    double sum = 0.0;
+    for (final leg in busTrip!.legs) {
+      sum += leg.estimatedFare;
+    }
+    return sum;
   }
 
-  String get estimatedFareAsString =>
-      estimatedFare > 0 ? "${estimatedFare.toStringAsFixed(2)}€" : "-€";
-
-  static String calculateEstimatedFareAsString(fare) {
-    return fare > 0 ? "${fare.toStringAsFixed(2)}€" : "-€";
-  }
+  String get estimatedFareAsString => FareService.fareAsString(estimatedFare);
 
   // -------------------- DRAFT END --------------------
 

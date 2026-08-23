@@ -9,7 +9,6 @@ import 'package:ktel_transit/widgets/trip_groups_view.dart';
 import 'package:ktel_transit/widgets/trips_loading_skeleton.dart';
 import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 import '../l10n/app_localizations.dart';
-import '../models/stop.dart';
 
 class TripInfoSheet extends StatelessWidget {
   final bool isLoading;
@@ -18,7 +17,6 @@ class TripInfoSheet extends StatelessWidget {
   final List<RoutingTrip>? trips;
   final int? selectedTripIndex;
   final DateTime selectedSearchTime;
-  final List<Stop> allStops;
   final DraggableScrollableController controller;
 
   final VoidCallback onBackToAllTrips;
@@ -42,7 +40,6 @@ class TripInfoSheet extends StatelessWidget {
     required this.trips,
     required this.selectedTripIndex,
     required this.selectedSearchTime,
-    required this.allStops,
     required this.onBackToAllTrips,
     required this.onClose,
     required this.onChangeTime,
@@ -118,7 +115,6 @@ class TripInfoSheet extends StatelessWidget {
           ),
           child: ExtendedDetailsCard(
             routingTrip: trips![selectedTripIndex!],
-            allStops: allStops,
             selectedDepartureTime: selectedSearchTime,
           ),
         ),
@@ -150,7 +146,6 @@ class TripInfoSheet extends StatelessWidget {
 
     return TripGroupsView(
       groups: groups,
-      allStops: allStops,
       selectedDepartureTime: selectedSearchTime,
       isLoading: isLoading,
       onTripSelected: (trip) {
@@ -237,10 +232,6 @@ class TripInfoSheet extends StatelessWidget {
           child: AnimatedBuilder(
             animation: controller,
             builder: (context, _) {
-              final isCompact =
-                  controller.isAttached &&
-                  controller.size <= SheetSizes.low + 0.02;
-
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,10 +268,9 @@ class TripInfoSheet extends StatelessWidget {
                             ),
                           ),
 
-                          _buildHeader(context),
-
-                          const SizedBox(height: 16),
-                          if (selectedTripIndex != null)
+                          if (selectedTripIndex == null)
+                            _buildHeader(context)
+                          else
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

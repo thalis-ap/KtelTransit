@@ -351,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       activeRoute = null;
     });
 
-    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.high);
+    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.middle);
   }
 
   /// Handles a back button press on each case
@@ -986,7 +986,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
 
                       // Search bar
-                      Positioned(
+                      if (selectedTripIndex == null) Positioned(
                         top: MediaQuery.of(context).padding.top + 16,
                         left: 16,
                         right: 16,
@@ -1053,7 +1053,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     trips: trips,
                                     selectedTripIndex: selectedTripIndex,
                                     selectedSearchTime: selectedSearchTime,
-                                    allStops: repository.stops,
                                     onBackToAllTrips: _onGoBackToAllTrips,
                                     onClose: _closeTripInfoSheet,
 
