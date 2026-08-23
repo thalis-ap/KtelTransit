@@ -34,157 +34,6 @@ class _RoutesScreenState extends State<RoutesScreen> {
     });
   }
 
-  Widget _buildDirectionSection(
-      BuildContext context,
-      String title,
-      List<Trip> trips,
-      ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final languageCode = Localizations.localeOf(context).languageCode;
-
-    if (trips.isEmpty) return const SizedBox.shrink();
-
-    // Get the ordered stops and times for a representative sample trip
-    final sampleTrip = trips.first;
-    final tripStops = repository.stopTimes
-        .where((st) => st.tripId == sampleTrip.tripId)
-        .toList();
-    tripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
-
-    final Map<String, String> stopTimesMap = {};
-    for (final st in tripStops) {
-      stopTimesMap[st.stopId] = TimeFormat.gtfsTimeToFormattedString(st.departureTime);
-    }
-
-    final List<Stop> routeStops = tripStops.map((st) {
-      try {
-        return repository.stops.firstWhere((stop) => stop.stopId == st.stopId);
-      } catch (_) {
-        return null;
-      }
-    }).whereType<Stop>().toList();
-
-    final Map<String, List<String>> groupedTimes = {};
-
-    for (final trip in trips) {
-      // Pass context so operating days are translated automatically
-      final String days = repository.getReadableDays(trip.serviceId, context);
-
-      final tripStops = repository.stopTimes
-          .where((st) => st.tripId == trip.tripId)
-          .toList();
-      if (tripStops.isEmpty) continue;
-
-      tripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
-
-      final rawTime = tripStops.first.departureTime;
-      final parts = rawTime.split(':');
-      final formattedTime =
-          "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
-
-      if (!groupedTimes.containsKey(days)) {
-        groupedTimes[days] = [];
-      }
-      if (!groupedTimes[days]!.contains(formattedTime)) {
-        groupedTimes[days]!.add(formattedTime);
-      }
-    }
-
-    for (final key in groupedTimes.keys) {
-      groupedTimes[key]!.sort();
-    }
-
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          ListView.builder(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: routeStops.length,
-            itemBuilder: (context, index) {
-              final stop = routeStops[index];
-              final time = stopTimesMap[stop.stopId] ?? '--:--';
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "${index + 1}. ${stop.getLocalizedNameByLangCode(languageCode)}",
-                        style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
-                      ),
-                    ),
-                    Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          ...groupedTimes.entries.map((entry) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Text(
-                    entry.key,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
-                    children: entry.value.map((time) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          time,
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -195,7 +44,8 @@ class _RoutesScreenState extends State<RoutesScreen> {
       body: Column(
         children: [
           RegionInfoBanner(
-            regionName: repository.currentRegion?.getLocalizedName(languageCode) ?? l10n.notChosen,
+            regionName: repository.currentRegion?.getLocalizedName(languageCode) ??
+                l10n.notChosen,
             onChangeTap: () => RegionUtils.promptRegionChange(
               context,
               repository,
@@ -213,12 +63,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
                 final List<Trip> trips = repository.trips
                     .where((t) => t.routeId == route.routeId)
                     .toList();
-                final List<Trip> going = trips
-                    .where((t) => t.directionId == 0)
-                    .toList();
-                final List<Trip> returning = trips
-                    .where((t) => t.directionId == 1)
-                    .toList();
+                final List<Trip> going =
+                trips.where((t) => t.directionId == 0).toList();
+                final List<Trip> returning =
+                trips.where((t) => t.directionId == 1).toList();
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -231,18 +79,20 @@ class _RoutesScreenState extends State<RoutesScreen> {
                     title: Text(route.getLocalizedLongName(languageCode)),
                     children: [
                       if (going.isNotEmpty)
-                        _buildDirectionSection(
-                          context,
+                        DirectionSection(
+                          title:
                           "${going.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.outbound})",
-                          going,
+                          trips: going,
+                          repository: repository,
                         ),
                       if (going.isNotEmpty && returning.isNotEmpty)
                         const Divider(height: 32),
                       if (returning.isNotEmpty)
-                        _buildDirectionSection(
-                          context,
+                        DirectionSection(
+                          title:
                           "${returning.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.returnTrip})",
-                          returning,
+                          trips: returning,
+                          repository: repository,
                         ),
                       const SizedBox(height: 8),
                     ],
@@ -251,6 +101,228 @@ class _RoutesScreenState extends State<RoutesScreen> {
               },
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// DirectionSection – Stateful widget to manage selected trip and show
+// dynamic stop times.
+// =====================================================================
+
+class DirectionSection extends StatefulWidget {
+  final String title;
+  final List<Trip> trips;
+  final GtfsRepository repository;
+
+  const DirectionSection({
+    super.key,
+    required this.title,
+    required this.trips,
+    required this.repository,
+  });
+
+  @override
+  State<DirectionSection> createState() => _DirectionSectionState();
+}
+
+class _DirectionSectionState extends State<DirectionSection> {
+  Trip? _selectedTrip;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default to the first trip in the list
+    if (widget.trips.isNotEmpty) {
+      _selectedTrip = widget.trips.first;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+
+    if (widget.trips.isEmpty) return const SizedBox.shrink();
+    if (_selectedTrip == null) return const SizedBox.shrink();
+
+    // ----- 1. Get stops for the selected trip (ordered) -----
+    final tripStops = widget.repository.stopTimes
+        .where((st) => st.tripId == _selectedTrip!.tripId)
+        .toList();
+    tripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
+
+    // Build a map stopId -> formatted time for the selected trip
+    final Map<String, String> stopTimesMap = {};
+    for (final st in tripStops) {
+      stopTimesMap[st.stopId] =
+          TimeFormat.gtfsTimeToFormattedString(st.departureTime);
+    }
+
+    // Get the actual Stop objects in order
+    final List<Stop> routeStops = tripStops.map((st) {
+      try {
+        return widget.repository.stops
+            .firstWhere((stop) => stop.stopId == st.stopId);
+      } catch (_) {
+        return null;
+      }
+    }).whereType<Stop>().toList();
+
+    // ----- 2. Build the list of departure times (chips) grouped by days -----
+    // We'll create a list of objects: (trip, dayString, timeString)
+    final List<MapEntry<Trip, String>> entries = [];
+    for (final trip in widget.trips) {
+      final dayString = widget.repository.getReadableDays(trip.serviceId, context);
+      final tripStopTimes = widget.repository.stopTimes
+          .where((st) => st.tripId == trip.tripId)
+          .toList();
+      if (tripStopTimes.isEmpty) continue;
+      tripStopTimes.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
+      final firstStop = tripStopTimes.first;
+      final rawTime = firstStop.departureTime;
+      final parts = rawTime.split(':');
+      final formattedTime =
+          "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
+      entries.add(MapEntry(trip, "$dayString|$formattedTime"));
+    }
+
+    // Group by dayString
+    final Map<String, List<MapEntry<Trip, String>>> grouped = {};
+    for (final entry in entries) {
+      final parts = entry.value.split('|');
+      final day = parts[0];
+      final time = parts[1];
+      grouped.putIfAbsent(day, () => []).add(MapEntry(entry.key, time));
+    }
+
+    // Sort the days
+    final sortedDays = grouped.keys.toList()..sort();
+
+    // Build chips
+    final chips = <Widget>[];
+    for (final day in sortedDays) {
+      final items = grouped[day]!;
+      // Sort items by time
+      items.sort((a, b) => a.value.compareTo(b.value));
+      chips.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                day,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: items.map((item) {
+                  final trip = item.key;
+                  final time = item.value;
+                  final isSelected = trip.tripId == _selectedTrip!.tripId;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedTrip = trip;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(16),
+                        border: isSelected
+                            ? Border.all(color: colorScheme.primary, width: 2)
+                            : null,
+                      ),
+                      child: Text(
+                        time,
+                        style: TextStyle(
+                          color: isSelected
+                              ? colorScheme.onPrimary
+                              : colorScheme.primary,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // ----- 3. Build the full section -----
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Text(
+            widget.title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 8),
+
+          // Stop list (with times from selected trip)
+          ListView.builder(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: routeStops.length,
+            itemBuilder: (context, index) {
+              final stop = routeStops[index];
+              final time = stopTimesMap[stop.stopId] ?? '--:--';
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "${index + 1}. ${stop.getLocalizedNameByLangCode(languageCode)}",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Time chips
+          ...chips,
         ],
       ),
     );

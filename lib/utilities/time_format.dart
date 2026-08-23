@@ -39,8 +39,10 @@ class TimeFormat {
 
   static String gtfsTimeToFormattedString(String gtfsTime) {
     final parts = gtfsTime.split(':');
-
-    return "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
+    int hour = int.parse(parts[0]);
+    // Handles next day hours
+    if (hour >= 24) hour -= 24;
+    return "${hour.toString().padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
   }
 
   /// Helper function to convert strings like 14:30:00 to DateTime objects
