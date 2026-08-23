@@ -27,7 +27,10 @@ class TimelineNode extends StatelessWidget {
             width: 40,
             child: Column(
               children: [
-                indicator,
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: indicator,
+                ),
                 if (lineStyle != LineStyle.none)
                   Expanded(
                     child: lineStyle == LineStyle.solid
@@ -51,7 +54,7 @@ class TimelineNode extends StatelessWidget {
           // Right side: The actual card content
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
+              padding: const EdgeInsets.only(top: 4.0, bottom: 16.0),
               child: content,
             ),
           ),

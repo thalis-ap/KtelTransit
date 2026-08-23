@@ -5,6 +5,7 @@ import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 
 import '../models/bus_trip.dart';
+import '../utilities/distance_format.dart';
 
 /// A pure UI widget that transforms any routing trip into a nice looking
 /// detailed card for the trip. Departed trips and callbacks on tap are handled
@@ -29,7 +30,7 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(colorScheme, fare: -1, l10n: l10n),
+        _buildHeader(colorScheme, l10n: l10n),
         const SizedBox(height: 12),
         _buildWalkingRow(
           colorScheme,
@@ -87,7 +88,6 @@ class TripDetailsCard extends StatelessWidget {
 
   Widget _buildHeader(
     ColorScheme colorScheme, {
-    required double fare,
     required AppLocalizations l10n,
   }) {
     String routeText;
@@ -106,6 +106,10 @@ class TripDetailsCard extends StatelessWidget {
       ).join("\n");
     }
 
+    final double estimatedFare = routingTrip.busTrip == null
+        ? -1
+        : routingTrip.estimatedFare;
+
     return Column(
       children: [
         Row(
@@ -114,18 +118,36 @@ class TripDetailsCard extends StatelessWidget {
             Icon(Icons.schedule, size: 20, color: colorScheme.onSurfaceVariant),
             const SizedBox(width: 4),
             Expanded(
-              child: Text(
-                TimeFormat.secondsToFormattedString(routingTrip.duration, l10n),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    TimeFormat.secondsToFormattedString(
+                      routingTrip.duration,
+                      l10n,
+                    ),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (routingTrip.busTrip == null &&
+                      routingTrip.accessTrip != null) ...[
+                    const SizedBox(width: 10),
+                    Text(
+                      "(${DistanceFormat.metersToFormattedString(routingTrip.accessTrip!.distance, l10n)})",
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             Row(
               children: [
-                if (fare > 0) ...[
+                if (estimatedFare > 0) ...[
                   Icon(
                     Icons.confirmation_num_outlined,
                     size: 18,
@@ -133,7 +155,7 @@ class TripDetailsCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    RoutingTrip.calculateEstimatedFareAsString(fare),
+                    RoutingTrip.calculateEstimatedFareAsString(estimatedFare),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -327,13 +349,12 @@ class TripDetailsCard extends StatelessWidget {
     final egress = routingTrip.egressTrip;
 
     final firstLeg = busTrip.legs.first;
-    final lastLeg = busTrip.legs.last;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // TODO get correct fare
-        _buildHeader(colorScheme, fare: routingTrip.estimatedFare, l10n: l10n),
+        _buildHeader(colorScheme, l10n: l10n),
         const SizedBox(height: 6),
         if (access != null)
           Padding(
@@ -369,10 +390,10 @@ class TripDetailsCard extends StatelessWidget {
         ),
 
         // Loop through the legs, for each one, add a wait time and a departure
-        // from widget. This way there will be consequent wait, departure, wait
-        // departure texts, which is the desired output. The user arrives
-        // somewhere, waits then somewhere else, all over again, in the case of
-        // multiple transfers
+        // from widget. This way there will be consequent wait, departure,
+        // arrival | wait departure arrival texts, which is the desired output.
+        // The user arrives somewhere, waits then departs, then arrives somewhere
+        // else, all over again, in the case of multiple transfers
         for (
           int legIndex = 0;
           legIndex < busTrip.legs.length - 1;
@@ -394,21 +415,30 @@ class TripDetailsCard extends StatelessWidget {
               busTrip.legs[legIndex + 1].departureDateTime,
             ),
           ),
+
+          const SizedBox(height: 8),
+          _buildArrivalAtTransferRow(
+            colorScheme,
+            l10n.arrivalAt(busTrip.legs[legIndex + 1].destinationStopName),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              busTrip.legs[legIndex + 1].arrivalDateTime,
+            ),
+          ),
         ],
 
         // Transfers end here
         if (egress != null)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: _buildWalkEgress(colorScheme, l10n: l10n),
           ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildArrivalRow(
             colorScheme,
-            l10n.arrivalAt(lastLeg.destinationStopName),
+            l10n.arrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              lastLeg.arrivalDateTime,
+              routingTrip.getArrivalDateTime(selectedDepartureTime),
             ),
           ),
         ),
@@ -430,7 +460,7 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(colorScheme, fare: routingTrip.estimatedFare, l10n: l10n),
+        _buildHeader(colorScheme, l10n: l10n),
         const SizedBox(height: 6),
         if (access != null)
           Padding(
@@ -461,13 +491,22 @@ class TripDetailsCard extends StatelessWidget {
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.arrivalDateTime,
             ),
+            walkEgressPresent: egress != null,
           ),
         ),
-        if (egress != null)
+        if (egress != null) ...[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: _buildWalkEgress(colorScheme, l10n: l10n),
           ),
+          _buildArrivalRow(
+            colorScheme,
+            l10n.arrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              routingTrip.getArrivalDateTime(selectedDepartureTime),
+            ),
+          ),
+        ],
       ],
     );
   }
