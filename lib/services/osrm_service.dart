@@ -473,10 +473,10 @@ class RoutingService {
       final double estimatedTotalWalkToDestStop =
           WalkingTrip.getDurationFromDistance(minEgressSLD);
 
-      // If the combined walk to/from stops already exceeds pure walking,
-      // no bus trip can be faster.
-      if (estimatedTotalWalkToStartStop >= pureWalkingTrip.duration ||
-          estimatedTotalWalkToDestStop >= pureWalkingTrip.duration) {
+      // If the access + egress walk time exceeds the total walk time of a trip
+      // there is no reason to keep searching for buses, pure walk trip
+      // takes less time anyway
+      if (estimatedTotalWalkToStartStop + estimatedTotalWalkToDestStop >= pureWalkingTrip.duration) {
         return [
           RoutingTrip(
             startPoint: start,
@@ -552,11 +552,10 @@ class RoutingService {
         ),
       );
 
-      // Keep only bus trips where both access and egress walks are each
-      // shorter than the pure walk (user prefers less walking overall)
+      // Keep only the results whose total walk duration (access + egress) is
+      // less than the pure walking duration
       for (RoutingTrip trip in busResults) {
-        if (trip.accessDuration < pureWalkingTrip.duration &&
-            trip.egressDuration < pureWalkingTrip.duration) {
+        if (trip.accessDuration + trip.egressDuration < pureWalkingTrip.duration) {
           finalTrips.add(trip);
         }
       }
