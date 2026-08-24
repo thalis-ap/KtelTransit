@@ -17,6 +17,7 @@ import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/choose_on_map_bar.dart';
+import 'package:ktel_transit/widgets/compass_rotator.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
 import 'package:ktel_transit/widgets/stop_sheet.dart';
@@ -1092,6 +1093,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
+
                       // Search bar
                       if (selectedTripIndex == null)
                         Positioned(
@@ -1126,30 +1128,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ? 120
                                 : 160),
                         right: 16,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: Transform.rotate(
-                              angle: _mapMovementService.mapRotation,
-                              child: Image.asset(
-                                AppTheme.compassIconPath,
-                                width: 26,
-                                height: 26,
-                              ),
-                            ),
-                            tooltip: l10n.resetOrientationTooltip,
-                            onPressed: _onCompassPressed,
-                          ),
+                        child: CompassRotator(
+                          rotation: _mapMovementService.mapRotation,
+                          onPressed: _onCompassPressed,
                         ),
                       ),
 
