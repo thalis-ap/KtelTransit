@@ -70,12 +70,4 @@ class TimeSelectionBar extends StatelessWidget {
       ),
     );
   }
-
-  bool _isSameDateTime(DateTime a, DateTime b) {
-    return a.year == b.year &&
-        a.month == b.month &&
-        a.day == b.day &&
-        a.hour == b.hour &&
-        a.minute == b.minute;
-  }
 }
