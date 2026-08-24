@@ -111,5 +111,9 @@
   "chooseInMap": "Select on the map",
   "chooseStartLocation": "Choose start location",
   "chooseDestinationLocation": "Choose destination location",
-  "setLocation": "Set location"
+  "setLocation": "Set location",
+  "routeFor": "Route for",
+  "resetToNow": "Reset to now"
+
+
 }

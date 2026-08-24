@@ -357,4 +357,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setLocation => 'Set location';
+
+  @override
+  String get routeFor => 'Route for';
+
+  @override
+  String get resetToNow => 'Reset to now';
 }

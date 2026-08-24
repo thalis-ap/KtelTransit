@@ -691,6 +691,18 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Ορισμός'**
   String get setLocation;
+
+  /// No description provided for @routeFor.
+  ///
+  /// In el, this message translates to:
+  /// **'Δρομολόγιο για'**
+  String get routeFor;
+
+  /// No description provided for @resetToNow.
+  ///
+  /// In el, this message translates to:
+  /// **'Επαναφορά στο τώρα'**
+  String get resetToNow;
 }
 
 class _AppLocalizationsDelegate

@@ -360,4 +360,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get setLocation => 'Ορισμός';
+
+  @override
+  String get routeFor => 'Δρομολόγιο για';
+
+  @override
+  String get resetToNow => 'Επαναφορά στο τώρα';
 }

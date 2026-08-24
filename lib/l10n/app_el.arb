@@ -209,5 +209,7 @@
   "chooseInMap": "Επιλέξτε στον χάρτη",
   "chooseStartLocation": "Επιλογή τοποθεσίας εκκίνησης",
   "chooseDestinationLocation": "Επιλογή τοποθεσίας προορισμού",
-  "setLocation": "Ορισμός"
+  "setLocation": "Ορισμός",
+  "routeFor": "Δρομολόγιο για",
+  "resetToNow": "Επαναφορά στο τώρα"
 }
