@@ -830,7 +830,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           activeTransferStop = repository.stops.firstWhere(
             (s) =>
                 s.getLocalizedNameByLangCode(languageCode) ==
-                activeTrip.busTrip!.legs[1].originStopName,
+                activeTrip.busTrip!.legs.first.destinationStopName,
           );
         } catch (_) {}
       }
