@@ -24,7 +24,8 @@ class TripInfoSheet extends StatelessWidget {
 
   final VoidCallback onBackToAllTrips;
   final VoidCallback onClose;
-  final VoidCallback onChangeTime;
+  final VoidCallback onChangeTime, onResetTime;
+  final VoidCallback onRetryConnection;
   final Function(int index, RoutingTrip trip) onTripSelected;
 
   // Snap points, kept in one place so header-drag snapping matches the
@@ -46,6 +47,8 @@ class TripInfoSheet extends StatelessWidget {
     required this.onBackToAllTrips,
     required this.onClose,
     required this.onChangeTime,
+    required this.onResetTime,
+    required this.onRetryConnection,
     required this.onTripSelected,
     required this.controller,
   });
@@ -93,6 +96,7 @@ class TripInfoSheet extends StatelessWidget {
         TimeSelectionBar(
           selectedSearchTime: selectedSearchTime,
           onChangeTime: onChangeTime,
+          onResetTime: onResetTime,
         ),
       ],
     );
@@ -316,10 +320,7 @@ class TripInfoSheet extends StatelessWidget {
                             vertical: 8.0,
                           ),
                           child: OfflineBanner(
-                            onRetry: () {
-                              // TODO add correct on retry
-                              connectionService.checkConnection();
-                            },
+                            onRetry: onRetryConnection,
                           ),
                         ),
 

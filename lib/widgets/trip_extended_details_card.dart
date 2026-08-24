@@ -36,6 +36,12 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     return Column(
       children: [
         Row(
+          children: [
+            Text("${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(widget.selectedDepartureTime)} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(widget.selectedDepartureTime)}", style: TextStyle(fontWeight: FontWeight.w500),)
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Icon(Icons.schedule, size: 20, color: colorScheme.onSurfaceVariant),
@@ -286,13 +292,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ),
         const SizedBox(width: 10),
         Text(
           arrivalTime,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
       ],
     );

@@ -6,11 +6,13 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 class TimeSelectionBar extends StatelessWidget {
   final DateTime selectedSearchTime;
   final VoidCallback onChangeTime;
+  final VoidCallback onResetTime;
 
   const TimeSelectionBar({
     super.key,
     required this.selectedSearchTime,
     required this.onChangeTime,
+    required this.onResetTime,
   });
 
   @override
@@ -20,6 +22,8 @@ class TimeSelectionBar extends StatelessWidget {
 
     final formattedTime =
         "${selectedSearchTime.day.toString().padLeft(2, '0')}/${selectedSearchTime.month.toString().padLeft(2, '0')} - ${selectedSearchTime.hour.toString().padLeft(2, '0')}:${selectedSearchTime.minute.toString().padLeft(2, '0')}";
+
+    final isNow = _isSameDateTime(selectedSearchTime, DateTime.now());
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -32,33 +36,48 @@ class TimeSelectionBar extends StatelessWidget {
           Icon(Icons.schedule, color: colorScheme.onSurfaceVariant, size: 20),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              l10n.departureLabel(formattedTime),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.departureLabel(formattedTime),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          TextButton(
+          // Reset button
+          IconButton(
+            icon: Icon(Icons.refresh, color: colorScheme.onSurfaceVariant),
+            onPressed: onResetTime,
+            tooltip: l10n.resetToNow,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+          const SizedBox(width: 4),
+          // Change button
+          IconButton(
+            icon: Icon(Icons.edit, color: colorScheme.primary),
             onPressed: onChangeTime,
-            style: TextButton.styleFrom(
-              backgroundColor: colorScheme.primaryContainer,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-              minimumSize: const Size(0, 32),
-            ),
-            child: Text(
-              l10n.changeButton,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onPrimaryContainer,
-              ),
-            ),
+            tooltip: l10n.changeButton,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
         ],
       ),
     );
+  }
+
+  bool _isSameDateTime(DateTime a, DateTime b) {
+    return a.year == b.year &&
+        a.month == b.month &&
+        a.day == b.day &&
+        a.hour == b.hour &&
+        a.minute == b.minute;
   }
 }

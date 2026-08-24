@@ -327,6 +327,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         isSelectingMapPoint = true;
         isSelectingMapPointStart = isStart;
       });
+      _clearPointAndCloseTripSheet(isStart);
+      _closeDroppedPinSheet();
+      _closeStopSheet();
+
       return;
     }
 
@@ -447,6 +451,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  void _onResetTime() {
+    setState(() {
+      selectedSearchTime = DateTime.now();
+    });
+    _refreshTripInfo();
+  }
+
   void _onConfirmChooseOnMap() {
     // Get the current map center
     final center = mapController.camera.center;
@@ -455,7 +466,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // Create a MapPoint with the center coordinates
     final point = MapPoint(
       coordinates: center,
-      name: l10n.chosenPoint, // "Chosen Point" or you can use "Selected location"
+      name:
+          l10n.chosenPoint, // "Chosen Point" or you can use "Selected location"
     );
 
     // Set it as start or destination based on isSelectingMapPointStart
@@ -626,8 +638,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Clears the most recently added point (start or destination) and closes the trip info sheet.
   void _clearLastPointAndCloseTripSheet() {
+    _clearPointAndCloseTripSheet(lastChosenStopIsStart == true);
+  }
+
+  void _clearPointAndCloseTripSheet(bool pointIsStart) {
     setState(() {
-      if (lastChosenStopIsStart == true) {
+      if (pointIsStart) {
         startPoint = null;
       } else {
         destinationPoint = null;
@@ -1175,7 +1191,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                             child: Text(
                               AppLocalizations.of(context)!.setLocation,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -1197,8 +1216,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     selectedSearchTime: selectedSearchTime,
                                     onBackToAllTrips: _onGoBackToAllTrips,
                                     onClose: _closeTripInfoSheet,
-
                                     onChangeTime: _showDateTimePickerDialog,
+                                    onResetTime: _onResetTime,
                                     onTripSelected: (index, trip) {
                                       setState(() {
                                         selectedTripIndex = index;
@@ -1209,6 +1228,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         dragAt: SheetSizes.middle,
                                       );
                                       _fetchRouteForSelectedTrip(trip);
+                                    },
+                                    onRetryConnection: () async {
+                                      await connectionService.checkConnection();
+                                      if (connectionService.isConnected) {
+                                        _refreshTripInfo();
+                                      }
                                     },
                                   )
                                 : null,
@@ -1326,7 +1351,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         // Hide it if any sheet is open
         floatingActionButton:
             isSelectingMapPoint ||
-            (startPoint != null && destinationPoint != null) ||
+                (startPoint != null && destinationPoint != null) ||
                 (selectedMapPoint != null) ||
                 (activeStop != null)
             ? null
