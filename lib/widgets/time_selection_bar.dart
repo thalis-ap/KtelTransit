@@ -23,8 +23,6 @@ class TimeSelectionBar extends StatelessWidget {
     final formattedTime =
         "${selectedSearchTime.day.toString().padLeft(2, '0')}/${selectedSearchTime.month.toString().padLeft(2, '0')} - ${selectedSearchTime.hour.toString().padLeft(2, '0')}:${selectedSearchTime.minute.toString().padLeft(2, '0')}";
 
-    final isNow = _isSameDateTime(selectedSearchTime, DateTime.now());
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
