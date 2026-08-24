@@ -29,6 +29,7 @@ class TripGroupsView extends StatelessWidget {
       return const TripsLoadingSkeleton();
     }
 
+    // Completely empty groups not even pure walking
     if (!groups.hasAnyTrips) {
       return TripWarningBanner(
         message: l10n.noTripsForRoute,
@@ -110,6 +111,12 @@ class TripGroupsView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _buildTripsList(context, groups.todayTrips, isPast: false),
+        // Add this in the case
+        if (!groups.hasAnyBusTrips)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: TripWarningBanner(message: l10n.noBusTripsForRoute, icon: Icons.warning_rounded),
+          ),
       ],
     );
   }

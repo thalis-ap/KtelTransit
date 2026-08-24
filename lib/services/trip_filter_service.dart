@@ -24,7 +24,15 @@ class TripGroups {
   bool get hasAnyTrips =>
       todayTrips.isNotEmpty || nextTrips.isNotEmpty || pastTrips.isNotEmpty;
 
+  // Returns true if there is at least one bus trip in any category
+  bool get hasAnyBusTrips =>
+      _hasAnyBusTrips(todayTrips) ||
+      _hasAnyBusTrips(nextTrips) ||
+      _hasAnyBusTrips(pastTrips);
 
+  bool _hasAnyBusTrips(List<RoutingTrip> trips) {
+    return trips.any((t) => t.busTrip != null);
+  }
 }
 
 /// A pure logic service for filtering and grouping a list of trips.
@@ -33,9 +41,11 @@ class TripFilterService {
   ///
   /// [selectedTime] is the user-chosen departure time.
   /// [now] is the current moment (usually `DateTime.now()`).
-  static TripGroups filterAndGroupTrips(List<RoutingTrip> trips,
-      DateTime selectedTime,
-      DateTime now,) {
+  static TripGroups filterAndGroupTrips(
+    List<RoutingTrip> trips,
+    DateTime selectedTime,
+    DateTime now,
+  ) {
     // Step 1: Split the list into "past" and "active" trips.
     final (pastTrips, activeTrips) = _splitPastAndActive(trips, now);
 
@@ -46,12 +56,13 @@ class TripFilterService {
 
     // Step 3: If there are no today trips, find the next available day's trips.
     final nextTrips = hasAnyBusTripsToday
-    ? <RoutingTrip>[] : _getNextAvailableTrips(activeTrips, selectedTime, now);
+        ? <RoutingTrip>[]
+        : _getNextAvailableTrips(activeTrips, selectedTime, now);
 
     return TripGroups(
-    todayTrips: todayTrips,
-    nextTrips: nextTrips,
-    pastTrips: pastTrips,
+      todayTrips: todayTrips,
+      nextTrips: nextTrips,
+      pastTrips: pastTrips,
     );
   }
 
@@ -59,8 +70,9 @@ class TripFilterService {
   /// A trip is considered past only if it has a transit trip (bus) and its
   /// departure time is before [now]. Pure walking trips are never "past".
   static (List<RoutingTrip>, List<RoutingTrip>) _splitPastAndActive(
-      List<RoutingTrip> trips,
-      DateTime now,) {
+    List<RoutingTrip> trips,
+    DateTime now,
+  ) {
     final past = <RoutingTrip>[];
     final active = <RoutingTrip>[];
 
@@ -80,8 +92,10 @@ class TripFilterService {
   }
 
   /// Returns trips that depart on the same date as [selectedTime].
-  static List<RoutingTrip> _getTodayTrips(List<RoutingTrip> activeTrips,
-      DateTime selectedTime,) {
+  static List<RoutingTrip> _getTodayTrips(
+    List<RoutingTrip> activeTrips,
+    DateTime selectedTime,
+  ) {
     final selectedDateOnly = TimeFormat.dateTimeToDateOnly(selectedTime);
 
     return activeTrips.where((trip) {
@@ -98,9 +112,11 @@ class TripFilterService {
   /// Uses [selectedTime] only to compute the departure date of each trip (the
   /// actual time-of-day is derived from the trip's schedule, not from
   /// [selectedTime]).
-  static List<RoutingTrip> _getNextAvailableTrips(List<RoutingTrip> activeTrips,
-      DateTime selectedTime,
-      DateTime now,) {
+  static List<RoutingTrip> _getNextAvailableTrips(
+    List<RoutingTrip> activeTrips,
+    DateTime selectedTime,
+    DateTime now,
+  ) {
     // First, filter active trips to those that:
     // - Have a bus component (transitTrip != null)
     // - Depart strictly after 'now'
@@ -116,8 +132,9 @@ class TripFilterService {
     // Find the earliest departure date among these future bus trips.
     // We use selectedTime as a base because getDepartureDateTime uses it to
     // construct the DateTime (it adds the trip's schedule time to the date).
-    DateTime earliestDate =
-    futureBusTrips.first.getDepartureDateTime(selectedTime);
+    DateTime earliestDate = futureBusTrips.first.getDepartureDateTime(
+      selectedTime,
+    );
     for (final trip in futureBusTrips) {
       final departure = trip.getDepartureDateTime(selectedTime);
       if (departure.compareTo(earliestDate) < 0) {
@@ -131,8 +148,10 @@ class TripFilterService {
     // Return all trips that depart on that earliest date.
     return futureBusTrips.where((trip) {
       final departure = trip.getDepartureDateTime(selectedTime);
-      return TimeFormat.dateTimeToDateOnly(departure)
-          .compareTo(earliestDateOnly) == 0;
+      return TimeFormat.dateTimeToDateOnly(
+            departure,
+          ).compareTo(earliestDateOnly) ==
+          0;
     }).toList();
   }
 }

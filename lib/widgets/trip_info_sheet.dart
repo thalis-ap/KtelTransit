@@ -136,7 +136,7 @@ class TripInfoSheet extends StatelessWidget {
     if (isLoading) {
       return const TripsLoadingSkeleton();
     }
-
+    // Completely empty trips not even pure walking
     if (trips == null || trips!.isEmpty) {
       return TripWarningBanner(
         message: l10n.noTripsForRoute,
