@@ -78,7 +78,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get settingsTitle => 'Ρυθμίσεις';
 
   @override
-  String get appearanceSection => 'ΕΜΦΑΝΙΣΗ';
+  String get appearanceSection => 'Εμφάνιση';
 
   @override
   String get systemDefaultTheme => 'Προεπιλογή συστήματος';
@@ -90,7 +90,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get darkTheme => 'Σκοτεινό';
 
   @override
-  String get languageSection => 'ΓΛΩΣΣΑ / LANGUAGE';
+  String get languageSection => 'Γλώσσα / Language';
 
   @override
   String get exitDialogTitle => 'Έξοδος';
@@ -183,7 +183,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String minutesFormat(int minutes) {
-    return '$minutesλ';
+    return '$minutes λεπ';
   }
 
   @override

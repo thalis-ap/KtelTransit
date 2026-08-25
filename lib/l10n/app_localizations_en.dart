@@ -76,7 +76,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get appearanceSection => 'APPEARANCE';
+  String get appearanceSection => 'Appearance';
 
   @override
   String get systemDefaultTheme => 'System default';
@@ -88,7 +88,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get darkTheme => 'Dark';
 
   @override
-  String get languageSection => 'LANGUAGE / ΓΛΩΣΣΑ';
+  String get languageSection => 'Language / Γλώσσα';
 
   @override
   String get exitDialogTitle => 'Exit';
@@ -175,12 +175,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String hoursMinutesFormat(int hours, int minutes) {
-    return '${hours}h ${minutes}m';
+    return '${hours}h ${minutes}min';
   }
 
   @override
   String minutesFormat(int minutes) {
-    return '${minutes}m';
+    return '$minutes min';
   }
 
   @override

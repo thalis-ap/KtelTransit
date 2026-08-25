@@ -227,7 +227,7 @@ abstract class AppLocalizations {
   /// No description provided for @appearanceSection.
   ///
   /// In el, this message translates to:
-  /// **'ΕΜΦΑΝΙΣΗ'**
+  /// **'Εμφάνιση'**
   String get appearanceSection;
 
   /// No description provided for @systemDefaultTheme.
@@ -251,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @languageSection.
   ///
   /// In el, this message translates to:
-  /// **'ΓΛΩΣΣΑ / LANGUAGE'**
+  /// **'Γλώσσα / Language'**
   String get languageSection;
 
   /// No description provided for @exitDialogTitle.
@@ -407,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @minutesFormat.
   ///
   /// In el, this message translates to:
-  /// **'{minutes}λ'**
+  /// **'{minutes} λεπ'**
   String minutesFormat(int minutes);
 
   /// No description provided for @departureLabel.

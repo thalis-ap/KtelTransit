@@ -22,10 +22,13 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             children: [
               // Appearance Section
-              Text(
-                l10n.appearanceSection,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Text(
+                  l10n.appearanceSection,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -75,10 +78,13 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 28),
 
               // Language Section
-              Text(
-                l10n.languageSection,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Text(
+                  l10n.languageSection,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -125,10 +131,13 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 28),
 
               // Language Section
-              Text(
-                l10n.maxWaitTime,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Padding(
+                padding: const EdgeInsets.only(left: 10.0),
+                child: Text(
+                  l10n.maxWaitTime,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
