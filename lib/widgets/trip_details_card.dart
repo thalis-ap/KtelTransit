@@ -387,7 +387,7 @@ class TripDetailsCard extends StatelessWidget {
 
         // Loop through the legs, for each one, add a wait time and a departure
         // from widget. This way there will be consequent wait, departure,
-        // arrival | wait departure arrival texts, which is the desired output.
+        // arrival | wait, departure, arrival texts, which is the desired output.
         // The user arrives somewhere, waits then departs, then arrives somewhere
         // else, all over again, in the case of multiple transfers
         for (
@@ -411,23 +411,23 @@ class TripDetailsCard extends StatelessWidget {
               busTrip.legs[legIndex + 1].departureDateTime,
             ),
           ),
-
-          const SizedBox(height: 8),
-          _buildArrivalAtTransferRow(
-            colorScheme,
-            l10n.arrivalAt(busTrip.legs[legIndex + 1].destinationStopName),
-            TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              busTrip.legs[legIndex + 1].arrivalDateTime,
-            ),
-          ),
         ],
 
         // Transfers end here
         if (egress != null)
-          Padding(
+          ...[
+            const SizedBox(height: 8),
+            _buildArrivalAtTransferRow(
+              colorScheme,
+              l10n.arrivalAt(busTrip.legs.last.destinationStopName),
+              TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                busTrip.legs.last.arrivalDateTime,
+              ),
+            ),
+            Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: _buildWalkEgress(colorScheme, l10n: l10n),
-          ),
+          ),],
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildArrivalRow(
