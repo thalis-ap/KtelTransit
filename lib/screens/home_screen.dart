@@ -391,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     await _refreshTripInfo();
   }
 
-  void _onGoBackToAllTrips() {
+  void _onBackToAllTrips() {
     setState(() {
       selectedTripIndex = null;
       activeRoute = null;
@@ -415,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         case SheetKeys.tripInfo:
           // If a trip is selected, go back to all trips view
           if (selectedTripIndex != null) {
-            _onGoBackToAllTrips();
+            _onBackToAllTrips();
             return;
           }
           // If both points are selected, we need to decide whether to clear one or both.
@@ -1195,7 +1195,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     trips: trips,
                                     selectedTripIndex: selectedTripIndex,
                                     selectedSearchTime: selectedSearchTime,
-                                    onBackToAllTrips: _onGoBackToAllTrips,
+                                    onBackToAllTrips: _onBackToAllTrips,
                                     onClose: _closeTripInfoSheet,
                                     onChangeTime: _showDateTimePickerDialog,
                                     onResetTime: _onResetTime,
