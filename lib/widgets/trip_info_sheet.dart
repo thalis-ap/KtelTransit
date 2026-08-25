@@ -28,6 +28,8 @@ class TripInfoSheet extends StatelessWidget {
   final VoidCallback onRetryConnection;
   final Function(int index, RoutingTrip trip) onTripSelected;
 
+  final connectionService = ConnectionService();
+
   // Snap points, kept in one place so header-drag snapping matches the
   // sheet's own min/max/snapSizes configuration.
   static const List<double> _snapPoints = [
@@ -36,7 +38,7 @@ class TripInfoSheet extends StatelessWidget {
     SheetSizes.high,
   ];
 
-  const TripInfoSheet({
+  TripInfoSheet({
     super.key,
     required this.isLoading,
     required this.startPoint,
@@ -221,7 +223,7 @@ class TripInfoSheet extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final l10n = AppLocalizations.of(context)!;
-    final connectionService = ConnectionService();
+    bool previousConnectionStatus = connectionService.isConnected;
 
     return DraggableScrollableSheet(
       controller: controller,
@@ -240,6 +242,11 @@ class TripInfoSheet extends StatelessWidget {
           child: ListenableBuilder(
             listenable: connectionService,
             builder: (context, _) {
+              // Refresh the trips only if the connection status changed to true
+              if (previousConnectionStatus != connectionService.isConnected && connectionService.isConnected) {
+                onRetryConnection();
+                previousConnectionStatus = connectionService.isConnected;
+              }
               return AnimatedBuilder(
                 animation: controller,
                 builder: (context, _) {
@@ -314,6 +321,7 @@ class TripInfoSheet extends StatelessWidget {
 
                       // --- Offline Banner (shows only when offline) ---
                       if (showConnectionBanner)
+
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24.0,
@@ -321,6 +329,7 @@ class TripInfoSheet extends StatelessWidget {
                           ),
                           child: OfflineBanner(
                             onRetry: onRetryConnection,
+
                           ),
                         ),
 
