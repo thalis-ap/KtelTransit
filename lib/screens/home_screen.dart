@@ -390,6 +390,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     await _refreshTripInfo();
   }
 
+  void _onTripSelected(int index, RoutingTrip trip) {
+    setState(() {
+      selectedTripIndex = index;
+    });
+    // Make sure the trip sheet is at SheetSizes.middle size so that
+    // when user selects a trip, the map shows the route
+    _showTripInfoSheet(dragAt: SheetSizes.middle);
+    _fetchRouteForSelectedTrip(trip);
+  }
+
   void _onBackToAllTrips() {
     setState(() {
       selectedTripIndex = null;
@@ -451,6 +461,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  /// Resets time to now and refreshes the trips
   void _onResetTime() {
     setState(() {
       selectedSearchTime = DateTime.now();
@@ -949,15 +960,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onClose: _closeTripInfoSheet,
                     onChangeTime: _showDateTimePickerDialog,
                     onResetTime: _onResetTime,
-                    onTripSelected: (index, trip) {
-                      setState(() {
-                        selectedTripIndex = index;
-                      });
-                      // Make sure the trip sheet is at SheetSizes.middle size so that
-                      // when user selects a trip, the map shows the route
-                      _showTripInfoSheet(dragAt: SheetSizes.middle);
-                      _fetchRouteForSelectedTrip(trip);
-                    },
+                    onTripSelected: (index, trip) => _onTripSelected(index, trip),
                     onRetryConnection: () async {
                       await connectionService.checkConnection();
                       if (connectionService.isConnected) {
