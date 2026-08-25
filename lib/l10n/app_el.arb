@@ -103,7 +103,7 @@
       }
     }
   },
-  "minutesFormat": "{minutes}λ",
+  "minutesFormat": "{minutes} λεπ",
   "@minutesFormat": {
     "placeholders": {
       "minutes": {
