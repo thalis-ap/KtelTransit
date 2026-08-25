@@ -17,7 +17,7 @@ import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/choose_on_map_bar.dart';
-import 'package:ktel_transit/widgets/compass_rotator.dart';
+import 'package:ktel_transit/widgets/compass_button.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
 import 'package:ktel_transit/widgets/stop_sheet.dart';
@@ -794,6 +794,443 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     await _refreshTripInfo();
   }
 
+  /// Builds everything related to the map
+  Widget _buildMap() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    // Find the active transfer stop, to determine its icon correctly
+    Stop? activeTransferStop;
+    if (selectedTripIndex != null && cachedTrips != null) {
+      final activeTrip = cachedTrips![selectedTripIndex!];
+      if (activeTrip.busTrip?.isTransfer ?? false) {
+        try {
+          activeTransferStop = repository.stops.firstWhere(
+            (s) =>
+                s.getLocalizedNameByLangCode(languageCode) ==
+                activeTrip.busTrip!.legs.first.destinationStopName,
+          );
+        } catch (_) {}
+      }
+    }
+
+    // We should listen to the repository's current region notifier, to update
+    // the map's focus (center, zoom) when the region is changed
+    return ValueListenableBuilder<Region?>(
+      valueListenable: repository.currentRegionNotifier,
+      builder: (context, activeRegion, child) {
+        return FlutterMap(
+          mapController: mapController,
+          options: MapOptions(
+            initialCenter: activeRegion!.center,
+            initialZoom: activeRegion.defaultZoom,
+            minZoom: 6.0,
+            maxZoom: 20.0,
+            onLongPress: (position, latlng) {
+              _showDroppedPinSheet(latlng);
+            },
+            onMapReady: () {
+              setState(() {
+                isMapReady = true;
+              });
+            },
+            onPositionChanged: (position, hasGesture) {
+              if (position.rotationRad != _mapMovementService.mapRotation) {
+                _mapMovementService.setRotation(position.rotationRad);
+                // We still need to notify the UI that the rotation changed (for the compass icon)
+                setState(() {});
+              }
+            },
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.all & ~InteractiveFlag.flingAnimation,
+              enableMultiFingerGestureRace: true,
+              rotationThreshold: 10.0,
+              pinchZoomThreshold: 0.2,
+              pinchMoveThreshold: 20.0,
+            ),
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.symplyapps.ktel_transit',
+              tileBuilder: Theme.of(context).brightness == Brightness.dark
+                  ? darkModeTileBuilder
+                  : null,
+            ),
+            if (activeRoute != null)
+              PolylineLayer(
+                polylines: [
+                  // Access Walk (Pin to Start Stop)
+                  if (activeRoute!.accessTrip?.points != null)
+                    Polyline(
+                      points: activeRoute!.accessTrip!.points,
+                      color: AppTheme.blueish,
+                      borderStrokeWidth: 5,
+                      borderColor: colorScheme.onSurfaceVariant,
+                      strokeWidth: 8.0,
+                      pattern: StrokePattern.dashed(segments: [1, 18]),
+                    ),
+                  // Transit Ride (The Bus)
+                  if (activeRoute!.busTrip?.points != null)
+                    Polyline(
+                      points: activeRoute!.busTrip!.points!,
+                      color: AppTheme.blueish,
+                      strokeWidth: 4.0,
+                    ),
+                  // Egress Walk (End Stop to Pin)
+                  if (activeRoute!.egressTrip?.points != null)
+                    Polyline(
+                      points: activeRoute!.egressTrip!.points,
+                      color: AppTheme.blueish,
+                      borderStrokeWidth: 5,
+                      borderColor: colorScheme.onSurfaceVariant,
+                      strokeWidth: 8,
+                      pattern: StrokePattern.dashed(segments: [1, 18]),
+                    ),
+                ],
+              ),
+            if (startPoint != null && startPoint is! Stop)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: startPoint!.coordinates,
+                    width: 40,
+                    height: 40,
+                    rotate: true,
+                    child: GestureDetector(
+                      onTap: () =>
+                          _showDroppedPinSheet(startPoint!.coordinates),
+                      child: Icon(
+                        Icons.my_location,
+                        color: colorScheme.secondary,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (destinationPoint != null && destinationPoint is! Stop)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: destinationPoint!.coordinates,
+                    width: 40,
+                    height: 40,
+                    rotate: true,
+                    child: GestureDetector(
+                      onTap: () =>
+                          _showDroppedPinSheet(destinationPoint!.coordinates),
+                      child: Icon(
+                        Icons.place,
+                        color: colorScheme.error,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (selectedMapPoint != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: selectedMapPoint!.coordinates,
+                    width: 50.0,
+                    height: 50.0,
+                    rotate: true,
+                    // Anchors the bottom of the pin to the exact coordinate
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      // Added padding to make the pin actually land where you tap
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: Icon(
+                        Icons.push_pin_rounded,
+                        size: 30.0,
+                        color: colorScheme.tertiary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+            if (userLocation != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: userLocation!.coordinates,
+                    width: 80,
+                    height: 80,
+                    rotate: true,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // The rotating cone (Bottom layer)
+                        if (_compassService.heading != null)
+                          Transform.rotate(
+                            angle: _compassService.heading! * (math.pi / 180),
+                            child: CustomPaint(
+                              size: const Size(80, 80),
+                              painter: CompassConePainter(
+                                color: AppTheme.blueish,
+                              ),
+                            ),
+                          ),
+
+                        // Google Maps dot (Top layer)
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: AppTheme.blueish,
+                            shape: BoxShape.circle,
+                            border: Border.all(width: 2, color: Colors.white),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.blueish,
+                                blurRadius: 20,
+                                spreadRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+            MarkerLayer(
+              markers: repository.stops.map((stop) {
+                IconData iconData;
+                Color iconColor;
+
+                if (stop.coordinates == startPoint?.coordinates) {
+                  iconData = Icons.my_location;
+                  iconColor = colorScheme.secondary;
+                } else if (stop.coordinates == destinationPoint?.coordinates) {
+                  iconData = Icons.place;
+                  iconColor = colorScheme.error;
+                } else if (stop.coordinates ==
+                    activeTransferStop?.coordinates) {
+                  iconData = Icons.transfer_within_a_station;
+                  iconColor = colorScheme.tertiary;
+                } else if (stop.coordinates == activeStop?.coordinates) {
+                  iconData = Icons.directions_bus;
+                  iconColor = colorScheme.tertiary;
+                } else {
+                  iconData = Icons.directions_bus;
+                  iconColor = colorScheme.surfaceTint;
+                }
+
+                return Marker(
+                  point: stop.coordinates,
+                  width: 40,
+                  height: 40,
+                  rotate: true,
+                  child: GestureDetector(
+                    onTap: () => _showStopSheet(stop),
+                    child: Icon(iconData, color: iconColor, size: 30),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Builds the search bar widget, unless we have selected a trip
+  /// (i.e. selectedTripIndex != null), where we return a null widget
+  Widget _buildSearchBar() {
+    return selectedTripIndex == null
+        ? Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+            child: isSelectingMapPoint
+                ? ChooseOnMapBar(
+                    onBackPressed: _onCloseChooseOnMap,
+                    isSelectingMapPointStart: isSelectingMapPointStart,
+                  )
+                : TripSearchBar(
+                    startPoint: startPoint,
+                    destinationPoint: destinationPoint,
+                    onMenuPressed: () {
+                      FocusScope.of(context).unfocus();
+                      _scaffoldKey.currentState?.openDrawer();
+                    },
+                    onBackPressed: _onBackPressed,
+                    onSwap: _onSwapDirectionPressed,
+                    onSearch: (isStart) => _searchAndSetStop(isStart: isStart),
+                  ),
+          )
+        : SizedBox.shrink();
+  }
+
+  /// Builds the compass button at the correct height. Height is adjusted based
+  /// on whether the search bar includes 1 or 2 input texts, and whether we have
+  /// selected a trip (selectedTripIndex != null)
+  Widget _buildCompassButton() {
+    return Positioned(
+      top:
+          MediaQuery.of(context).padding.top +
+          (selectedTripIndex == null
+              ? (startPoint == null && destinationPoint == null)
+                    ? 110
+                    : 150
+              : 10),
+
+      right: 16,
+      child: CompassButton(
+        rotation: _mapMovementService.mapRotation,
+        onPressed: _onCompassPressed,
+      ),
+    );
+  }
+
+  /// Shown only when selecting a map point (isSelectingMapPoint = true)
+  Widget _buildCenteredPinOverlay() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child: Icon(
+            Icons.push_pin_rounded,
+            size: 48,
+            color: Theme.of(context).colorScheme.tertiary,
+            shadows: const [
+              Shadow(
+                blurRadius: 8,
+                color: Colors.black26,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Shown only when selecting a map point (isSelectingMapPoint = true)
+  Widget _buildConfirmMapPointButton() {
+    return Positioned(
+      bottom: MediaQuery.of(context).padding.bottom + 32,
+      left: 32,
+      right: 32,
+      child: FilledButton(
+        onPressed: _onConfirmChooseOnMap,
+        style: FilledButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: Text(
+          AppLocalizations.of(context)!.setLocation,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  /// Returns the widgets to be built for choosing a point from the map
+  /// if isSelectingMapPoint = false then return no widgets
+  List<Widget> _buildMapPointSelectionWidgets() {
+    if (isSelectingMapPoint) {
+      return [_buildCenteredPinOverlay(), _buildConfirmMapPointButton()];
+    }
+    return [];
+  }
+
+  /// Returns a list of the sheets that we must draw (the ones that are open)
+  List<Widget> _buildSheets() {
+    return [
+      ..._sheetManager.stackOrder.map((sheetName) {
+        if (sheetName == SheetKeys.tripInfo) {
+          return // TripInfoSheet
+          _buildAnimatedSheet(
+            (startPoint != null && destinationPoint != null)
+                ? TripInfoSheet(
+                    key: ValueKey('${sheetName}_sheet'),
+                    isLoading: isLoadingTrips,
+                    controller: _sheetManager.tripInfoController,
+                    startPoint: startPoint!,
+                    destinationPoint: destinationPoint!,
+                    trips: cachedTrips,
+                    selectedTripIndex: selectedTripIndex,
+                    selectedSearchTime: selectedSearchTime,
+                    onBackToAllTrips: _onBackToAllTrips,
+                    onClose: _closeTripInfoSheet,
+                    onChangeTime: _showDateTimePickerDialog,
+                    onResetTime: _onResetTime,
+                    onTripSelected: (index, trip) {
+                      setState(() {
+                        selectedTripIndex = index;
+                      });
+                      // Make sure the trip sheet is at SheetSizes.middle size so that
+                      // when user selects a trip, the map shows the route
+                      _showTripInfoSheet(dragAt: SheetSizes.middle);
+                      _fetchRouteForSelectedTrip(trip);
+                    },
+                    onRetryConnection: () async {
+                      await connectionService.checkConnection();
+                      if (connectionService.isConnected) {
+                        _refreshTripInfo();
+                      }
+                    },
+                  )
+                : null,
+            sheetName,
+          );
+        } else if (sheetName == SheetKeys.stop) {
+          return // StopSheet
+          _buildAnimatedSheet(
+            (activeStop != null)
+                ? StopSheet(
+                    key: ValueKey('${sheetName}_sheet'),
+                    stop: activeStop!,
+                    controller: _sheetManager.stopController,
+                    repository: repository,
+                    onSetStart: (MapPoint _) {
+                      _onSetStartPoint(activeStop!);
+                      _closeStopSheet();
+                    },
+                    onSetDestination: (MapPoint _) {
+                      _onSetDestinationPoint(activeStop!);
+                      _closeStopSheet();
+                    },
+                    onClose: _closeStopSheet,
+                  )
+                : null,
+            sheetName,
+          );
+        } else if (sheetName == SheetKeys.droppedPin) {
+          return // DroppedPinSheet
+          _buildAnimatedSheet(
+            (selectedMapPoint != null)
+                ? DroppedPinSheet(
+                    key: ValueKey('${sheetName}_sheet'),
+                    mapPoint: selectedMapPoint!,
+                    controller: _sheetManager.droppedPinController,
+                    repository: repository,
+                    onSetStart: (MapPoint p) {
+                      _onSetStartPoint(selectedMapPoint!);
+                    },
+                    onSetDestination: (MapPoint p) {
+                      _onSetDestinationPoint(selectedMapPoint!);
+                    },
+                    onClose: _closeDroppedPinSheet,
+                  )
+                : null,
+            sheetName,
+          );
+        } else {
+          return SizedBox.shrink();
+        }
+      }),
+    ];
+  }
+
   /// Wraps our sheets in a smooth slide transition when they open and close
   Widget _buildAnimatedSheet(Widget? sheetWidget, String sheetName) {
     return AnimatedSwitcher(
@@ -814,28 +1251,91 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  /// Builds a loading snackbar widget when the region is changed
+  /// It stays there until the region is loaded, and thus the
+  /// isRegionLoadingNotifier becomes false and notifies the listenable builder
+  Widget _buildLoadingSnackbar() {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final languageCode = Localizations.localeOf(context).languageCode;
 
-    final List<RoutingTrip>? trips = cachedTrips;
+    return ValueListenableBuilder<bool>(
+      valueListenable: repository.isRegionLoadingNotifier,
+      builder: (context, isLoadingRegion, child) {
+        return AnimatedPositioned(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          // Slides up when loading, hides below the screen when done
+          bottom: isLoadingRegion ? 18.0 : -100.0,
+          left: 24,
+          right: 100,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: isLoadingRegion ? 1.0 : 0.0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: colorScheme.tertiary,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: colorScheme.onTertiary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    l10n.loadingStops,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-    Stop? activeTransferStop;
-    if (selectedTripIndex != null && trips != null) {
-      final activeTrip = trips[selectedTripIndex!];
-      if (activeTrip.busTrip?.isTransfer ?? false) {
-        try {
-          activeTransferStop = repository.stops.firstWhere(
-            (s) =>
-                s.getLocalizedNameByLangCode(languageCode) ==
-                activeTrip.busTrip!.legs.first.destinationStopName,
+  /// Builds the floating action button for 'my location' on the right bottom
+  /// of the screen
+  FloatingActionButton? _buildMyLocationButton() {
+    // Hide it in any of these cases:
+    // 1. We are selecting a map point
+    // 2. We have selected both start/dest points
+    // 3. We have selected a map point (long press, DroppedPinSheet is open)
+    // 4. We have selected a stop (StopSheet is open)
+    return isSelectingMapPoint ||
+            (startPoint != null && destinationPoint != null) ||
+            (selectedMapPoint != null) ||
+            (activeStop != null)
+        ? null
+        : FloatingActionButton(
+            onPressed: _onMyLocationPressed,
+            // slight lighter color to avoid same color with the map
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            child: Icon(Icons.my_location, color: AppTheme.blueish),
           );
-        } catch (_) {}
-      }
-    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
@@ -845,503 +1345,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: SideDrawer(settingsController: widget.settingsController),
-        body: ValueListenableBuilder<Region?>(
-          valueListenable: repository.currentRegionNotifier,
-          builder: (context, activeRegion, child) {
-            return isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Stack(
-                    children: [
-                      FlutterMap(
-                        mapController: mapController,
-                        options: MapOptions(
-                          initialCenter: activeRegion!.center,
-                          initialZoom: activeRegion.defaultZoom,
-                          minZoom: 6.0,
-                          maxZoom: 20.0,
-                          onLongPress: (position, latlng) {
-                            _showDroppedPinSheet(latlng);
-                          },
-                          onMapReady: () {
-                            setState(() {
-                              isMapReady = true;
-                            });
-                          },
-                          onPositionChanged: (position, hasGesture) {
-                            if (position.rotationRad !=
-                                _mapMovementService.mapRotation) {
-                              _mapMovementService.setRotation(
-                                position.rotationRad,
-                              );
-                              // We still need to notify the UI that the rotation changed (for the compass icon)
-                              setState(() {});
-                            }
-                          },
-                          interactionOptions: const InteractionOptions(
-                            flags:
-                                InteractiveFlag.all &
-                                ~InteractiveFlag.flingAnimation,
-                            enableMultiFingerGestureRace: true,
-                            rotationThreshold: 10.0,
-                            pinchZoomThreshold: 0.2,
-                            pinchMoveThreshold: 20.0,
-                          ),
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.symplyapps.ktel_transit',
-                            tileBuilder:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? darkModeTileBuilder
-                                : null,
-                          ),
-                          if (activeRoute != null)
-                            PolylineLayer(
-                              polylines: [
-                                // Access Walk (Pin to Start Stop)
-                                if (activeRoute!.accessTrip?.points != null)
-                                  Polyline(
-                                    points: activeRoute!.accessTrip!.points,
-                                    color: AppTheme.blueish,
-                                    borderStrokeWidth: 5,
-                                    borderColor: colorScheme.onSurfaceVariant,
-                                    strokeWidth: 8.0,
-                                    pattern: StrokePattern.dashed(
-                                      segments: [1, 18],
-                                    ),
-                                  ),
-                                // Transit Ride (The Bus)
-                                if (activeRoute!.busTrip?.points != null)
-                                  Polyline(
-                                    points: activeRoute!.busTrip!.points!,
-                                    color: AppTheme.blueish,
-                                    strokeWidth: 4.0,
-                                  ),
-                                // Egress Walk (End Stop to Pin)
-                                if (activeRoute!.egressTrip?.points != null)
-                                  Polyline(
-                                    points: activeRoute!.egressTrip!.points,
-                                    color: AppTheme.blueish,
-                                    borderStrokeWidth: 5,
-                                    borderColor: colorScheme.onSurfaceVariant,
-                                    strokeWidth: 8,
-                                    pattern: StrokePattern.dashed(
-                                      segments: [1, 18],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          if (startPoint != null && startPoint is! Stop)
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: startPoint!.coordinates,
-                                  width: 40,
-                                  height: 40,
-                                  rotate: true,
-                                  child: GestureDetector(
-                                    onTap: () => _showDroppedPinSheet(
-                                      startPoint!.coordinates,
-                                    ),
-                                    child: Icon(
-                                      Icons.my_location,
-                                      color: colorScheme.secondary,
-                                      size: 30,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          if (destinationPoint != null &&
-                              destinationPoint is! Stop)
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: destinationPoint!.coordinates,
-                                  width: 40,
-                                  height: 40,
-                                  rotate: true,
-                                  child: GestureDetector(
-                                    onTap: () => _showDroppedPinSheet(
-                                      destinationPoint!.coordinates,
-                                    ),
-                                    child: Icon(
-                                      Icons.place,
-                                      color: colorScheme.error,
-                                      size: 30,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          if (selectedMapPoint != null)
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: selectedMapPoint!.coordinates,
-                                  width: 50.0,
-                                  height: 50.0,
-                                  rotate: true,
-                                  // Anchors the bottom of the pin to the exact coordinate
-                                  alignment: Alignment.topCenter,
-                                  child: Padding(
-                                    // Added padding to make the pin actually land where you tap
-                                    padding: const EdgeInsets.only(top: 20.0),
-                                    child: Icon(
-                                      Icons.push_pin_rounded,
-                                      size: 30.0,
-                                      color: colorScheme.tertiary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            // Use a stack for positioned widget on top of the map
+            : Stack(
+                children: [
+                  // Builds the map
+                  _buildMap(),
 
-                          if (userLocation != null)
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: userLocation!.coordinates,
-                                  width: 80,
-                                  height: 80,
-                                  rotate: true,
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      // The rotating cone (Bottom layer)
-                                      if (_compassService.heading != null)
-                                        Transform.rotate(
-                                          angle:
-                                              _compassService.heading! *
-                                              (math.pi / 180),
-                                          child: CustomPaint(
-                                            size: const Size(80, 80),
-                                            painter: CompassConePainter(
-                                              color: AppTheme.blueish,
-                                            ),
-                                          ),
-                                        ),
+                  // Search bar
+                  _buildSearchBar(),
 
-                                      // Google Maps dot (Top layer)
-                                      Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.blueish,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            width: 2,
-                                            color: Colors.white,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: AppTheme.blueish,
-                                              blurRadius: 20,
-                                              spreadRadius: 4,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                  // Compass button
+                  _buildCompassButton(),
 
-                          MarkerLayer(
-                            markers: repository.stops.map((stop) {
-                              IconData iconData;
-                              Color iconColor;
+                  // Map point selecting widgets
+                  ..._buildMapPointSelectionWidgets(),
 
-                              if (stop.coordinates == startPoint?.coordinates) {
-                                iconData = Icons.my_location;
-                                iconColor = colorScheme.secondary;
-                              } else if (stop.coordinates ==
-                                  destinationPoint?.coordinates) {
-                                iconData = Icons.place;
-                                iconColor = colorScheme.error;
-                              } else if (stop.coordinates ==
-                                  activeTransferStop?.coordinates) {
-                                iconData = Icons.transfer_within_a_station;
-                                iconColor = colorScheme.tertiary;
-                              } else if (stop.coordinates ==
-                                  activeStop?.coordinates) {
-                                iconData = Icons.directions_bus;
-                                iconColor = colorScheme.tertiary;
-                              } else {
-                                iconData = Icons.directions_bus;
-                                iconColor = colorScheme.surfaceTint;
-                              }
+                  // Build the sheets we must
+                  ..._buildSheets(),
 
-                              return Marker(
-                                point: stop.coordinates,
-                                width: 40,
-                                height: 40,
-                                rotate: true,
-                                child: GestureDetector(
-                                  onTap: () => _showStopSheet(stop),
-                                  child: Icon(
-                                    iconData,
-                                    color: iconColor,
-                                    size: 30,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-
-                      // Search bar
-                      if (selectedTripIndex == null)
-                        Positioned(
-                          top: MediaQuery.of(context).padding.top + 16,
-                          left: 16,
-                          right: 16,
-                          child: isSelectingMapPoint
-                              ? ChooseOnMapBar(
-                                  onBackPressed: _onCloseChooseOnMap,
-                                  isSelectingMapPointStart:
-                                      isSelectingMapPointStart,
-                                )
-                              : TripSearchBar(
-                                  startPoint: startPoint,
-                                  destinationPoint: destinationPoint,
-                                  onMenuPressed: () {
-                                    FocusScope.of(context).unfocus();
-                                    _scaffoldKey.currentState?.openDrawer();
-                                  },
-                                  onBackPressed: _onBackPressed,
-                                  onSwap: _onSwapDirectionPressed,
-                                  onSearch: (isStart) =>
-                                      _searchAndSetStop(isStart: isStart),
-                                ),
-                        ),
-
-                      // Compass
-                      Positioned(
-                        top:
-                            MediaQuery.of(context).padding.top +
-                            (startPoint == null && destinationPoint == null
-                                ? 120
-                                : 160),
-                        right: 16,
-                        child: CompassRotator(
-                          rotation: _mapMovementService.mapRotation,
-                          onPressed: _onCompassPressed,
-                        ),
-                      ),
-
-                      // Centered pin overlay (only visible when choosing on map)
-                      if (isSelectingMapPoint)
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: Center(
-                              child: Icon(
-                                Icons.push_pin_rounded,
-                                size: 48,
-                                color: Theme.of(context).colorScheme.tertiary,
-                                shadows: const [
-                                  Shadow(
-                                    blurRadius: 8,
-                                    color: Colors.black26,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      // Confirm button when choosing on map
-                      if (isSelectingMapPoint)
-                        Positioned(
-                          bottom: MediaQuery.of(context).padding.bottom + 32,
-                          left: 32,
-                          right: 32,
-                          child: FilledButton(
-                            onPressed: _onConfirmChooseOnMap,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: colorScheme.tertiary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(context)!.setLocation,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      ..._sheetManager.stackOrder.map((sheetName) {
-                        if (sheetName == SheetKeys.tripInfo) {
-                          return // TripInfoSheet
-                          _buildAnimatedSheet(
-                            (startPoint != null && destinationPoint != null)
-                                ? TripInfoSheet(
-                                    key: ValueKey('${sheetName}_sheet'),
-                                    isLoading: isLoadingTrips,
-                                    controller:
-                                        _sheetManager.tripInfoController,
-                                    startPoint: startPoint!,
-                                    destinationPoint: destinationPoint!,
-                                    trips: trips,
-                                    selectedTripIndex: selectedTripIndex,
-                                    selectedSearchTime: selectedSearchTime,
-                                    onBackToAllTrips: _onBackToAllTrips,
-                                    onClose: _closeTripInfoSheet,
-                                    onChangeTime: _showDateTimePickerDialog,
-                                    onResetTime: _onResetTime,
-                                    onTripSelected: (index, trip) {
-                                      setState(() {
-                                        selectedTripIndex = index;
-                                      });
-                                      // Make sure the trip sheet is at SheetSizes.middle size so that
-                                      // when user selects a trip, the map shows the route
-                                      _showTripInfoSheet(
-                                        dragAt: SheetSizes.middle,
-                                      );
-                                      _fetchRouteForSelectedTrip(trip);
-                                    },
-                                    onRetryConnection: () async {
-                                      await connectionService.checkConnection();
-                                      if (connectionService.isConnected) {
-                                        _refreshTripInfo();
-                                      }
-                                    },
-                                  )
-                                : null,
-                            sheetName,
-                          );
-                        } else if (sheetName == SheetKeys.stop) {
-                          return // StopSheet
-                          _buildAnimatedSheet(
-                            (activeStop != null)
-                                ? StopSheet(
-                                    key: ValueKey('${sheetName}_sheet'),
-                                    stop: activeStop!,
-                                    controller: _sheetManager.stopController,
-                                    repository: repository,
-                                    onSetStart: (MapPoint _) {
-                                      _onSetStartPoint(activeStop!);
-                                      _closeStopSheet();
-                                    },
-                                    onSetDestination: (MapPoint _) {
-                                      _onSetDestinationPoint(activeStop!);
-                                      _closeStopSheet();
-                                    },
-                                    onClose: _closeStopSheet,
-                                  )
-                                : null,
-                            sheetName,
-                          );
-                        } else if (sheetName == SheetKeys.droppedPin) {
-                          return // DroppedPinSheet
-                          _buildAnimatedSheet(
-                            (selectedMapPoint != null)
-                                ? DroppedPinSheet(
-                                    key: ValueKey('${sheetName}_sheet'),
-                                    mapPoint: selectedMapPoint!,
-                                    controller:
-                                        _sheetManager.droppedPinController,
-                                    repository: repository,
-                                    onSetStart: (MapPoint p) {
-                                      _onSetStartPoint(selectedMapPoint!);
-                                    },
-                                    onSetDestination: (MapPoint p) {
-                                      _onSetDestinationPoint(selectedMapPoint!);
-                                    },
-                                    onClose: _closeDroppedPinSheet,
-                                  )
-                                : null,
-                            sheetName,
-                          );
-                        } else {
-                          return SizedBox.shrink();
-                        }
-                      }),
-
-                      // Loading snackbar
-                      ValueListenableBuilder<bool>(
-                        valueListenable: repository.isRegionLoadingNotifier,
-                        builder: (context, isLoadingRegion, child) {
-                          return AnimatedPositioned(
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeOutBack,
-                            // Slides up when loading, hides below the screen when done
-                            bottom: isLoadingRegion ? 18.0 : -100.0,
-                            left: 24,
-                            right: 100,
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 200),
-                              opacity: isLoadingRegion ? 1.0 : 0.0,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.tertiary,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 10,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: colorScheme.onTertiary,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Text(
-                                      l10n.loadingStops,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onTertiary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  );
-          },
-        ),
-        // Hide it if any sheet is open
-        floatingActionButton:
-            isSelectingMapPoint ||
-                (startPoint != null && destinationPoint != null) ||
-                (selectedMapPoint != null) ||
-                (activeStop != null)
-            ? null
-            : FloatingActionButton(
-                onPressed: _onMyLocationPressed,
-                // slight lighter color to avoid same color with the map
-                backgroundColor: colorScheme.surfaceContainerHigh,
-                child: Icon(Icons.my_location, color: AppTheme.blueish),
+                  // Loading snackbar
+                  _buildLoadingSnackbar(),
+                ],
               ),
+        floatingActionButton: _buildMyLocationButton(),
       ),
     );
   }

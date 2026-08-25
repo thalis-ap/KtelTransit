@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 
-class CompassRotator extends StatelessWidget {
+class CompassButton extends StatelessWidget {
   final double rotation; // in radians
   final VoidCallback onPressed;
 
-  const CompassRotator({
+  const CompassButton({
     super.key,
     required this.rotation,
     required this.onPressed,
