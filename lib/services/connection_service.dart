@@ -29,7 +29,7 @@ class ConnectionService extends ChangeNotifier {
   }
 
   /// Start periodic checking (optional – call this once)
-  void startMonitoring({Duration interval = const Duration(seconds: 5)}) {
+  void startMonitoring({Duration interval = const Duration(seconds: 10)}) {
     checkConnection();
     Future.doWhile(() async {
       await Future.delayed(interval);
