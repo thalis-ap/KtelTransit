@@ -24,6 +24,19 @@ class BusLeg {
 
   String get estimatedFareAsString => FareService.fareAsString(estimatedFare);
 
+  /// We don't use the originStop.name here because we don't know the preffered
+  /// language of the user.
+  List<String> stopNamesFromTo(String startName, String destName) {
+    // Throw out all stops before the start one
+    final tripStart = stopNames.skipWhile((name) => name != startName).toList();
+    final indexOfDest = tripStart.indexOf(destName);
+    // Invalid destination name
+    if (indexOfDest < 0) return [];
+
+    // Take all stops after start one (including it) until destination (including it)
+    return tripStart.take(indexOfDest + 1).toList();
+  }
+
   BusLeg({
     required this.routeName,
     required this.originStopName,

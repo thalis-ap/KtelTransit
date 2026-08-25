@@ -352,7 +352,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.departureDateTime,
             ),
-            stopNames: leg.stopNames,
+            stopNames: leg.stopNamesFromTo(leg.originStopName, leg.destinationStopName),
             estimatedDuration: leg.estimatedDuration,
           ),
         ),
@@ -441,7 +441,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               firstLeg.departureDateTime,
             ),
-            stopNames: firstLeg.stopNames,
+            stopNames: firstLeg.stopNamesFromTo(firstLeg.originStopName, firstLeg.destinationStopName),
             estimatedDuration: firstLeg.estimatedDuration,
             ),
         ),
