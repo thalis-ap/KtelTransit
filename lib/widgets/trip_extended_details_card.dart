@@ -51,7 +51,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 children: [
                   Text(
                     TimeFormat.secondsToFormattedString(
-                      widget.routingTrip.duration,
+                      widget.routingTrip.durationFull,
                       l10n,
                     ),
                     style: TextStyle(
@@ -60,17 +60,26 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  if (widget.routingTrip.busTrip == null &&
-                      widget.routingTrip.accessTrip != null) ...[
+                  if (bus == null &&
+                      trip.accessTrip != null) ...[
                     const SizedBox(width: 10),
                     Text(
-                      "(${DistanceFormat.metersToFormattedString(widget.routingTrip.accessTrip!.distance, l10n)})",
+                      "(${DistanceFormat.metersToFormattedString(trip.accessTrip!.distance, l10n)})",
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
+                  ] else if (bus != null && bus.isTransfer)
+                    ...[const SizedBox(width: 10),
+                      Text(
+                        "(${TimeFormat.secondsToFormattedString(trip.totalWaitTime, l10n)})",
+                        style: TextStyle(
+                          color: colorScheme.tertiary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),],
                 ],
               ),
             ),
@@ -491,7 +500,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                   ),
                   Row(
                     children: [
-                      Icon(Icons.access_time_rounded, size: 14),
+                      Icon(Icons.access_time_rounded, size: 14, color: colorScheme.tertiary,),
                       const SizedBox(width: 8),
                       Text(
                         l10n.waitingTime(
@@ -503,7 +512,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                             l10n,
                           ),
                         ),
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: 12, color: colorScheme.tertiary),
                       ),
                     ],
                   ),

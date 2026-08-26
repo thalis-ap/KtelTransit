@@ -103,7 +103,7 @@ class TripDetailsCard extends StatelessWidget {
         (i) => "${i + 1}. ${routingTrip.busTrip!.legs[i].routeName}",
       ).join("\n");
     }
-    
+
     // Get the estimated fare (-1 if no bus legs exist)
     final double estimatedFare = routingTrip.estimatedFare;
 
@@ -119,7 +119,7 @@ class TripDetailsCard extends StatelessWidget {
                 children: [
                   Text(
                     TimeFormat.secondsToFormattedString(
-                      routingTrip.duration,
+                      routingTrip.durationFull,
                       l10n,
                     ),
                     style: TextStyle(
@@ -134,6 +134,16 @@ class TripDetailsCard extends StatelessWidget {
                     Text(
                       "(${DistanceFormat.metersToFormattedString(routingTrip.accessTrip!.distance, l10n)})",
                       style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ] else if (routingTrip.busTrip != null && routingTrip.busTrip!.isTransfer) ...[
+                    const SizedBox(width: 10),
+                    Text(
+                      "(${TimeFormat.secondsToFormattedString(routingTrip.totalWaitTime, l10n)})",
+                      style: TextStyle(
+                        color: colorScheme.tertiary,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -252,13 +262,19 @@ class TripDetailsCard extends StatelessWidget {
   Widget _buildWaitTimeRow(ColorScheme colorScheme, String waitText) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
-      child: Text(
-        waitText,
-        style: TextStyle(
-          fontSize: 12,
-          fontStyle: FontStyle.italic,
-          color: colorScheme.onSurfaceVariant,
-        ),
+      child: Row(
+        children: [
+          Icon(Icons.access_time_rounded, size: 14,),
+          const SizedBox(width: 8),
+          Text(
+            waitText,
+            style: TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -414,20 +430,20 @@ class TripDetailsCard extends StatelessWidget {
         ],
 
         // Transfers end here
-        if (egress != null)
-          ...[
-            const SizedBox(height: 8),
-            _buildArrivalAtTransferRow(
-              colorScheme,
-              l10n.arrivalAt(busTrip.legs.last.destinationStopName),
-              TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                busTrip.legs.last.arrivalDateTime,
-              ),
+        if (egress != null) ...[
+          const SizedBox(height: 8),
+          _buildArrivalAtTransferRow(
+            colorScheme,
+            l10n.arrivalAt(busTrip.legs.last.destinationStopName),
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              busTrip.legs.last.arrivalDateTime,
             ),
-            Padding(
+          ),
+          Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: _buildWalkEgress(colorScheme, l10n: l10n),
-          ),],
+          ),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildArrivalRow(
