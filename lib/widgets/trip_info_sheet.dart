@@ -3,7 +3,7 @@ import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/services/connection_service.dart';
 import 'package:ktel_transit/services/sheet_manager_service.dart';
-import 'package:ktel_transit/services/trip_filter_service.dart';
+import 'package:ktel_transit/services/trip_grouping_service.dart';
 import 'package:ktel_transit/widgets/time_selection_bar.dart';
 import 'package:ktel_transit/widgets/trip_extended_details_card.dart';
 import 'package:ktel_transit/widgets/trip_groups_view.dart';
@@ -147,7 +147,7 @@ class TripInfoSheet extends StatelessWidget {
       );
     }
 
-    final groups = TripFilterService.filterAndGroupTrips(
+    final groups = TripGroupingService.filterAndGroupTrips(
       trips!,
       selectedSearchTime,
       DateTime.now(),

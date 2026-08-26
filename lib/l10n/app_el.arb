@@ -211,5 +211,10 @@
   "chooseDestinationLocation": "Επιλογή τοποθεσίας προορισμού",
   "setLocation": "Ορισμός",
   "routeFor": "Δρομολόγιο για",
-  "resetToNow": "Επαναφορά στο τώρα"
+  "resetToNow": "Επαναφορά στο τώρα",
+  "autoSelectBestRoute": "Αυτόματη εμφάνισης καλύτερης διαδρομής βάσει",
+  "minTotalTime": "Μικρότερης συνολικής διάρκειας",
+  "minDepartTime": "Νωρίτερης αναχώρησης",
+  "minArrivalTime": "Νωρίτερης άφιξης",
+  "off": "Ανενεργό"
 }

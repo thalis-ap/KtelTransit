@@ -703,6 +703,36 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Επαναφορά στο τώρα'**
   String get resetToNow;
+
+  /// No description provided for @autoSelectBestRoute.
+  ///
+  /// In el, this message translates to:
+  /// **'Αυτόματη εμφάνισης καλύτερης διαδρομής βάσει'**
+  String get autoSelectBestRoute;
+
+  /// No description provided for @minTotalTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Μικρότερης συνολικής διάρκειας'**
+  String get minTotalTime;
+
+  /// No description provided for @minDepartTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Νωρίτερης αναχώρησης'**
+  String get minDepartTime;
+
+  /// No description provided for @minArrivalTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Νωρίτερης άφιξης'**
+  String get minArrivalTime;
+
+  /// No description provided for @off.
+  ///
+  /// In el, this message translates to:
+  /// **'Ανενεργό'**
+  String get off;
 }
 
 class _AppLocalizationsDelegate

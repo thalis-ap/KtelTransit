@@ -35,9 +35,9 @@ class TripGroups {
   }
 }
 
-/// A pure logic service for filtering and grouping a list of trips.
-class TripFilterService {
-  /// Filters the given [trips] into past, today, and next groups.
+/// A pure logic service for grouping a list of trips.
+class TripGroupingService {
+  /// Groups the given [trips] into past, today, and next groups.
   ///
   /// [selectedTime] is the user-chosen departure time.
   /// [now] is the current moment (usually `DateTime.now()`).

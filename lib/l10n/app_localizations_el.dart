@@ -366,4 +366,20 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get resetToNow => 'Επαναφορά στο τώρα';
+
+  @override
+  String get autoSelectBestRoute =>
+      'Αυτόματη εμφάνισης καλύτερης διαδρομής βάσει';
+
+  @override
+  String get minTotalTime => 'Μικρότερης συνολικής διάρκειας';
+
+  @override
+  String get minDepartTime => 'Νωρίτερης αναχώρησης';
+
+  @override
+  String get minArrivalTime => 'Νωρίτερης άφιξης';
+
+  @override
+  String get off => 'Ανενεργό';
 }

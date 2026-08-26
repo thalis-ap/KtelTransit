@@ -9,6 +9,7 @@ import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
+import 'package:ktel_transit/services/auto_selection_trip_service.dart';
 import 'package:ktel_transit/services/compass_service.dart';
 import 'package:ktel_transit/services/connection_service.dart';
 import 'package:ktel_transit/services/map_movement_service.dart';
@@ -195,6 +196,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
+  /// Tries to automatically fetch a route and display it on the map (calling
+  /// fetchRouteForSelectedTrip) by using the AutoSelector class. If the user
+  /// has this feature off then this function has no effect at all
+  void _autoFetchRouteForSelectedTrip() {
+    // See if there are any trips to select from
+    if (cachedTrips == null) return;
+
+    // If optionId is AutoSelectBestRouteOption.noneOptionId then
+    // getBestTripIndex will return -1 and fetching will be skipped
+    final AutoSelector autoSelector = AutoSelector(
+      trips: cachedTrips!,
+      selectedDateTime: selectedSearchTime,
+      optionId: widget.settingsController.autoSelectBestRouteOption,
+    );
+
+    int index = autoSelector.getBestTripIndex();
+    // Return in case getter returns -1
+    if (index < 0) return;
+
+    // Show the route on the map for the best route
+    _fetchRouteForSelectedTrip(cachedTrips![index]);
+
+  }
+
   /// Fetches the route(s) (i.e. the map points) for a given OsrmTrip object
   /// and updates the routeTrips state variable to re-build the map with the
   /// route
@@ -281,6 +306,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       setState(() {
         cachedTrips = tripInfo;
         isLoadingTrips = false;
+
+        _autoFetchRouteForSelectedTrip();
       });
     }
   }
@@ -960,7 +987,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onClose: _closeTripInfoSheet,
                     onChangeTime: _showDateTimePickerDialog,
                     onResetTime: _onResetTime,
-                    onTripSelected: (index, trip) => _onTripSelected(index, trip),
+                    onTripSelected: (index, trip) =>
+                        _onTripSelected(index, trip),
                     onRetryConnection: () async {
                       await connectionService.checkConnection();
                       if (connectionService.isConnected) {

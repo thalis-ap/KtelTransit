@@ -363,4 +363,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetToNow => 'Reset to now';
+
+  @override
+  String get autoSelectBestRoute => 'Auto show best route based on';
+
+  @override
+  String get minTotalTime => 'Least total duration';
+
+  @override
+  String get minDepartTime => 'Earliest departure time';
+
+  @override
+  String get minArrivalTime => 'Earliest arrival time';
+
+  @override
+  String get off => 'Off';
 }

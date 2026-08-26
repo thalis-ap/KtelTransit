@@ -113,7 +113,13 @@
   "chooseDestinationLocation": "Choose destination location",
   "setLocation": "Set location",
   "routeFor": "Route for",
-  "resetToNow": "Reset to now"
+  "resetToNow": "Reset to now",
+  "autoSelectBestRoute": "Auto show best route based on",
+  "minTotalTime": "Least total duration",
+  "minDepartTime": "Earliest departure time",
+  "minArrivalTime": "Earliest arrival time",
+  "off": "Off"
+
 
 
 }
