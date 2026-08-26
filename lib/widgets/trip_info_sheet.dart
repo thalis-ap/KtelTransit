@@ -321,7 +321,6 @@ class TripInfoSheet extends StatelessWidget {
 
                       // --- Offline Banner (shows only when offline) ---
                       if (showConnectionBanner)
-
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24.0,
