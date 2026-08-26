@@ -174,7 +174,7 @@ class RoutingService {
           .getArrivalDateTime(selectedTime)
           .compareTo(b.getArrivalDateTime(selectedTime));
       if (res == 0) {
-        return (a.duration).compareTo((b.duration));
+        return (a.durationFull).compareTo((b.durationFull));
       }
 
       return res;
@@ -314,7 +314,7 @@ class RoutingService {
           .getArrivalDateTime(selectedTime)
           .compareTo(b.getArrivalDateTime(selectedTime));
       if (res == 0) {
-        return a.duration.compareTo(b.duration);
+        return a.durationFull.compareTo(b.durationFull);
       }
 
       return res;
@@ -428,7 +428,7 @@ class RoutingService {
           .getArrivalDateTime(selectedTime)
           .compareTo(b.getArrivalDateTime(selectedTime));
       if (res == 0) {
-        return a.duration.compareTo(b.duration);
+        return a.durationFull.compareTo(b.durationFull);
       }
 
       return res;
@@ -568,7 +568,7 @@ class RoutingService {
           .getArrivalDateTime(selectedTime)
           .compareTo(b.getArrivalDateTime(selectedTime));
       if (res == 0) {
-        return a.duration.compareTo(b.duration);
+        return a.durationFull.compareTo(b.durationFull);
       }
 
       return res;
