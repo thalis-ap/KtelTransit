@@ -111,6 +111,8 @@ class BusTrip {
   int get estimatedDuration =>
       legs.fold(0, (sum, leg) => sum + leg.estimatedDuration);
 
+  double get totalWaitTime => List.generate(legs.length - 1, (i) => i).fold(0, (sum, legIndex) => sum + waitTimeAfterLeg(legIndex).inSeconds);
+
   /// Wait time between leg[i] and leg[i+1], keyed by transfer index (0-based).
   Duration waitTimeAfterLeg(int legIndex) {
     if (legIndex < 0 || legIndex >= legs.length - 1) return Duration.zero;

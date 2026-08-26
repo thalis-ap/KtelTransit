@@ -24,6 +24,11 @@ class RoutingTrip {
       (busTrip?.estimatedDuration ?? 0) +
       (egressTrip?.duration ?? 0);
 
+  /// Full duration including wait times
+  double get durationFull => duration + (busTrip?.totalWaitTime ?? 0);
+
+  double get totalWaitTime => busTrip?.totalWaitTime ?? 0;
+
   double get accessDuration => accessTrip?.duration ?? 0;
 
   double get transitEstimatedDuration =>
