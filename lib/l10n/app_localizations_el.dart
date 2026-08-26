@@ -382,4 +382,64 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get off => 'Ανενεργό';
+
+  @override
+  String get sortBy => 'Ταξινόμηση κατά';
+
+  @override
+  String get sortDirection => 'Είδος ταξινόμησης';
+
+  @override
+  String get ascending => 'Αύξουσα';
+
+  @override
+  String get descending => 'Φθίνουσα';
+
+  @override
+  String get sortByTransfers => 'Αριθμός μετεπιβιβάσεων';
+
+  @override
+  String get sortByWalkingTime => 'Διάρκεια πεζοπορίας';
+
+  @override
+  String get sortByCost => 'Κόστος';
+
+  @override
+  String get sortByTotalDuration => 'Συνολική διάρκεια';
+
+  @override
+  String get sortByTripDuration => 'Διάρκεια διαδρομής (μόνο λεωφορείο)';
+
+  @override
+  String get sortByArrivalTime => 'Ώρα άφιξης';
+
+  @override
+  String get sortByDepartureTime => 'Ώρα αναχώρησης';
+
+  @override
+  String get filters => 'Φίλτρα';
+
+  @override
+  String get includeWalking => 'Μόνο περπάτημα';
+
+  @override
+  String get includeDirectTrips => 'Απευθείας διαδρομές';
+
+  @override
+  String get includeTransferTrips => 'Διαδρομές με μετεπιβίβαση';
+
+  @override
+  String get resetFilters => 'Επαναφορά φίλτρων';
+
+  @override
+  String get filtersActive => 'Φίλτρα ενεργά';
+
+  @override
+  String get apply => 'Εφαρμογή';
+
+  @override
+  String get sort => 'Ταξινόμηση';
+
+  @override
+  String get filter => 'Φίλτρο';
 }

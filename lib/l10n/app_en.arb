@@ -118,8 +118,25 @@
   "minTotalTime": "Least total duration",
   "minDepartTime": "Earliest departure time",
   "minArrivalTime": "Earliest arrival time",
-  "off": "Off"
-
-
-
+  "off": "Off",
+  "sortBy": "Sort by",
+  "sortDirection": "Sort direction",
+  "ascending": "Ascending",
+  "descending": "Descending",
+  "sortByTransfers": "Number of transfers",
+  "sortByWalkingTime": "Walking time",
+  "sortByCost": "Cost",
+  "sortByTotalDuration": "Total duration",
+  "sortByTripDuration": "Trip duration (bus only)",
+  "sortByArrivalTime": "Arrival time",
+  "sortByDepartureTime": "Departure time",
+  "filters": "Filters",
+  "includeWalking": "Walking only trips",
+  "includeDirectTrips": "Direct trips",
+  "includeTransferTrips": "Transfer trips",
+  "resetFilters": "Reset filters",
+  "filtersActive": "Filters active",
+  "apply": "Apply",
+  "sort": "Sort",
+  "filter": "Filter"
 }

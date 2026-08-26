@@ -29,10 +29,12 @@ import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 import '../models/map_point.dart';
 import '../models/stop.dart';
+import '../models/trip_sort_filter.dart';
 import '../services/location_service.dart';
 import '../services/osrm_service.dart';
 import '../delegates/stop_search_delegate.dart';
 import '../services/settings_service.dart';
+import '../services/trip_sorting_service.dart';
 import '../widgets/trip_info_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -65,6 +67,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   DateTime selectedSearchTime = DateTime.now();
   int? selectedTripIndex;
+
+  TripSortFilter? _sortFilter;
 
   // Sheets
   final SheetManagerService _sheetManager = SheetManagerService();
@@ -320,6 +324,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       destinationPoint!,
       selectedSearchTime,
     );
+
+    if (_sortFilter != null) {
+      tripsFound = TripSortingService.apply(tripsFound, _sortFilter!, selectedSearchTime);
+    }
 
     return tripsFound.isNotEmpty ? tripsFound : null;
   }
@@ -995,8 +1003,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         _refreshTripInfo();
                       }
                     },
+              sortFilter: _sortFilter,
+              onSortFilterApplied: (filter) {
+                setState(() {
+                  _sortFilter = filter;
+                });
+                _refreshTripInfo(); // Re-fetch and apply filter
+              },
                   )
                 : null,
+
             sheetName,
           );
         } else if (sheetName == SheetKeys.stop) {

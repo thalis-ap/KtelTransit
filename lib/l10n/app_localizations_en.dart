@@ -378,4 +378,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get off => 'Off';
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get sortDirection => 'Sort direction';
+
+  @override
+  String get ascending => 'Ascending';
+
+  @override
+  String get descending => 'Descending';
+
+  @override
+  String get sortByTransfers => 'Number of transfers';
+
+  @override
+  String get sortByWalkingTime => 'Walking time';
+
+  @override
+  String get sortByCost => 'Cost';
+
+  @override
+  String get sortByTotalDuration => 'Total duration';
+
+  @override
+  String get sortByTripDuration => 'Trip duration (bus only)';
+
+  @override
+  String get sortByArrivalTime => 'Arrival time';
+
+  @override
+  String get sortByDepartureTime => 'Departure time';
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String get includeWalking => 'Walking only trips';
+
+  @override
+  String get includeDirectTrips => 'Direct trips';
+
+  @override
+  String get includeTransferTrips => 'Transfer trips';
+
+  @override
+  String get resetFilters => 'Reset filters';
+
+  @override
+  String get filtersActive => 'Filters active';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get sort => 'Sort';
+
+  @override
+  String get filter => 'Filter';
 }

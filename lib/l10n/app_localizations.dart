@@ -733,6 +733,126 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Ανενεργό'**
   String get off;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In el, this message translates to:
+  /// **'Ταξινόμηση κατά'**
+  String get sortBy;
+
+  /// No description provided for @sortDirection.
+  ///
+  /// In el, this message translates to:
+  /// **'Είδος ταξινόμησης'**
+  String get sortDirection;
+
+  /// No description provided for @ascending.
+  ///
+  /// In el, this message translates to:
+  /// **'Αύξουσα'**
+  String get ascending;
+
+  /// No description provided for @descending.
+  ///
+  /// In el, this message translates to:
+  /// **'Φθίνουσα'**
+  String get descending;
+
+  /// No description provided for @sortByTransfers.
+  ///
+  /// In el, this message translates to:
+  /// **'Αριθμός μετεπιβιβάσεων'**
+  String get sortByTransfers;
+
+  /// No description provided for @sortByWalkingTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Διάρκεια πεζοπορίας'**
+  String get sortByWalkingTime;
+
+  /// No description provided for @sortByCost.
+  ///
+  /// In el, this message translates to:
+  /// **'Κόστος'**
+  String get sortByCost;
+
+  /// No description provided for @sortByTotalDuration.
+  ///
+  /// In el, this message translates to:
+  /// **'Συνολική διάρκεια'**
+  String get sortByTotalDuration;
+
+  /// No description provided for @sortByTripDuration.
+  ///
+  /// In el, this message translates to:
+  /// **'Διάρκεια διαδρομής (μόνο λεωφορείο)'**
+  String get sortByTripDuration;
+
+  /// No description provided for @sortByArrivalTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Ώρα άφιξης'**
+  String get sortByArrivalTime;
+
+  /// No description provided for @sortByDepartureTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Ώρα αναχώρησης'**
+  String get sortByDepartureTime;
+
+  /// No description provided for @filters.
+  ///
+  /// In el, this message translates to:
+  /// **'Φίλτρα'**
+  String get filters;
+
+  /// No description provided for @includeWalking.
+  ///
+  /// In el, this message translates to:
+  /// **'Μόνο περπάτημα'**
+  String get includeWalking;
+
+  /// No description provided for @includeDirectTrips.
+  ///
+  /// In el, this message translates to:
+  /// **'Απευθείας διαδρομές'**
+  String get includeDirectTrips;
+
+  /// No description provided for @includeTransferTrips.
+  ///
+  /// In el, this message translates to:
+  /// **'Διαδρομές με μετεπιβίβαση'**
+  String get includeTransferTrips;
+
+  /// No description provided for @resetFilters.
+  ///
+  /// In el, this message translates to:
+  /// **'Επαναφορά φίλτρων'**
+  String get resetFilters;
+
+  /// No description provided for @filtersActive.
+  ///
+  /// In el, this message translates to:
+  /// **'Φίλτρα ενεργά'**
+  String get filtersActive;
+
+  /// No description provided for @apply.
+  ///
+  /// In el, this message translates to:
+  /// **'Εφαρμογή'**
+  String get apply;
+
+  /// No description provided for @sort.
+  ///
+  /// In el, this message translates to:
+  /// **'Ταξινόμηση'**
+  String get sort;
+
+  /// No description provided for @filter.
+  ///
+  /// In el, this message translates to:
+  /// **'Φίλτρο'**
+  String get filter;
 }
 
 class _AppLocalizationsDelegate
