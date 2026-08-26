@@ -20,17 +20,12 @@ class TripSortingService {
   ) {
     return trips.where((trip) {
       // If filter says no walking, exclude pure walking trips
-      if (!filter.includeWalking && trip.busTrip == null) {
+      if (filter.dontIncludeWalking && trip.busTrip == null) {
         return false;
       }
 
-      // If filter says no direct, exclude trips with 0 transfers
-      if (!filter.includeDirect && trip.busTrip?.isTransfer == false) {
-        return false;
-      }
-
-      // If filter says no transfers, exclude trips with transfers
-      if (!filter.includeTransfers && trip.busTrip?.isTransfer == true) {
+      // If filter says only direct, exclude trips with >= 1 transfers
+      if (filter.includeDirectOnly && trip.busTrip?.isTransfer == true) {
         return false;
       }
 
@@ -78,6 +73,9 @@ class TripSortingService {
         break;
       case SortCriterion.walkingTime:
         trips.sort((a, b) => a.walkingDuration.compareTo(b.walkingDuration));
+        break;
+      case SortCriterion.waitTimeDuration:
+        trips.sort((a, b) => a.totalWaitTime.compareTo(b.totalWaitTime));
         break;
     }
 

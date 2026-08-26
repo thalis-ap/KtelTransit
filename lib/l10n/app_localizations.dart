@@ -800,6 +800,12 @@ abstract class AppLocalizations {
   /// **'Ώρα αναχώρησης'**
   String get sortByDepartureTime;
 
+  /// No description provided for @sortByWaitingTime.
+  ///
+  /// In el, this message translates to:
+  /// **'Διάρκεια αναμονής'**
+  String get sortByWaitingTime;
+
   /// No description provided for @filters.
   ///
   /// In el, this message translates to:
@@ -809,20 +815,14 @@ abstract class AppLocalizations {
   /// No description provided for @includeWalking.
   ///
   /// In el, this message translates to:
-  /// **'Μόνο περπάτημα'**
+  /// **'Χωρίς περπάτημα'**
   String get includeWalking;
 
-  /// No description provided for @includeDirectTrips.
+  /// No description provided for @includeDirectTripsOnly.
   ///
   /// In el, this message translates to:
-  /// **'Απευθείας διαδρομές'**
-  String get includeDirectTrips;
-
-  /// No description provided for @includeTransferTrips.
-  ///
-  /// In el, this message translates to:
-  /// **'Διαδρομές με μετεπιβίβαση'**
-  String get includeTransferTrips;
+  /// **'Μόνο απευθείας διαδρομές'**
+  String get includeDirectTripsOnly;
 
   /// No description provided for @resetFilters.
   ///

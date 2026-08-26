@@ -413,16 +413,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sortByDepartureTime => 'Departure time';
 
   @override
+  String get sortByWaitingTime => 'Waiting time';
+
+  @override
   String get filters => 'Filters';
 
   @override
-  String get includeWalking => 'Walking only trips';
+  String get includeWalking => 'No walking';
 
   @override
-  String get includeDirectTrips => 'Direct trips';
-
-  @override
-  String get includeTransferTrips => 'Transfer trips';
+  String get includeDirectTripsOnly => 'Direct trips only';
 
   @override
   String get resetFilters => 'Reset filters';

@@ -100,9 +100,8 @@ class TripInfoSheet extends StatelessWidget {
   }
 
   bool _hasActiveFilters(TripSortFilter filter) {
-    return filter.includeWalking == false ||
-        filter.includeDirect == false ||
-        filter.includeTransfers == false;
+    return filter.dontIncludeWalking == true ||
+        filter.includeDirectOnly == true;
   }
 
   Widget _buildActiveFilterChip(BuildContext context) {

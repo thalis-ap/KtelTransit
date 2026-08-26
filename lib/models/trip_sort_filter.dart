@@ -4,6 +4,7 @@ enum SortCriterion {
   cost,
   totalDuration,
   tripDuration,
+  waitTimeDuration,
   arrivalTime,
   departureTime,
 }
@@ -16,31 +17,27 @@ enum SortDirection {
 class TripSortFilter {
   final SortCriterion sortBy;
   final SortDirection sortDirection;
-  final bool includeWalking;
-  final bool includeTransfers;
-  final bool includeDirect;
+  final bool dontIncludeWalking;
+  final bool includeDirectOnly;
 
   const TripSortFilter({
     this.sortBy = SortCriterion.arrivalTime,
     this.sortDirection = SortDirection.ascending,
-    this.includeWalking = true,
-    this.includeTransfers = true,
-    this.includeDirect = true,
+    this.dontIncludeWalking = false,
+    this.includeDirectOnly = false,
   });
 
   TripSortFilter copyWith({
     SortCriterion? sortBy,
     SortDirection? sortDirection,
-    bool? includeWalking,
-    bool? includeTransfers,
-    bool? includeDirect,
+    bool? dontIncludeWalking,
+    bool? includeDirectOnly,
   }) {
     return TripSortFilter(
       sortBy: sortBy ?? this.sortBy,
       sortDirection: sortDirection ?? this.sortDirection,
-      includeWalking: includeWalking ?? this.includeWalking,
-      includeTransfers: includeTransfers ?? this.includeTransfers,
-      includeDirect: includeDirect ?? this.includeDirect,
+      dontIncludeWalking: dontIncludeWalking ?? this.dontIncludeWalking,
+      includeDirectOnly: includeDirectOnly ?? this.includeDirectOnly,
     );
   }
 }

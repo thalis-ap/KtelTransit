@@ -417,16 +417,16 @@ class AppLocalizationsEl extends AppLocalizations {
   String get sortByDepartureTime => 'Ώρα αναχώρησης';
 
   @override
+  String get sortByWaitingTime => 'Διάρκεια αναμονής';
+
+  @override
   String get filters => 'Φίλτρα';
 
   @override
-  String get includeWalking => 'Μόνο περπάτημα';
+  String get includeWalking => 'Χωρίς περπάτημα';
 
   @override
-  String get includeDirectTrips => 'Απευθείας διαδρομές';
-
-  @override
-  String get includeTransferTrips => 'Διαδρομές με μετεπιβίβαση';
+  String get includeDirectTripsOnly => 'Μόνο απευθείας διαδρομές';
 
   @override
   String get resetFilters => 'Επαναφορά φίλτρων';

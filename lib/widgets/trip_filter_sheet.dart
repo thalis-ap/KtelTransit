@@ -63,10 +63,10 @@ class _TripFilterSheetState extends State<TripFilterSheet> {
 
           // Walking toggle
           SwitchListTile(
-            value: _localFilter.includeWalking,
+            value: _localFilter.dontIncludeWalking,
             onChanged: (value) {
               setState(() {
-                _localFilter = _localFilter.copyWith(includeWalking: value);
+                _localFilter = _localFilter.copyWith(dontIncludeWalking: value);
               });
             },
             title: Text(l10n.includeWalking),
@@ -75,25 +75,13 @@ class _TripFilterSheetState extends State<TripFilterSheet> {
 
           // Direct trips toggle
           SwitchListTile(
-            value: _localFilter.includeDirect,
+            value: _localFilter.includeDirectOnly,
             onChanged: (value) {
               setState(() {
-                _localFilter = _localFilter.copyWith(includeDirect: value);
+                _localFilter = _localFilter.copyWith(includeDirectOnly: value);
               });
             },
-            title: Text(l10n.includeDirectTrips),
-            contentPadding: EdgeInsets.zero,
-          ),
-
-          // Transfers toggle
-          SwitchListTile(
-            value: _localFilter.includeTransfers,
-            onChanged: (value) {
-              setState(() {
-                _localFilter = _localFilter.copyWith(includeTransfers: value);
-              });
-            },
-            title: Text(l10n.includeTransferTrips),
+            title: Text(l10n.includeDirectTripsOnly),
             contentPadding: EdgeInsets.zero,
           ),
 

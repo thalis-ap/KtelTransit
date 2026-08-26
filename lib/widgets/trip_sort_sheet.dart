@@ -148,6 +148,8 @@ class _TripSortSheetState extends State<TripSortSheet> {
         return l10n.sortByArrivalTime;
       case SortCriterion.departureTime:
         return l10n.sortByDepartureTime;
+      case SortCriterion.waitTimeDuration:
+        return l10n.sortByWaitingTime;
     }
   }
 }
