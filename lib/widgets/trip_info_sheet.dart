@@ -5,6 +5,7 @@ import 'package:ktel_transit/models/trip_sort_filter.dart';
 import 'package:ktel_transit/services/connection_service.dart';
 import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/services/trip_grouping_service.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/widgets/time_selection_bar.dart';
 import 'package:ktel_transit/widgets/trip_extended_details_card.dart';
 import 'package:ktel_transit/widgets/trip_filter_sheet.dart';
@@ -121,11 +122,7 @@ class TripInfoSheet extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             l10n.filtersActive,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: colorScheme.primary,
-            ),
+            style: context.textTheme.titleSmall?.copyWith(color: colorScheme.primary),
           ),
         ],
       ),
@@ -147,9 +144,7 @@ class TripInfoSheet extends StatelessWidget {
           children: [
             Text(
               l10n.availableRoutes, // add this key to your l10n files
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.titleMedium,
             ),
             Container(
               width: 32,
@@ -397,9 +392,7 @@ class TripInfoSheet extends StatelessWidget {
                                       ),
                                       label: Text(
                                         l10n.allTrips,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                        style: context.textTheme.labelLarge?.copyWith(
                                           color: colorScheme.primary,
                                         ),
                                       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/services/trip_grouping_service.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/trip_card.dart';
 import 'package:ktel_transit/widgets/trips_loading_skeleton.dart';
@@ -65,7 +66,7 @@ class TripGroupsView extends StatelessWidget {
       ),
       child: ExpansionTile(
         initiallyExpanded: false,
-        title: Text(l10n.pastTrips, style: const TextStyle(fontSize: 14)),
+        title: Text(l10n.pastTrips, style: context.textTheme.bodyMedium),
         shape: const Border(),
         collapsedShape: const Border(),
         children: [
@@ -102,7 +103,9 @@ class TripGroupsView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildDateLabel(
+          context,
           l10n.tripsForDate(
+
             isToday
                 ? l10n.today
                 : TimeFormat.dateTimeToFormattedStringDateMonth(selectedDepartureTime),
@@ -144,6 +147,7 @@ class TripGroupsView extends StatelessWidget {
             ),
           ),
         _buildDateLabel(
+          context,
           l10n.tripsForDate(
             TimeFormat.dateTimeToFormattedStringDateMonth(
               groups.nextTrips.first.getDepartureDateTime(selectedDepartureTime),
@@ -157,14 +161,10 @@ class TripGroupsView extends StatelessWidget {
     );
   }
 
-  Widget _buildDateLabel(String text, Color color) {
+  Widget _buildDateLabel(BuildContext context, String text, Color color) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: color,
-      ),
+      style: context.textTheme.titleSmall?.copyWith(color: color),
     );
   }
 

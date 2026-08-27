@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 class OfflineBanner extends StatelessWidget {
   final VoidCallback? onRetry;
@@ -28,11 +29,7 @@ class OfflineBanner extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.noInternetConnection,
-                  style: TextStyle(
-                    color: colorScheme.error,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: context.textTheme.bodyLarge?.copyWith(color: colorScheme.error),
                 ),
               ),
 
@@ -47,10 +44,7 @@ class OfflineBanner extends StatelessWidget {
               ),
               child: Text(
                 l10n.retryButton, // ✅ Already exists in your l10n
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
+                style: context.textTheme.titleSmall?.copyWith(color: colorScheme.error),
               ),
             ),
         ],

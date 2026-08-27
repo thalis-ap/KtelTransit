@@ -28,9 +28,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 10.0),
                 child: Text(
                   l10n.appearanceSection,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
               const SizedBox(height: 8),
@@ -84,9 +82,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 10.0),
                 child: Text(
                   l10n.languageSection,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
               const SizedBox(height: 8),
@@ -138,9 +134,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 10.0),
                 child: Text(
                   l10n.autoSelectBestRoute,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
               const SizedBox(height: 8),
@@ -186,9 +180,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 10.0),
                 child: Text(
                   l10n.maxWaitTime,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
               const SizedBox(height: 8),

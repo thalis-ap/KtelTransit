@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ktel_transit/models/departure.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/widgets/map_point_sheet.dart';
 import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 import '../l10n/app_localizations.dart';
@@ -74,20 +75,14 @@ class StopSheet extends MapPointSheet {
                     ),
                     child: Text(
                       mainTime,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: colorScheme.onSecondaryContainer
-                      ),
+                      style: context.textTheme.titleSmall,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       route,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.titleSmall,
                     ),
                   ),
                 ],
@@ -96,11 +91,7 @@ class StopSheet extends MapPointSheet {
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: context.textTheme.bodyMedium,
                 ),
               ],
             ],
@@ -114,7 +105,6 @@ class StopSheet extends MapPointSheet {
   List<Widget> buildFollowUpWidgets(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     final now = DateTime.now();
     final List<Departure> todayDepartures = repository.getDeparturesForStop(
@@ -167,9 +157,7 @@ class StopSheet extends MapPointSheet {
               children: [
                 Text(
                   l10n.upcomingDeparturesToday,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.labelLarge,
                 ),
                 const SizedBox(height: 12),
                 _buildDeparturesList(todayDepartures, theme),
@@ -186,9 +174,7 @@ class StopSheet extends MapPointSheet {
                 const SizedBox(height: 24),
                 Text(
                   l10n.departuresOnDay(nextDayLabel),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.labelLarge,
                 ),
                 const SizedBox(height: 12),
                 _buildDeparturesList(nextDepartures, theme),

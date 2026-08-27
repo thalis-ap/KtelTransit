@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 class TripSortFilterButtons extends StatelessWidget {
   final VoidCallback onSortPressed;
@@ -28,10 +29,7 @@ class TripSortFilterButtons extends StatelessWidget {
           ),
           label: Text(
             l10n.sort,
-            style: TextStyle(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context.textTheme.labelLarge?.copyWith(color: colorScheme.primary),
           ),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -53,10 +51,7 @@ class TripSortFilterButtons extends StatelessWidget {
           ),
           label: Text(
             l10n.filter,
-            style: TextStyle(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context.textTheme.labelLarge?.copyWith(color: colorScheme.primary),
           ),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

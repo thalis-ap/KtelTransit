@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 class TripWarningBanner extends StatelessWidget {
   final String message;
@@ -33,10 +34,7 @@ class TripWarningBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: TextStyle(
-                color: colorScheme.tertiary,
-                fontSize: isCompact ? 14.0 : 16.0,
-              ),
+              style: context.textTheme.bodyLarge?.copyWith(color: colorScheme.tertiary),
             ),
           ),
         ],

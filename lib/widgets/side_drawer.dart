@@ -30,7 +30,7 @@ class SideDrawer extends StatelessWidget {
           DrawerHeader(
             child: Column(
               children: [
-                Text(l10n.appTitle, style: const TextStyle(fontSize: 24)),
+                Text(l10n.appTitle, style: context.textTheme.headlineMedium),
                 Expanded(
                   child: Image.asset(
                     Theme.of(context).appIconPath,

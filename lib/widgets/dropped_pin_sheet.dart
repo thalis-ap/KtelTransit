@@ -3,6 +3,7 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
 import 'package:ktel_transit/services/osrm_service.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import '../models/stop.dart';
@@ -314,7 +315,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
               ),
               title: Text(
                 stop.getLocalizedNameByLangCode(languageCode),
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: context.textTheme.labelLarge,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,

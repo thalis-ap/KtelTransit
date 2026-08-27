@@ -98,7 +98,7 @@ class MapPointSheet extends StatelessWidget {
                     Expanded(
                       child: Text(
                         mapPoint.getLocalizedName(l10n),
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),

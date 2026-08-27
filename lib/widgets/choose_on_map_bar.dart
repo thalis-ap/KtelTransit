@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 /// A top bar shown when the user is in "choose on map" mode.
 /// Displays a back button and a guidance text (e.g., "Choose Start Location").
@@ -42,11 +43,7 @@ class ChooseOnMapBar extends StatelessWidget {
               isSelectingMapPointStart
                   ? l10n.chooseStartLocation
                   : l10n.chooseDestinationLocation,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
-              ),
+              style: context.textTheme.bodyLarge,
               overflow: TextOverflow.ellipsis,
             ),
           ),

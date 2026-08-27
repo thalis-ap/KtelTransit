@@ -743,7 +743,7 @@ abstract class AppLocalizations {
   /// No description provided for @sortDirection.
   ///
   /// In el, this message translates to:
-  /// **'Είδος ταξινόμησης'**
+  /// **'Φορά ταξινόμησης'**
   String get sortDirection;
 
   /// No description provided for @ascending.

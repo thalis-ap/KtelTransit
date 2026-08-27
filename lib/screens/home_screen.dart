@@ -959,7 +959,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         child: Text(
           AppLocalizations.of(context)!.setLocation,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: context.textTheme.titleMedium,
         ),
       ),
     );
@@ -1131,11 +1131,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   const SizedBox(width: 16),
                   Text(
                     l10n.loadingStops,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onTertiary,
-                    ),
+                    style: context.textTheme.labelLarge?.copyWith(color: colorScheme.onTertiary),
                   ),
                 ],
               ),

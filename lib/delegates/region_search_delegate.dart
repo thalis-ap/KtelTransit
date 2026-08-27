@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
 import 'base_search_delegate.dart';
@@ -28,7 +29,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
       return Center(
         child: Text(
           l10n.noRegionFound,
-          style: const TextStyle(fontSize: 20),
+          style: context.textTheme.headlineSmall,
         ),
       );
     }
@@ -42,9 +43,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
           leading: const Icon(Icons.map_outlined),
           title: Text(
             region.getLocalizedName(languageCode),
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
+            style: context.textTheme.bodyLarge?.copyWith(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
           ),
           trailing: isSelected
               ? Icon(Icons.check, color: colorScheme.primary)

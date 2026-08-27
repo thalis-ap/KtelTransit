@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
@@ -47,7 +48,7 @@ class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
           ),
           title: Text(
             l10n.myLocation,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: context.textTheme.bodyLarge,
           ),
           onTap: () {
             close(
@@ -70,7 +71,7 @@ class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
           ),
           title: Text(
             l10n.chooseInMap,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: context.textTheme.bodyLarge,
           ),
           onTap: () {
             close(
@@ -84,7 +85,7 @@ class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
               ? Center(
                   child: Text(
                     l10n.noStopFound,
-                    style: const TextStyle(fontSize: 20),
+                    style: context.textTheme.headlineSmall,
                   ),
                 )
               : ListView.builder(
@@ -99,7 +100,7 @@ class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
                       title: Text(
                         // 3. Display the localized name in the list
                         stop.getLocalizedNameByLangCode(languageCode),
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                        style: context.textTheme.bodyLarge,
                       ),
                       onTap: () {
                         close(context, stop);

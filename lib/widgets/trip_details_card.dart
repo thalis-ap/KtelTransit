@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 
 import '../models/bus_trip.dart';
@@ -20,23 +21,23 @@ class TripDetailsCard extends StatelessWidget {
   });
 
   Widget _buildPureWalking(
-    ColorScheme colorScheme, {
+    BuildContext context, {
     required DateTime selectedTime,
     required AppLocalizations l10n,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(colorScheme, l10n: l10n),
+        _buildHeader(context, l10n: l10n),
         const SizedBox(height: 12),
         _buildWalkingRow(
-          colorScheme,
+          context,
           "${l10n.walkTo} ${routingTrip.destinationPoint.getLocalizedName(l10n)}",
           TimeFormat.dateTimeToFormattedStringHoursMinutes(selectedTime),
         ),
         const SizedBox(height: 10),
         _buildArrivalRow(
-          colorScheme,
+          context,
           l10n.estimatedArrivalAt(
             routingTrip.destinationPoint.getLocalizedName(l10n),
           ),
@@ -49,11 +50,13 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildWalkingRow(
-    ColorScheme colorScheme,
+    BuildContext context,
     String mainText,
     String departureTimeText, {
     String walkingTimeText = "",
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Transform.translate(
@@ -68,25 +71,23 @@ class TripDetailsCard extends StatelessWidget {
         Expanded(
           child: Text(
             walkingTimeText.isEmpty ? mainText : "$mainText $walkingTimeText",
-            style: TextStyle(color: colorScheme.onSurface, fontSize: 13),
+            style: context.textTheme.bodyMedium,
           ),
         ),
         Text(
           departureTimeText,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          style: context.textTheme.labelMedium,
         ),
       ],
     );
   }
 
   Widget _buildHeader(
-    ColorScheme colorScheme, {
+    BuildContext context, {
     required AppLocalizations l10n,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     String routeText;
     if (routingTrip.busTrip == null) {
       routeText = l10n.walking;
@@ -121,31 +122,20 @@ class TripDetailsCard extends StatelessWidget {
                       routingTrip.durationFull,
                       l10n,
                     ),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: context.textTheme.titleSmall,
                   ),
                   if (routingTrip.busTrip == null &&
                       routingTrip.accessTrip != null) ...[
                     const SizedBox(width: 10),
                     Text(
                       "(${DistanceFormat.metersToFormattedString(routingTrip.accessTrip!.distance, l10n)})",
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: context.textTheme.titleSmall,
                     ),
                   ] else if (routingTrip.busTrip != null && routingTrip.busTrip!.isTransfer) ...[
                     const SizedBox(width: 10),
                     Text(
                       "(${TimeFormat.secondsToFormattedString(routingTrip.totalWaitTime, l10n)})",
-                      style: TextStyle(
-                        color: colorScheme.tertiary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: context.textTheme.titleSmall?.copyWith(color: colorScheme.tertiary),
                     ),
                   ],
                 ],
@@ -162,11 +152,7 @@ class TripDetailsCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     routingTrip.fareAsString,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.secondary,
-                    ),
+                    style: context.textTheme.titleSmall?.copyWith(color: colorScheme.secondary),
                   ),
                 ],
               ],
@@ -180,11 +166,7 @@ class TripDetailsCard extends StatelessWidget {
             Expanded(
               child: Text(
                 routeText,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
+                style: context.textTheme.titleSmall?.copyWith(color: colorScheme.primary),
               ),
             ),
           ],
@@ -194,12 +176,12 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildWalkAccess(
-    ColorScheme colorScheme, {
+    BuildContext context, {
     required String departureTime,
     required AppLocalizations l10n,
   }) {
     return _buildWalkingRow(
-      colorScheme,
+      context,
       "${l10n.walkTo} ${routingTrip.busTrip!.legs.first.originStop.getLocalizedName(l10n)}",
       departureTime,
       walkingTimeText:
@@ -208,10 +190,12 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildDepartureRow(
-    ColorScheme colorScheme,
+    BuildContext context,
     String departureFromText,
     String departureTimeText,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Icon(Icons.circle, size: 10, color: colorScheme.secondary),
@@ -219,23 +203,25 @@ class TripDetailsCard extends StatelessWidget {
         Expanded(
           child: Text(
             departureFromText,
-            style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+            style: context.textTheme.bodyMedium,
           ),
         ),
         const SizedBox(width: 10),
         Text(
           departureTimeText,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          style: context.textTheme.titleSmall,
         ),
       ],
     );
   }
 
   Widget _buildArrivalAtTransferRow(
-    ColorScheme colorScheme,
+    BuildContext context,
     String arrivalAtText,
     String arrivalAtTime,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Icon(Icons.circle_outlined, size: 10, color: colorScheme.tertiary),
@@ -243,22 +229,18 @@ class TripDetailsCard extends StatelessWidget {
         Expanded(
           child: Text(
             arrivalAtText,
-            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+            style: context.textTheme.bodyMedium,
           ),
         ),
         Text(
           arrivalAtTime,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          style: context.textTheme.labelLarge,
         ),
       ],
     );
   }
 
-  Widget _buildWaitTimeRow(ColorScheme colorScheme, String waitText) {
+  Widget _buildWaitTimeRow(BuildContext context, String waitText) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
       child: Row(
@@ -267,11 +249,7 @@ class TripDetailsCard extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             waitText,
-            style: TextStyle(
-              fontSize: 12,
-              fontStyle: FontStyle.italic,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: context.textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
           ),
         ],
       ),
@@ -279,10 +257,12 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildDepartureFromTransferRow(
-    ColorScheme colorScheme,
+    BuildContext context,
     String departureFromText,
     String departureFromTime,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Icon(Icons.circle_outlined, size: 10, color: colorScheme.tertiary),
@@ -290,27 +270,25 @@ class TripDetailsCard extends StatelessWidget {
         Expanded(
           child: Text(
             departureFromText,
-            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+            style: context.textTheme.bodyMedium,
           ),
         ),
         Text(
           departureFromTime,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          style: context.textTheme.labelLarge,
         ),
       ],
     );
   }
 
   Widget _buildArrivalRow(
-    ColorScheme colorScheme,
+    BuildContext context,
     String arrivalAtText,
     String arrivalTimeText, {
     bool walkEgressPresent = false,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Icon(
@@ -322,24 +300,24 @@ class TripDetailsCard extends StatelessWidget {
         Expanded(
           child: Text(
             arrivalAtText,
-            style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+            style: context.textTheme.bodyMedium,
           ),
         ),
         const SizedBox(width: 10),
         Text(
           arrivalTimeText,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          style: context.textTheme.titleSmall,
         ),
       ],
     );
   }
 
   Widget _buildWalkEgress(
-    ColorScheme colorScheme, {
+    BuildContext context, {
     required AppLocalizations l10n,
   }) {
     return _buildWalkingRow(
-      colorScheme,
+      context,
       "${l10n.walkFrom} ${routingTrip.busTrip!.legs.first.destinationStop.getLocalizedName(l10n)}",
       TimeFormat.dateTimeToFormattedStringHoursMinutes(
         routingTrip.busTrip!.destArrivalDateTime,
@@ -352,7 +330,6 @@ class TripDetailsCard extends StatelessWidget {
   /// Builds all the widgets inside a TripDetailsCard for a routing trip
   /// with a bus, with at least one bus transfer, i.e. 2 or more legs
   Widget _buildBusWithTransfer(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     // The BusTrip object that contains all the legs
@@ -365,13 +342,13 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(colorScheme, l10n: l10n),
+        _buildHeader(context, l10n: l10n),
         const SizedBox(height: 6),
         if (access != null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: _buildWalkAccess(
-              colorScheme,
+              context,
               departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 busTrip.startDepartureDateTime,
               ),
@@ -381,7 +358,7 @@ class TripDetailsCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildDepartureRow(
-            colorScheme,
+            context,
             l10n.departureFrom(firstLeg.originStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               firstLeg.departureDateTime,
@@ -393,7 +370,7 @@ class TripDetailsCard extends StatelessWidget {
 
         // First of all, show the first arrival separately
         _buildArrivalAtTransferRow(
-          colorScheme,
+          context,
           l10n.arrivalAt(firstLeg.destinationStop.getLocalizedName(l10n)),
           TimeFormat.dateTimeToFormattedStringHoursMinutes(
             firstLeg.arrivalDateTime,
@@ -411,7 +388,7 @@ class TripDetailsCard extends StatelessWidget {
           legIndex++
         ) ...[
           _buildWaitTimeRow(
-            colorScheme,
+            context,
             l10n.waitingTime(
               TimeFormat.secondsToFormattedString(
                 busTrip.waitTimeAfterLeg(legIndex).inSeconds.toDouble(),
@@ -420,7 +397,7 @@ class TripDetailsCard extends StatelessWidget {
             ),
           ),
           _buildDepartureFromTransferRow(
-            colorScheme,
+            context,
             l10n.departureFrom(busTrip.legs[legIndex + 1].originStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               busTrip.legs[legIndex + 1].departureDateTime,
@@ -432,7 +409,7 @@ class TripDetailsCard extends StatelessWidget {
         if (egress != null) ...[
           const SizedBox(height: 8),
           _buildArrivalAtTransferRow(
-            colorScheme,
+            context,
             l10n.arrivalAt(busTrip.legs.last.destinationStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               busTrip.legs.last.arrivalDateTime,
@@ -440,13 +417,13 @@ class TripDetailsCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: _buildWalkEgress(colorScheme, l10n: l10n),
+            child: _buildWalkEgress(context, l10n: l10n),
           ),
         ],
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildArrivalRow(
-            colorScheme,
+            context,
             l10n.arrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               routingTrip.getArrivalDateTime(selectedDepartureTime),
@@ -460,7 +437,6 @@ class TripDetailsCard extends StatelessWidget {
   /// Builds all the widgets inside a TripDetailsCard for a routing trip
   /// with a bus, but not bus transfers, i.e. 1 leg only
   Widget _buildBusWoTransfer(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     // Get the first and only leg (we are in a no transfer case)
@@ -471,13 +447,13 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(colorScheme, l10n: l10n),
+        _buildHeader(context, l10n: l10n),
         const SizedBox(height: 6),
         if (access != null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: _buildWalkAccess(
-              colorScheme,
+              context,
               departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 routingTrip.getDepartureDateTime(selectedDepartureTime),
               ),
@@ -487,7 +463,7 @@ class TripDetailsCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildDepartureRow(
-            colorScheme,
+            context,
             l10n.departureFrom(leg.originStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.departureDateTime,
@@ -497,7 +473,7 @@ class TripDetailsCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildArrivalRow(
-            colorScheme,
+            context,
             l10n.arrivalAt(leg.destinationStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.arrivalDateTime,
@@ -508,10 +484,10 @@ class TripDetailsCard extends StatelessWidget {
         if (egress != null) ...[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: _buildWalkEgress(colorScheme, l10n: l10n),
+            child: _buildWalkEgress(context, l10n: l10n),
           ),
           _buildArrivalRow(
-            colorScheme,
+            context,
             l10n.arrivalAt(routingTrip.destinationPoint.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               routingTrip.getArrivalDateTime(selectedDepartureTime),
@@ -524,14 +500,13 @@ class TripDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     final bus = routingTrip.busTrip;
 
     if (bus == null) {
       return _buildPureWalking(
-        colorScheme,
+        context,
         selectedTime: routingTrip.getDepartureDateTime(selectedDepartureTime),
         l10n: l10n,
       );

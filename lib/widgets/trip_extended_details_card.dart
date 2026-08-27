@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/services/fare_service.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/timeline_node.dart';
 
@@ -34,7 +35,12 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
       children: [
         Row(
           children: [
-            Text("${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(widget.selectedDepartureTime)} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(widget.selectedDepartureTime)}", style: TextStyle(fontWeight: FontWeight.w500),)
+            Text(
+              "${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(widget.selectedDepartureTime)} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(widget.selectedDepartureTime)}",
+              style: context.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -51,32 +57,23 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                       widget.routingTrip.durationFull,
                       l10n,
                     ),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: context.textTheme.titleSmall,
                   ),
-                  if (bus == null &&
-                      trip.accessTrip != null) ...[
+                  if (bus == null && trip.accessTrip != null) ...[
                     const SizedBox(width: 10),
                     Text(
                       "(${DistanceFormat.metersToFormattedString(trip.accessTrip!.distance, l10n)})",
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                      style: context.textTheme.titleSmall,
+                    ),
+                  ] else if (bus != null && bus.isTransfer) ...[
+                    const SizedBox(width: 10),
+                    Text(
+                      "(${TimeFormat.secondsToFormattedString(trip.totalWaitTime, l10n)})",
+                      style: context.textTheme.titleSmall?.copyWith(
+                        color: colorScheme.tertiary,
                       ),
                     ),
-                  ] else if (bus != null && bus.isTransfer)
-                    ...[const SizedBox(width: 10),
-                      Text(
-                        "(${TimeFormat.secondsToFormattedString(trip.totalWaitTime, l10n)})",
-                        style: TextStyle(
-                          color: colorScheme.tertiary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),],
+                  ],
                 ],
               ),
             ),
@@ -91,9 +88,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                   const SizedBox(width: 4),
                   Text(
                     trip.fareAsString,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    style: context.textTheme.titleSmall?.copyWith(
                       color: colorScheme.secondary,
                     ),
                   ),
@@ -176,27 +171,18 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    Text(title, style: context.textTheme.titleSmall),
                     if (subtitle.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
-                        style: TextStyle(
-                          color: colorScheme.onSurfaceVariant,
-                          fontSize: 13,
-                        ),
+                        style: context.textTheme.bodyMedium,
                       ),
                     ],
                   ],
                 ),
               ),
-              Text(
-                departureTime,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              Text(departureTime, style: context.textTheme.titleSmall),
             ],
           ),
           const SizedBox(height: 24),
@@ -211,10 +197,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               Expanded(
                 child: Text(
                   durationText,
-                  style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 14,
-                  ),
+                  style: context.textTheme.bodyMedium,
                 ),
               ),
               Icon(
@@ -238,7 +221,6 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     required List<String> stopNames,
     required int estimatedDuration,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
@@ -252,23 +234,17 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    stopName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  Text(stopName, style: context.textTheme.titleSmall),
 
                   const SizedBox(height: 4),
                   Text(
                     routeName,
-                    style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
-                      fontSize: 13,
-                    ),
+                    style: context.textTheme.bodyMedium,
                   ),
                 ],
               ),
             ),
-            Text(time, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(time, style: context.textTheme.titleSmall),
           ],
         ),
         const SizedBox(height: 24),
@@ -298,13 +274,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: context.textTheme.labelLarge,
           ),
         ),
         const SizedBox(width: 10),
         Text(
           arrivalTime,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: context.textTheme.labelLarge,
         ),
       ],
     );
@@ -358,7 +334,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.departureDateTime,
             ),
-            stopNames: leg.stopNamesFromTo(leg.originStop.getLocalizedName(l10n), leg.destinationStop.getLocalizedName(l10n)),
+            stopNames: leg.stopNamesFromTo(
+              leg.originStop.getLocalizedName(l10n),
+              leg.destinationStop.getLocalizedName(l10n),
+            ),
             estimatedDuration: leg.estimatedDuration,
           ),
         ),
@@ -447,9 +426,12 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               firstLeg.departureDateTime,
             ),
-            stopNames: firstLeg.stopNamesFromTo(firstLeg.originStop.getLocalizedName(l10n), firstLeg.destinationStop.getLocalizedName(l10n)),
-            estimatedDuration: firstLeg.estimatedDuration,
+            stopNames: firstLeg.stopNamesFromTo(
+              firstLeg.originStop.getLocalizedName(l10n),
+              firstLeg.destinationStop.getLocalizedName(l10n),
             ),
+            estimatedDuration: firstLeg.estimatedDuration,
+          ),
         ),
 
         for (int legIndex = 1; legIndex < legs.length; legIndex++) ...[
@@ -466,7 +448,9 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               padding: const EdgeInsets.only(bottom: 8.0),
               child: _buildArrivalWidget(
                 l10n: l10n,
-                title: legs[legIndex - 1].destinationStop.getLocalizedName(l10n),
+                title: legs[legIndex - 1].destinationStop.getLocalizedName(
+                  l10n,
+                ),
                 arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   legs[legIndex - 1].arrivalDateTime,
                 ),
@@ -490,14 +474,15 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 children: [
                   Text(
                     l10n.transfer,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.tertiary,
-                    ),
+                    style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
                   ),
                   Row(
                     children: [
-                      Icon(Icons.access_time_rounded, size: 14, color: colorScheme.tertiary,),
+                      Icon(
+                        Icons.access_time_rounded,
+                        size: 14,
+                        color: colorScheme.tertiary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         l10n.waitingTime(
@@ -509,7 +494,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                             l10n,
                           ),
                         ),
-                        style: TextStyle(fontSize: 12, color: colorScheme.tertiary),
+                        style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
                       ),
                     ],
                   ),
@@ -533,8 +518,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
               stopNames: legs[legIndex].stopNames,
               estimatedDuration: legs[legIndex].estimatedDuration,
-             ),
-
+            ),
           ),
         ],
 
@@ -590,11 +574,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           children: [
             Text(
               l10n.costBreakdown,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.secondary,
-              ),
+              style: context.textTheme.labelLarge?.copyWith(color: colorScheme.secondary),
             ),
             const SizedBox(height: 10),
             for (int i = 0; i < legs.length; i++) ...[
@@ -603,10 +583,8 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${i + 1}. ${legs[i].originStop.getLocalizedName(l10n)} → ${legs[i].destinationStop.getLocalizedName(l10n)}",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                    "${i + 1}. ${legs[i].originStop.getLocalizedName(l10n)} - ${legs[i].destinationStop.getLocalizedName(l10n)}",
+                    style: context.textTheme.labelLarge?.copyWith(
                       color: colorScheme.primary,
                     ),
                   ),
@@ -614,17 +592,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                     children: [
                       Icon(
                         Icons.confirmation_num_outlined,
-                        size: 14,
+                        size: 16,
                         color: colorScheme.secondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         FareService.fareAsString(legs[i].fare),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.secondary,
-                        ),
+                        style: context.textTheme.labelLarge?.copyWith(color: colorScheme.secondary),
                       ),
                     ],
                   ),
@@ -635,13 +609,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  l10n.totalTicketCost,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text(l10n.totalTicketCost, style: context.textTheme.titleSmall),
                 Row(
                   children: [
                     Icon(
@@ -652,11 +620,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                     const SizedBox(width: 6),
                     Text(
                       FareService.fareAsString(totalFare),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.secondary,
-                      ),
+                      style: context.textTheme.titleSmall?.copyWith(color: colorScheme.secondary),
                     ),
                   ],
                 ),
@@ -717,7 +681,8 @@ class _StopsExpanderState extends State<StopsExpander> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final headerText = widget.durationText != null && widget.durationText!.isNotEmpty
+    final headerText =
+        widget.durationText != null && widget.durationText!.isNotEmpty
         ? "${widget.label} (${widget.durationText})"
         : widget.label;
 
@@ -733,13 +698,7 @@ class _StopsExpanderState extends State<StopsExpander> {
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  headerText,
-                  style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 14,
-                  ),
-                ),
+                child: Text(headerText, style: context.textTheme.bodyMedium),
               ),
               Icon(
                 _expanded ? Icons.expand_less : Icons.expand_more,
@@ -765,18 +724,13 @@ class _StopsExpanderState extends State<StopsExpander> {
                         width: 28,
                         child: Text(
                           "$index.",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: context.textTheme.bodyMedium,
                         ),
                       ),
                       Expanded(
                         child: Text(
                           name,
-                          style: TextStyle(
-                            color: colorScheme.onSurface,
-                          ),
+                          style: context.textTheme.bodyMedium,
                         ),
                       ),
                     ],

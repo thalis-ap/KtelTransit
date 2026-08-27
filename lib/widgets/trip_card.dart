@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/widgets/trip_details_card.dart';
 
 /// A card widget that displays a single trip with a "departed" overlay if past.
@@ -58,11 +59,7 @@ class TripCard extends StatelessWidget {
                   ),
                   child: Text(
                     l10n.departed,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.error,
-                    ),
+                    style: context.textTheme.labelMedium?.copyWith(color: colorScheme.error),
                   ),
                 ),
               ),

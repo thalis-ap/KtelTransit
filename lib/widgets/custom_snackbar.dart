@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 class CustomSnackBar {
   static void show(
-      BuildContext context, {
-        required String message,
-        required Color color,
-        Duration duration = const Duration(seconds: 3),
-      }) {
+    BuildContext context, {
+    required String message,
+    required Color color,
+    Duration duration = const Duration(seconds: 3),
+  }) {
     final overlay = Overlay.of(context);
 
     late OverlayEntry entry;
@@ -47,22 +48,17 @@ class CustomSnackBar {
                     color: color,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: const [
-                      BoxShadow(
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
+                      BoxShadow(blurRadius: 10, offset: Offset(0, 4)),
                     ],
                   ),
                   child: Text(
                     message,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      // only exception with colors (not using colorScheme)
-                      // since we don't know the bg color of the snackbar
+                    style: context.textTheme.headlineSmall?.copyWith(
                       color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
                     ),
+                    // only exception with colors (not using colorScheme)
+                    // since we don't know the bg color of the snackbar
                   ),
                 ),
               ),

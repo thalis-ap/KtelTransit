@@ -101,7 +101,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 const SizedBox(width: 4),
                 Text(
                   languageCode.toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: context.textTheme.titleSmall,
                 ),
                 const SizedBox(width: 4),
               ],
@@ -132,7 +132,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 Text(
                   l10n.welcomeDescription,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
+                  style: context.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 30),
                 SizedBox(
@@ -146,7 +146,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 Text(
                   l10n.readyToStart,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: context.textTheme.headlineMedium,
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -174,10 +174,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     onPressed: _onGoPressed,
                     label: Text(
                       l10n.letGoButton,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: context.textTheme.headlineSmall?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
                     ),
                     icon: const Icon(Icons.arrow_forward, size: 26),
                     iconAlignment: IconAlignment.end,

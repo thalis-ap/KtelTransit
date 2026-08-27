@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Route;
 import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/models/trip.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
@@ -144,7 +145,6 @@ class _DirectionSectionState extends State<DirectionSection> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final l10n = AppLocalizations.of(context)!;
 
     if (widget.trips.isEmpty) return const SizedBox.shrink();
     if (_selectedTrip == null) return const SizedBox.shrink();
@@ -216,10 +216,7 @@ class _DirectionSectionState extends State<DirectionSection> {
             children: [
               Text(
                 day,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                style: context.textTheme.labelLarge,
               ),
               const SizedBox(height: 4),
               Wrap(
@@ -251,14 +248,7 @@ class _DirectionSectionState extends State<DirectionSection> {
                       ),
                       child: Text(
                         time,
-                        style: TextStyle(
-                          color: isSelected
-                              ? colorScheme.onPrimary
-                              : colorScheme.primary,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.w500,
-                        ),
+                        style: context.textTheme.labelLarge?.copyWith(color: isSelected ? colorScheme.onPrimary : colorScheme.primary) ,
                       ),
                     ),
                   );
@@ -279,7 +269,7 @@ class _DirectionSectionState extends State<DirectionSection> {
           // Title
           Text(
             widget.title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: context.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
 
@@ -300,19 +290,12 @@ class _DirectionSectionState extends State<DirectionSection> {
                     Expanded(
                       child: Text(
                         "${index + 1}. ${stop.getLocalizedNameByLangCode(languageCode)}",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colorScheme.onSurface,
-                        ),
+                        style: context.textTheme.bodyMedium,
                       ),
                     ),
                     Text(
                       time,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
-                      ),
+                      style: context.textTheme.bodyMedium,
                     ),
                   ],
                 ),

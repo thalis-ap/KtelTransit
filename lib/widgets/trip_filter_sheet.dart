@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/trip_sort_filter.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 class TripFilterSheet extends StatefulWidget {
   final TripSortFilter currentFilter;
@@ -54,10 +55,7 @@ class _TripFilterSheetState extends State<TripFilterSheet> {
           // Title
           Text(
             l10n.filters,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: context.textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
 

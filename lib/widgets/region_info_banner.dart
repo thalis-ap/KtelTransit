@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 import '../l10n/app_localizations.dart';
 
@@ -45,15 +46,12 @@ class RegionInfoBanner extends StatelessWidget {
                   children: [
                     RichText(
                       text: TextSpan(
-                        style: TextStyle(
-                          color: colorScheme.onSecondaryContainer,
-                          fontSize: 16,
-                        ),
+                        style: context.textTheme.titleMedium,
                         children: [
                           TextSpan(text: l10n.regionPrefix),
                           TextSpan(
                             text: regionName,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: context.textTheme.titleMedium,
                           ),
                         ],
                       ),
@@ -61,11 +59,7 @@ class RegionInfoBanner extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       l10n.tapToChange,
-                      style: TextStyle(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: context.textTheme.bodySmall,
                     ),
                   ],
                 ),

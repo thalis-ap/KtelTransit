@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
 
 class TimeSelectionBar extends StatelessWidget {
   final DateTime selectedSearchTime;
@@ -39,11 +40,7 @@ class TimeSelectionBar extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.departureLabel(formattedTime),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: colorScheme.onSurface,
-                    ),
+                    style: context.textTheme.bodyMedium,
                   ),
                 ),
               ],

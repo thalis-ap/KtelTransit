@@ -21,15 +21,72 @@ class AppTheme {
   );
 
   static const _textTheme = TextTheme(
-    titleLarge: TextStyle(
-      fontSize: 26,
-      fontWeight: FontWeight.w800,
+    // ----- Headlines (Bold, Large) -----
+    headlineLarge: TextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.w700,
       letterSpacing: -0.5,
     ),
-    labelSmall: TextStyle(
-      fontSize: 12,
+    headlineMedium: TextStyle(
+      fontSize: 28,
       fontWeight: FontWeight.w700,
-      letterSpacing: 1.2,
+      letterSpacing: -0.5,
+    ),
+    headlineSmall: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.5,
+    ),
+
+    // ----- Titles (Bold, Medium) -----
+    titleLarge: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.3,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.2,
+    ),
+    titleSmall: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.1,
+    ),
+
+    // ----- Body (Regular weight, variable size) -----
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      height: 1.5,
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      height: 1.5,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      height: 1.4,
+    ),
+
+    // ----- Labels (Bold, Small) -----
+    labelLarge: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.3,
+    ),
+    labelMedium: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.3,
+    ),
+    labelSmall: TextStyle(
+      fontSize: 10,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.5,
     ),
   );
 
@@ -123,4 +180,8 @@ extension AppThemeExtension on ThemeData {
         ? AppTheme.darkCompassCalibrateIconPath
         : AppTheme.compassCalibrateIconPath;
   }
+}
+
+extension AppTextStyles on BuildContext {
+  TextTheme get textTheme => Theme.of(this).textTheme;
 }

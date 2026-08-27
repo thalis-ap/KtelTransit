@@ -387,7 +387,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get sortBy => 'Ταξινόμηση κατά';
 
   @override
-  String get sortDirection => 'Είδος ταξινόμησης';
+  String get sortDirection => 'Φορά ταξινόμησης';
 
   @override
   String get ascending => 'Αύξουσα';
