@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/widgets/trip_details_card.dart';
 
 /// A card widget that displays a single trip with a "departed" overlay if past.
 /// Acts as a wrapper for TripDetailsCard so as to strip it from concepts like
 /// isPast and onTap attributes. TripDetailsCard remains thus a pure UI widget
-/// TODO: Pass down the fare as well so that TripDetails card does not have to deal with it after implementing the fare service
 class TripCard extends StatelessWidget {
   final RoutingTrip trip;
   final DateTime selectedDepartureTime;

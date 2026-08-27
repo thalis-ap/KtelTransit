@@ -30,9 +30,6 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     final trip = widget.routingTrip;
     final bus = trip.busTrip;
 
-    // None for pure walking trips
-    double estimatedFare = bus == null ? -1 : trip.estimatedFare;
-
     return Column(
       children: [
         Row(
@@ -85,7 +82,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
             Row(
               children: [
-                if (estimatedFare > 0) ...[
+                if (trip.fare > 0) ...[
                   Icon(
                     Icons.confirmation_num_outlined,
                     size: 18,
@@ -93,7 +90,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    FareService.fareAsString(estimatedFare),
+                    trip.fareAsString,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -583,7 +580,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     final legs = busTrip.legs;
     if (legs.isEmpty) return const SizedBox.shrink();
 
-    final totalFare = widget.routingTrip.estimatedFare;
+    final totalFare = widget.routingTrip.fare;
 
     return Column(
       children: [
@@ -622,7 +619,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        FareService.fareAsString(legs[i].estimatedFare),
+                        FareService.fareAsString(legs[i].fare),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

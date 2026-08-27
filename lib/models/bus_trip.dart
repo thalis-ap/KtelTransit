@@ -11,6 +11,7 @@ class BusLeg {
   final DateTime departureDateTime;
   final DateTime arrivalDateTime;
   final int estimatedDuration; // seconds, from stop_times.txt
+  final double fare;
 
   final Stop originStop;
   final Stop destinationStop;
@@ -19,10 +20,7 @@ class BusLeg {
   // stopNames.length - 1 == number of stops passed.
   final List<String> stopNames;
 
-  double get estimatedFare =>
-      FareService.calculateFare(originStop, destinationStop);
-
-  String get estimatedFareAsString => FareService.fareAsString(estimatedFare);
+  String get estimatedFareAsString => FareService.fareAsString(fare);
 
   /// We don't use the originStop.name here because we don't know the preffered
   /// language of the user.
@@ -47,6 +45,7 @@ class BusLeg {
     required this.stopNames,
     required this.originStop,
     required this.destinationStop,
+    required this.fare,
   });
 
   BusLeg copyWith({
@@ -56,6 +55,7 @@ class BusLeg {
     DateTime? departureDateTime,
     DateTime? arrivalDateTime,
     int? estimatedDuration,
+    double? fare,
     List<String>? stopNames,
     Stop? originStop,
     Stop? destinationStop,
@@ -67,6 +67,7 @@ class BusLeg {
       departureDateTime: departureDateTime ?? this.departureDateTime,
       arrivalDateTime: arrivalDateTime ?? this.arrivalDateTime,
       estimatedDuration: estimatedDuration ?? this.estimatedDuration,
+      fare: fare ?? this.fare,
       stopNames: stopNames ?? this.stopNames,
       originStop: originStop ?? this.originStop,
       destinationStop: destinationStop ?? this.destinationStop,
@@ -86,15 +87,20 @@ class BusTrip {
   // length >= 2 for any number of transfers.
   final List<BusLeg> legs;
 
+  // Holds the total of all the legs' fares
+  double totalFare = -1;
+
   BusTrip({
     required this.isStartAlsoOrigin,
     required this.legs,
     this.points,
     this.safeDuration,
-  }) : assert(legs.isNotEmpty, 'BusTrip must have at least one leg');
+  }) : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
+    // Will remain -1 if there are no legs (pure walking trip)
+    totalFare = legs.fold(0, (sum, leg) => sum + leg.fare);
+  }
 
-  // ---- Convenience getters so most existing call sites don't need to change ----
-
+  // ---- Convenience getters ----
   bool get isTransfer => legs.length > 1;
 
   int get transferCount => legs.length - 1;
@@ -111,7 +117,11 @@ class BusTrip {
   int get estimatedDuration =>
       legs.fold(0, (sum, leg) => sum + leg.estimatedDuration);
 
-  double get totalWaitTime => List.generate(legs.length - 1, (i) => i).fold(0, (sum, legIndex) => sum + waitTimeAfterLeg(legIndex).inSeconds);
+  double get totalWaitTime =>
+      List.generate(legs.length - 1, (i) => i).fold(
+          0, (sum, legIndex) => sum + waitTimeAfterLeg(legIndex).inSeconds);
+
+  String get estimatedFareAsString => FareService.fareAsString(totalFare);
 
   /// Wait time between leg[i] and leg[i+1], keyed by transfer index (0-based).
   Duration waitTimeAfterLeg(int legIndex) {

@@ -10,6 +10,7 @@ import 'package:ktel_transit/models/route.dart';
 import 'package:ktel_transit/models/stop_time.dart';
 
 import 'package:csv/csv.dart';
+import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/services/settings_service.dart';
 import 'package:ktel_transit/utilities/notifiers.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
@@ -405,6 +406,9 @@ class GtfsRepository {
       validServiceIds = getServiceIds(effectiveDate);
     }
 
+    Stop startStop = _stopsById[startStopId]!;
+    Stop destStop = _stopsById[destStopId]!;
+
     // Find all departures from start stop after the given minute
     List<StopTime> startTimes = (_stopTimesByStopId[startStopId] ?? [])
         .where(
@@ -415,9 +419,9 @@ class GtfsRepository {
     startTimes.sort((a, b) => a.departureTime.compareTo(b.departureTime));
 
     final String destinationStopName =
-        (_stopsById[destStopId])?.getLocalizedNameByLangCode(languageCode) ?? '';
+        startStop.getLocalizedNameByLangCode(languageCode);
     final String originStopName =
-        (_stopsById[startStopId])?.getLocalizedNameByLangCode(languageCode) ?? '';
+        destStop.getLocalizedNameByLangCode(languageCode);
 
     List<BusTrip> dailyTrips = [];
 
@@ -454,6 +458,7 @@ class GtfsRepository {
         allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
 
         final stopNames = _getStopNamesForTrip(trip.tripId, languageCode);
+        final double fare = FareService.calculateFare(startStop, destStop);
 
         final leg = BusLeg(
           routeName: displayName,
@@ -462,6 +467,7 @@ class GtfsRepository {
           departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
           arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
           estimatedDuration: durationSecs,
+          fare: fare,
           stopNames: stopNames,
           originStop: _stopsById[startStopId]!,
           destinationStop: _stopsById[destStopId]!,
@@ -527,11 +533,12 @@ class GtfsRepository {
               final Route? routeB = _routesById[tripB.routeId];
               if (routeA == null || routeB == null) continue;
 
+              final Stop transferStop = _stopsById[transferA.stopId]!;
+
               final String transferStopName =
-                  _stopsById[transferA.stopId]?.getLocalizedNameByLangCode(
+                  transferStop.getLocalizedNameByLangCode(
                     languageCode,
-                  ) ??
-                  '';
+                  );
 
               String rAName = tripA.getDisplayName(
                 routeA.getLocalizedLongName(languageCode),
@@ -553,6 +560,9 @@ class GtfsRepository {
               final stopNamesA = _getStopNamesForTrip(tripA.tripId, languageCode);
               final stopNamesB = _getStopNamesForTrip(tripB.tripId, languageCode);
 
+              final double fare1 = FareService.calculateFare(startStop, transferStop);
+              final double fare2 = FareService.calculateFare(transferStop, destStop);
+
               final leg1 = BusLeg(
                 routeName: rAName,
                 originStopName: originStopName,
@@ -560,10 +570,12 @@ class GtfsRepository {
                 departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, transferA.arrivalTime),
                 estimatedDuration: durationLeg1,
+                fare: fare1,
                 stopNames: stopNamesA,
-                originStop: _stopsById[startStopId]!,
-                destinationStop: _stopsById[transferA.stopId]!,
+                originStop: startStop,
+                destinationStop: transferStop,
               );
+
 
               final leg2 = BusLeg(
                 routeName: rBName,
@@ -572,9 +584,10 @@ class GtfsRepository {
                 departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stTransB.departureTime),
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
                 estimatedDuration: durationLeg2,
+                fare: fare2,
                 stopNames: stopNamesB,
-                originStop: _stopsById[transferA.stopId]!,
-                destinationStop: _stopsById[destStopId]!,
+                originStop: transferStop,
+                destinationStop: destStop,
               );
 
               dailyTrips.add(BusTrip(

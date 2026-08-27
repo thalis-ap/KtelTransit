@@ -61,8 +61,7 @@ class TripSortingService {
         );
         break;
       case SortCriterion.cost:
-        // TODO add the fare to the routing trip
-        trips.sort((a, b) => -1);
+        trips.sort((a, b) => a.fare.compareTo(b.fare));
         break;
       case SortCriterion.transferCount:
         trips.sort(
@@ -77,6 +76,7 @@ class TripSortingService {
       case SortCriterion.waitTimeDuration:
         trips.sort((a, b) => a.totalWaitTime.compareTo(b.totalWaitTime));
         break;
+
     }
 
     // Reverse the list if user selected descending

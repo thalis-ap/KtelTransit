@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 
 import '../models/bus_trip.dart';
@@ -104,8 +103,8 @@ class TripDetailsCard extends StatelessWidget {
       ).join("\n");
     }
 
-    // Get the estimated fare (-1 if no bus legs exist)
-    final double estimatedFare = routingTrip.estimatedFare;
+    // Get the total fare (-1 if no bus legs exist)
+    final double fare = routingTrip.fare;
 
     return Column(
       children: [
@@ -154,7 +153,7 @@ class TripDetailsCard extends StatelessWidget {
             ),
             Row(
               children: [
-                if (estimatedFare > 0) ...[
+                if (fare > 0) ...[
                   Icon(
                     Icons.confirmation_num_outlined,
                     size: 18,
@@ -162,7 +161,7 @@ class TripDetailsCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    FareService.fareAsString(estimatedFare),
+                    routingTrip.fareAsString,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

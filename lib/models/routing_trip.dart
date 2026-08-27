@@ -49,23 +49,10 @@ class RoutingTrip {
     this.egressTrip,
   });
 
-  // -------------------- DRAFT START --------------------
-  // TODO: Replace all fare related function with region-specific GTFS fare data (fare_attributes.txt, fare_rules.txt)
-  double get estimatedFare {
-    // Return 0 for no bus (pure walking trips_
-    if (busTrip == null || busTrip!.legs.isEmpty) return -1;
+  // Returns -1 if its a walking trip only
+  double get fare => busTrip?.totalFare ?? -1;
 
-    // ✅ If there's a bus trip with legs, sum the fare for each leg
-    double sum = 0.0;
-    for (final leg in busTrip!.legs) {
-      sum += leg.estimatedFare;
-    }
-    return sum;
-  }
-
-  String get estimatedFareAsString => FareService.fareAsString(estimatedFare);
-
-  // -------------------- DRAFT END --------------------
+  String get fareAsString => FareService.fareAsString(fare);
 
   DateTime getDepartureDateOnly(DateTime selectedTime) {
     return TimeFormat.dateTimeToDateOnly(getDepartureDateTime(selectedTime));
