@@ -35,7 +35,7 @@ class TimelineNode extends StatelessWidget {
                   Expanded(
                     child: lineStyle == LineStyle.solid
                         ? Container(
-                      width: 6,
+                      width: 12,
                       // color: lineColor,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -43,7 +43,7 @@ class TimelineNode extends StatelessWidget {
                     ),
                     )
                         : Padding(
-                          padding: const EdgeInsets.only(right: 4.0),
+                          padding: const EdgeInsets.only(right: 8.0),
                           child: _DottedLine(color: lineColor),
                         ),
                   ),
@@ -89,8 +89,8 @@ class _DashedLinePainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    const dashWidth = 4.0;
-    const dashHeight = 4.0;
+    const dashWidth = 8.0;
+    const dashHeight = 8.0;
     const dashSpace = 4.0;
     double startY = 0.0;
 
@@ -99,7 +99,7 @@ class _DashedLinePainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromLTWH(0, startY, dashWidth, dashHeight),
-          const Radius.circular(2),
+          const Radius.circular(4),
         ),
         paint,
       );

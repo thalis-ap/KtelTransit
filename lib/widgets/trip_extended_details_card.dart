@@ -274,13 +274,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         Expanded(
           child: Text(
             title,
-            style: context.textTheme.labelLarge,
+            style: context.textTheme.titleSmall,
           ),
         ),
         const SizedBox(width: 10),
         Text(
           arrivalTime,
-          style: context.textTheme.labelLarge,
+          style: context.textTheme.titleSmall,
         ),
       ],
     );
@@ -306,7 +306,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           TimelineNode(
             indicator: Icon(
               Icons.my_location,
-              size: 20,
+              size: 26,
               color: colorScheme.secondary,
             ),
             lineStyle: LineStyle.dotted,
@@ -323,7 +323,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         TimelineNode(
           indicator: Icon(
             Icons.directions_bus,
-            size: 20,
+            size: 26,
             color: colorScheme.primary,
           ),
           lineStyle: LineStyle.solid,
@@ -346,7 +346,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           TimelineNode(
             indicator: Icon(
               Icons.directions_bus,
-              size: 20,
+              size: 26,
               color: colorScheme.primary,
             ),
             lineStyle: LineStyle.dotted,
@@ -360,7 +360,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           ),
 
         TimelineNode(
-          indicator: Icon(Icons.place, size: 20, color: colorScheme.error),
+          indicator: Icon(Icons.place, size: 26, color: colorScheme.error),
           lineColor: Colors.transparent,
           content: _buildArrivalWidget(
             l10n: l10n,
@@ -396,7 +396,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           TimelineNode(
             indicator: Icon(
               Icons.my_location,
-              size: 20,
+              size: 26,
               color: colorScheme.secondary,
             ),
             lineStyle: LineStyle.dotted,
@@ -416,7 +416,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         TimelineNode(
           indicator: Icon(
             Icons.directions_bus,
-            size: 20,
+            size: 26,
             color: colorScheme.primary,
           ),
           lineColor: colorScheme.primary,
@@ -439,13 +439,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           TimelineNode(
             indicator: Icon(
               Icons.directions_bus,
-              size: 20,
+              size: 26,
               color: colorScheme.primary,
             ),
             lineColor: colorScheme.tertiary,
             lineStyle: LineStyle.dotted,
             content: Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
+              padding: const EdgeInsets.only(bottom: 20),
               child: _buildArrivalWidget(
                 l10n: l10n,
                 title: legs[legIndex - 1].destinationStop.getLocalizedName(
@@ -461,13 +461,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           TimelineNode(
             indicator: Icon(
               Icons.transfer_within_a_station,
-              size: 20,
+              size: 24,
               color: colorScheme.tertiary,
             ),
             lineColor: colorScheme.tertiary,
             lineStyle: LineStyle.dotted,
             content: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
+              padding: const EdgeInsets.only(top: 10.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -506,7 +506,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           TimelineNode(
             indicator: Icon(
               Icons.directions_bus,
-              size: 20,
+              size: 26,
               color: colorScheme.primary,
             ),
             lineColor: colorScheme.primary,
@@ -526,7 +526,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           TimelineNode(
             indicator: Icon(
               Icons.directions_bus,
-              size: 20,
+              size: 26,
               color: colorScheme.primary,
             ),
             lineStyle: LineStyle.dotted,
@@ -540,7 +540,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           ),
 
         TimelineNode(
-          indicator: Icon(Icons.place, size: 20, color: colorScheme.error),
+          indicator: Icon(Icons.place, size: 26, color: colorScheme.error),
           lineColor: Colors.transparent,
           content: _buildArrivalWidget(
             l10n: l10n,
