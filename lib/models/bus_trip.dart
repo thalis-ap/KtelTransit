@@ -6,8 +6,6 @@ import 'package:latlong2/latlong.dart';
 /// transfers in between. A BusTrip with a transfer is just 2+ of these.
 class BusLeg {
   final String routeName;
-  final String originStopName;
-  final String destinationStopName;
   final DateTime departureDateTime;
   final DateTime arrivalDateTime;
   final int estimatedDuration; // seconds, from stop_times.txt
@@ -37,8 +35,6 @@ class BusLeg {
 
   BusLeg({
     required this.routeName,
-    required this.originStopName,
-    required this.destinationStopName,
     required this.departureDateTime,
     required this.arrivalDateTime,
     required this.estimatedDuration,
@@ -50,8 +46,6 @@ class BusLeg {
 
   BusLeg copyWith({
     String? routeName,
-    String? originStopName,
-    String? destinationStopName,
     DateTime? departureDateTime,
     DateTime? arrivalDateTime,
     int? estimatedDuration,
@@ -62,8 +56,6 @@ class BusLeg {
   }) {
     return BusLeg(
       routeName: routeName ?? this.routeName,
-      originStopName: originStopName ?? this.originStopName,
-      destinationStopName: destinationStopName ?? this.destinationStopName,
       departureDateTime: departureDateTime ?? this.departureDateTime,
       arrivalDateTime: arrivalDateTime ?? this.arrivalDateTime,
       estimatedDuration: estimatedDuration ?? this.estimatedDuration,
@@ -104,10 +96,6 @@ class BusTrip {
   bool get isTransfer => legs.length > 1;
 
   int get transferCount => legs.length - 1;
-
-  String get originStopName => legs.first.originStopName;
-
-  String get destinationStopName => legs.last.destinationStopName;
 
   DateTime get startDepartureDateTime => legs.first.departureDateTime;
 

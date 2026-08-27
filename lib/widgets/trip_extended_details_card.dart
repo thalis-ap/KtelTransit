@@ -354,11 +354,11 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           lineColor: colorScheme.primary,
           content: _buildBusLegWidget(
             routeName: leg.routeName,
-            stopName: leg.originStopName,
+            stopName: leg.originStop.getLocalizedName(l10n),
             time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.departureDateTime,
             ),
-            stopNames: leg.stopNamesFromTo(leg.originStopName, leg.destinationStopName),
+            stopNames: leg.stopNamesFromTo(leg.originStop.getLocalizedName(l10n), leg.destinationStop.getLocalizedName(l10n)),
             estimatedDuration: leg.estimatedDuration,
           ),
         ),
@@ -372,7 +372,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
             lineStyle: LineStyle.dotted,
             content: _buildWalkingWidget(
-              leg.destinationStopName,
+              leg.destinationStop.getLocalizedName(l10n),
               TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 leg.arrivalDateTime,
               ),
@@ -443,11 +443,11 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           lineColor: colorScheme.primary,
           content: _buildBusLegWidget(
             routeName: firstLeg.routeName,
-            stopName: firstLeg.originStopName,
+            stopName: firstLeg.originStop.getLocalizedName(l10n),
             time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               firstLeg.departureDateTime,
             ),
-            stopNames: firstLeg.stopNamesFromTo(firstLeg.originStopName, firstLeg.destinationStopName),
+            stopNames: firstLeg.stopNamesFromTo(firstLeg.originStop.getLocalizedName(l10n), firstLeg.destinationStop.getLocalizedName(l10n)),
             estimatedDuration: firstLeg.estimatedDuration,
             ),
         ),
@@ -466,7 +466,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               padding: const EdgeInsets.only(bottom: 8.0),
               child: _buildArrivalWidget(
                 l10n: l10n,
-                title: legs[legIndex - 1].destinationStopName,
+                title: legs[legIndex - 1].destinationStop.getLocalizedName(l10n),
                 arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   legs[legIndex - 1].arrivalDateTime,
                 ),
@@ -527,7 +527,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             lineColor: colorScheme.primary,
             content: _buildBusLegWidget(
               routeName: legs[legIndex].routeName,
-              stopName: legs[legIndex].originStopName,
+              stopName: legs[legIndex].originStop.getLocalizedName(l10n),
               time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 legs[legIndex].departureDateTime,
               ),
@@ -547,7 +547,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
             lineStyle: LineStyle.dotted,
             content: _buildWalkingWidget(
-              lastLeg.destinationStopName,
+              lastLeg.destinationStop.getLocalizedName(l10n),
               TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 lastLeg.arrivalDateTime,
               ),
@@ -603,7 +603,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${i + 1}. ${legs[i].originStopName} → ${legs[i].destinationStopName}",
+                    "${i + 1}. ${legs[i].originStop.getLocalizedName(l10n)} → ${legs[i].destinationStop.getLocalizedName(l10n)}",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

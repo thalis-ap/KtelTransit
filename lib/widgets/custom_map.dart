@@ -71,7 +71,7 @@ class CustomMap extends StatelessWidget {
           activeTransferStop = repository.stops.firstWhere(
             (s) =>
                 s.getLocalizedNameByLangCode(languageCode) ==
-                activeTrip.busTrip!.legs.first.destinationStopName,
+                activeTrip.busTrip!.legs.first.destinationStop.getLocalizedNameByLangCode(languageCode),
           );
         } catch (_) {}
       }

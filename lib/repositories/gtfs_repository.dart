@@ -418,11 +418,6 @@ class GtfsRepository {
         .toList();
     startTimes.sort((a, b) => a.departureTime.compareTo(b.departureTime));
 
-    final String destinationStopName =
-        startStop.getLocalizedNameByLangCode(languageCode);
-    final String originStopName =
-        destStop.getLocalizedNameByLangCode(languageCode);
-
     List<BusTrip> dailyTrips = [];
 
     // Direct trips
@@ -462,15 +457,13 @@ class GtfsRepository {
 
         final leg = BusLeg(
           routeName: displayName,
-          originStopName: originStopName,
-          destinationStopName: destinationStopName,
           departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
           arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
           estimatedDuration: durationSecs,
           fare: fare,
           stopNames: stopNames,
-          originStop: _stopsById[startStopId]!,
-          destinationStop: _stopsById[destStopId]!,
+          originStop: startStop,
+          destinationStop: destStop,
         );
 
         dailyTrips.add(BusTrip(
@@ -535,11 +528,6 @@ class GtfsRepository {
 
               final Stop transferStop = _stopsById[transferA.stopId]!;
 
-              final String transferStopName =
-                  transferStop.getLocalizedNameByLangCode(
-                    languageCode,
-                  );
-
               String rAName = tripA.getDisplayName(
                 routeA.getLocalizedLongName(languageCode),
               );
@@ -565,8 +553,6 @@ class GtfsRepository {
 
               final leg1 = BusLeg(
                 routeName: rAName,
-                originStopName: originStopName,
-                destinationStopName: transferStopName,
                 departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, transferA.arrivalTime),
                 estimatedDuration: durationLeg1,
@@ -579,8 +565,6 @@ class GtfsRepository {
 
               final leg2 = BusLeg(
                 routeName: rBName,
-                originStopName: transferStopName,
-                destinationStopName: destinationStopName,
                 departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stTransB.departureTime),
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
                 estimatedDuration: durationLeg2,

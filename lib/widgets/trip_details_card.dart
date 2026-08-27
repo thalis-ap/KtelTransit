@@ -200,7 +200,7 @@ class TripDetailsCard extends StatelessWidget {
   }) {
     return _buildWalkingRow(
       colorScheme,
-      "${l10n.walkTo} ${routingTrip.busTrip!.originStopName}",
+      "${l10n.walkTo} ${routingTrip.busTrip!.legs.first.originStop.getLocalizedName(l10n)}",
       departureTime,
       walkingTimeText:
           "(${TimeFormat.secondsToFormattedString(routingTrip.accessDuration, l10n)})",
@@ -340,7 +340,7 @@ class TripDetailsCard extends StatelessWidget {
   }) {
     return _buildWalkingRow(
       colorScheme,
-      "${l10n.walkFrom} ${routingTrip.busTrip!.destinationStopName}",
+      "${l10n.walkFrom} ${routingTrip.busTrip!.legs.first.destinationStop.getLocalizedName(l10n)}",
       TimeFormat.dateTimeToFormattedStringHoursMinutes(
         routingTrip.busTrip!.destArrivalDateTime,
       ),
@@ -382,7 +382,7 @@ class TripDetailsCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildDepartureRow(
             colorScheme,
-            l10n.departureFrom(firstLeg.originStopName),
+            l10n.departureFrom(firstLeg.originStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               firstLeg.departureDateTime,
             ),
@@ -394,7 +394,7 @@ class TripDetailsCard extends StatelessWidget {
         // First of all, show the first arrival separately
         _buildArrivalAtTransferRow(
           colorScheme,
-          l10n.arrivalAt(firstLeg.destinationStopName),
+          l10n.arrivalAt(firstLeg.destinationStop.getLocalizedName(l10n)),
           TimeFormat.dateTimeToFormattedStringHoursMinutes(
             firstLeg.arrivalDateTime,
           ),
@@ -421,7 +421,7 @@ class TripDetailsCard extends StatelessWidget {
           ),
           _buildDepartureFromTransferRow(
             colorScheme,
-            l10n.departureFrom(busTrip.legs[legIndex + 1].originStopName),
+            l10n.departureFrom(busTrip.legs[legIndex + 1].originStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               busTrip.legs[legIndex + 1].departureDateTime,
             ),
@@ -433,7 +433,7 @@ class TripDetailsCard extends StatelessWidget {
           const SizedBox(height: 8),
           _buildArrivalAtTransferRow(
             colorScheme,
-            l10n.arrivalAt(busTrip.legs.last.destinationStopName),
+            l10n.arrivalAt(busTrip.legs.last.destinationStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               busTrip.legs.last.arrivalDateTime,
             ),
@@ -488,7 +488,7 @@ class TripDetailsCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildDepartureRow(
             colorScheme,
-            l10n.departureFrom(leg.originStopName),
+            l10n.departureFrom(leg.originStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.departureDateTime,
             ),
@@ -498,7 +498,7 @@ class TripDetailsCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: _buildArrivalRow(
             colorScheme,
-            l10n.arrivalAt(leg.destinationStopName),
+            l10n.arrivalAt(leg.destinationStop.getLocalizedName(l10n)),
             TimeFormat.dateTimeToFormattedStringHoursMinutes(
               leg.arrivalDateTime,
             ),

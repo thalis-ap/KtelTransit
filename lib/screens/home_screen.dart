@@ -239,12 +239,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final Stop busStart = repository.stops.firstWhere(
           (s) =>
               s.getLocalizedNameByLangCode(languageCode) ==
-              busTrip.originStopName,
+              busTrip.legs.first.originStop.getLocalizedNameByLangCode(languageCode),
         );
         final Stop busDest = repository.stops.firstWhere(
           (s) =>
               s.getLocalizedNameByLangCode(languageCode) ==
-              busTrip.destinationStopName,
+              busTrip.legs.first.destinationStop.getLocalizedNameByLangCode(languageCode),
         );
 
         final LatLng startCoords = LatLng(
@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final Stop trStop = repository.stops.firstWhere(
             (s) =>
                 s.getLocalizedNameByLangCode(languageCode) ==
-                routingTrip.busTrip!.legs[1].originStopName,
+                routingTrip.busTrip!.legs[1].originStop.getLocalizedNameByLangCode(languageCode),
           );
 
           final BusTrip leg1 = await BusService.getRoute(
