@@ -853,6 +853,18 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Φίλτρο'**
   String get filter;
+
+  /// No description provided for @loadingMap.
+  ///
+  /// In el, this message translates to:
+  /// **'Φορτώνεται ο χάρτης...'**
+  String get loadingMap;
+
+  /// No description provided for @loadingRoutes.
+  ///
+  /// In el, this message translates to:
+  /// **'Φορτώνονται τα δρομολόγια...'**
+  String get loadingRoutes;
 }
 
 class _AppLocalizationsDelegate

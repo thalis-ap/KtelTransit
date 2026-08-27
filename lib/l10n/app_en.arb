@@ -138,5 +138,8 @@
   "filtersActive": "Filters active",
   "apply": "Apply",
   "sort": "Sort",
-  "filter": "Filter"
+  "filter": "Filter",
+  "loadingMap": "Loading the map...",
+  "loadingRoutes": "Loading routes..."
+
 }

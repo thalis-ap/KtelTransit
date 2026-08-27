@@ -438,4 +438,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filter => 'Filter';
+
+  @override
+  String get loadingMap => 'Loading the map...';
+
+  @override
+  String get loadingRoutes => 'Loading routes...';
 }

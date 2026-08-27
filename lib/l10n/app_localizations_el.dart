@@ -442,4 +442,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get filter => 'Φίλτρο';
+
+  @override
+  String get loadingMap => 'Φορτώνεται ο χάρτης...';
+
+  @override
+  String get loadingRoutes => 'Φορτώνονται τα δρομολόγια...';
 }

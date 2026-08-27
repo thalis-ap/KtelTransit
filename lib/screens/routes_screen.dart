@@ -3,6 +3,7 @@ import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/widgets/custom_loading_indicator.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
 import '../models/route.dart';
@@ -55,7 +56,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
           ),
           Expanded(
             child: isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CustomLoadingIndicator(message: l10n.loadingRoutes,))
                 : ListView.builder(
               padding: const EdgeInsets.all(8.0),
               itemCount: repository.routes.length,

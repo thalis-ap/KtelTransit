@@ -18,6 +18,7 @@ import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/choose_on_map_bar.dart';
 import 'package:ktel_transit/widgets/compass_button.dart';
+import 'package:ktel_transit/widgets/custom_loading_indicator.dart';
 import 'package:ktel_transit/widgets/custom_map.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
@@ -221,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // Show the route on the map for the best route
     _fetchRouteForSelectedTrip(cachedTrips![index]);
-
   }
 
   /// Fetches the route(s) (i.e. the map points) for a given OsrmTrip object
@@ -239,12 +239,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final Stop busStart = repository.stops.firstWhere(
           (s) =>
               s.getLocalizedNameByLangCode(languageCode) ==
-              busTrip.legs.first.originStop.getLocalizedNameByLangCode(languageCode),
+              busTrip.legs.first.originStop.getLocalizedNameByLangCode(
+                languageCode,
+              ),
         );
         final Stop busDest = repository.stops.firstWhere(
           (s) =>
               s.getLocalizedNameByLangCode(languageCode) ==
-              busTrip.legs.first.destinationStop.getLocalizedNameByLangCode(languageCode),
+              busTrip.legs.first.destinationStop.getLocalizedNameByLangCode(
+                languageCode,
+              ),
         );
 
         final LatLng startCoords = LatLng(
@@ -262,7 +266,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final Stop trStop = repository.stops.firstWhere(
             (s) =>
                 s.getLocalizedNameByLangCode(languageCode) ==
-                routingTrip.busTrip!.legs[1].originStop.getLocalizedNameByLangCode(languageCode),
+                routingTrip.busTrip!.legs[1].originStop
+                    .getLocalizedNameByLangCode(languageCode),
           );
 
           final BusTrip leg1 = await BusService.getRoute(
@@ -326,7 +331,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
 
     if (_sortFilter != null) {
-      tripsFound = TripSortingService.apply(tripsFound, _sortFilter!, selectedSearchTime);
+      tripsFound = TripSortingService.apply(
+        tripsFound,
+        _sortFilter!,
+        selectedSearchTime,
+      );
     }
 
     return tripsFound.isNotEmpty ? tripsFound : null;
@@ -1003,13 +1012,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         _refreshTripInfo();
                       }
                     },
-              sortFilter: _sortFilter,
-              onSortFilterApplied: (filter) {
-                setState(() {
-                  _sortFilter = filter;
-                });
-                _refreshTripInfo(); // Re-fetch and apply filter
-              },
+                    sortFilter: _sortFilter,
+                    onSortFilterApplied: (filter) {
+                      setState(() {
+                        _sortFilter = filter;
+                      });
+                      _refreshTripInfo(); // Re-fetch and apply filter
+                    },
                   )
                 : null,
 
@@ -1131,7 +1140,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   const SizedBox(width: 16),
                   Text(
                     l10n.loadingStops,
-                    style: context.textTheme.labelLarge?.copyWith(color: colorScheme.onTertiary),
+                    style: context.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.onTertiary,
+                    ),
                   ),
                 ],
               ),
@@ -1150,7 +1161,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // 2. We have selected both start/dest points
     // 3. We have selected a map point (long press, DroppedPinSheet is open)
     // 4. We have selected a stop (StopSheet is open)
-    return isSelectingMapPoint ||
+    return isLoading ||
+            isSelectingMapPoint ||
             (startPoint != null && destinationPoint != null) ||
             (selectedMapPoint != null) ||
             (activeStop != null)
@@ -1175,7 +1187,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         key: _scaffoldKey,
         drawer: SideDrawer(settingsController: widget.settingsController),
         body: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CustomLoadingIndicator(message: AppLocalizations.of(context)!.loadingMap,))
             // Use a stack for positioned widget on top of the map
             : Stack(
                 children: [
