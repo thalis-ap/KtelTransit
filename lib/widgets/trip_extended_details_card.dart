@@ -5,6 +5,7 @@ import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/timeline_node.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../models/bus_trip.dart';
 import '../utilities/distance_format.dart';
@@ -12,11 +13,16 @@ import '../utilities/distance_format.dart';
 class ExtendedDetailsCard extends StatefulWidget {
   final RoutingTrip routingTrip;
   final DateTime selectedDepartureTime;
+  // This is a function that will be called upon tapping a part of a the route
+  // for example a walking leg, or one of the bus legs. The first argument is
+  // the start coordinates of the leg and the second is the destination's
+  final Function(LatLng, LatLng) onTappedRoutePart;
 
   const ExtendedDetailsCard({
     super.key,
     required this.routingTrip,
     required this.selectedDepartureTime,
+    required this.onTappedRoutePart,
   });
 
   @override
@@ -112,19 +118,24 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
       children: [
         _buildHeader(colorScheme, l10n: l10n),
         Divider(height: 32),
-        TimelineNode(
-          indicator: Icon(
-            Icons.my_location,
-            size: 20,
-            color: colorScheme.secondary,
-          ),
-          lineStyle: LineStyle.dotted,
-          content: _buildWalkingWidget(
-            trip.startPoint.getLocalizedName(l10n),
-            TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              trip.getDepartureDateTime(widget.selectedDepartureTime),
+        GestureDetector(
+          onTap: () {
+            widget.onTappedRoutePart(trip.startPoint.coordinates, trip.destinationPoint.coordinates);
+          },
+          child: TimelineNode(
+            indicator: Icon(
+              Icons.my_location,
+              size: 20,
+              color: colorScheme.secondary,
             ),
-            "${l10n.walk} ${TimeFormat.secondsToFormattedString(trip.duration, l10n)}",
+            lineStyle: LineStyle.dotted,
+            content: _buildWalkingWidget(
+              trip.startPoint.getLocalizedName(l10n),
+              TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                trip.getDepartureDateTime(widget.selectedDepartureTime),
+              ),
+              "${l10n.walk} ${TimeFormat.secondsToFormattedString(trip.duration, l10n)}",
+            ),
           ),
         ),
         TimelineNode(
@@ -303,59 +314,76 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         _buildHeader(colorScheme, l10n: l10n),
         Divider(height: 32),
         if (access != null)
-          TimelineNode(
-            indicator: Icon(
-              Icons.my_location,
-              size: 26,
-              color: colorScheme.secondary,
-            ),
-            lineStyle: LineStyle.dotted,
-            content: _buildWalkingWidget(
-              trip.startPoint.getLocalizedName(l10n),
-              TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                trip.getDepartureDateTime(widget.selectedDepartureTime),
+          GestureDetector(
+            onTap: () {
+              // From the trip's start point to the origin stop
+              widget.onTappedRoutePart(trip.startPoint.coordinates, leg.originStop.coordinates);
+            },
+            child: TimelineNode(
+              indicator: Icon(
+                Icons.my_location,
+                size: 26,
+                color: colorScheme.secondary,
               ),
-              "${l10n.walk} ${TimeFormat.secondsToFormattedString(access.duration, l10n)}",
+              lineStyle: LineStyle.dotted,
+              content: _buildWalkingWidget(
+                trip.startPoint.getLocalizedName(l10n),
+                TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                  trip.getDepartureDateTime(widget.selectedDepartureTime),
+                ),
+                "${l10n.walk} ${TimeFormat.secondsToFormattedString(access.duration, l10n)}",
+              ),
             ),
           ),
 
         // We have no transfers, just build the single leg
-        TimelineNode(
-          indicator: Icon(
-            Icons.directions_bus,
-            size: 26,
-            color: colorScheme.primary,
-          ),
-          lineStyle: LineStyle.solid,
-          lineColor: colorScheme.primary,
-          content: _buildBusLegWidget(
-            routeName: leg.routeName,
-            stopName: leg.originStop.getLocalizedName(l10n),
-            time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              leg.departureDateTime,
-            ),
-            stopNames: leg.stopNamesFromTo(
-              leg.originStop.getLocalizedName(l10n),
-              leg.destinationStop.getLocalizedName(l10n),
-            ),
-            estimatedDuration: leg.estimatedDuration,
-          ),
-        ),
-
-        if (egress != null)
-          TimelineNode(
+        GestureDetector(
+          onTap: () {
+            widget.onTappedRoutePart(leg.originStop.coordinates, leg.destinationStop.coordinates);
+          },
+          child: TimelineNode(
             indicator: Icon(
               Icons.directions_bus,
               size: 26,
               color: colorScheme.primary,
             ),
-            lineStyle: LineStyle.dotted,
-            content: _buildWalkingWidget(
-              leg.destinationStop.getLocalizedName(l10n),
-              TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                leg.arrivalDateTime,
+            lineStyle: LineStyle.solid,
+            lineColor: colorScheme.primary,
+            content: _buildBusLegWidget(
+              routeName: leg.routeName,
+              stopName: leg.originStop.getLocalizedName(l10n),
+              time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                leg.departureDateTime,
               ),
-              "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
+              stopNames: leg.stopNamesFromTo(
+                leg.originStop.getLocalizedName(l10n),
+                leg.destinationStop.getLocalizedName(l10n),
+              ),
+              estimatedDuration: leg.estimatedDuration,
+            ),
+          ),
+        ),
+
+        if (egress != null)
+          GestureDetector(
+            onTap: () {
+              // From the bus destination stop to the destination point of the trip
+              widget.onTappedRoutePart(leg.destinationStop.coordinates, trip.destinationPoint.coordinates);
+            },
+            child: TimelineNode(
+              indicator: Icon(
+                Icons.directions_bus,
+                size: 26,
+                color: colorScheme.primary,
+              ),
+              lineStyle: LineStyle.dotted,
+              content: _buildWalkingWidget(
+                leg.destinationStop.getLocalizedName(l10n),
+                TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                  leg.arrivalDateTime,
+                ),
+                "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
+              ),
             ),
           ),
 
@@ -393,19 +421,24 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         _buildHeader(colorScheme, l10n: l10n),
         Divider(height: 32),
         if (access != null)
-          TimelineNode(
-            indicator: Icon(
-              Icons.my_location,
-              size: 26,
-              color: colorScheme.secondary,
-            ),
-            lineStyle: LineStyle.dotted,
-            content: _buildWalkingWidget(
-              trip.startPoint.getLocalizedName(l10n),
-              TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                trip.getDepartureDateTime(widget.selectedDepartureTime),
+          GestureDetector(
+            onTap: () {
+              widget.onTappedRoutePart(trip.startPoint.coordinates, firstLeg.originStop.coordinates);
+            },
+            child: TimelineNode(
+              indicator: Icon(
+                Icons.my_location,
+                size: 26,
+                color: colorScheme.secondary,
               ),
-              "${l10n.walk} ${TimeFormat.secondsToFormattedString(access.duration, l10n)}",
+              lineStyle: LineStyle.dotted,
+              content: _buildWalkingWidget(
+                trip.startPoint.getLocalizedName(l10n),
+                TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                  trip.getDepartureDateTime(widget.selectedDepartureTime),
+                ),
+                "${l10n.walk} ${TimeFormat.secondsToFormattedString(access.duration, l10n)}",
+              ),
             ),
           ),
 
@@ -413,24 +446,29 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
 
         // Fully build the first leg (that means a leg widget), so that then we
         // can loop in the following pattern: arrivalWidget -> transferWidget -> legWidget
-        TimelineNode(
-          indicator: Icon(
-            Icons.directions_bus,
-            size: 26,
-            color: colorScheme.primary,
-          ),
-          lineColor: colorScheme.primary,
-          content: _buildBusLegWidget(
-            routeName: firstLeg.routeName,
-            stopName: firstLeg.originStop.getLocalizedName(l10n),
-            time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              firstLeg.departureDateTime,
+        GestureDetector(
+          onTap: () {
+            widget.onTappedRoutePart(firstLeg.originStop.coordinates, firstLeg.destinationStop.coordinates);
+          },
+          child: TimelineNode(
+            indicator: Icon(
+              Icons.directions_bus,
+              size: 26,
+              color: colorScheme.primary,
             ),
-            stopNames: firstLeg.stopNamesFromTo(
-              firstLeg.originStop.getLocalizedName(l10n),
-              firstLeg.destinationStop.getLocalizedName(l10n),
+            lineColor: colorScheme.primary,
+            content: _buildBusLegWidget(
+              routeName: firstLeg.routeName,
+              stopName: firstLeg.originStop.getLocalizedName(l10n),
+              time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                firstLeg.departureDateTime,
+              ),
+              stopNames: firstLeg.stopNamesFromTo(
+                firstLeg.originStop.getLocalizedName(l10n),
+                firstLeg.destinationStop.getLocalizedName(l10n),
+              ),
+              estimatedDuration: firstLeg.estimatedDuration,
             ),
-            estimatedDuration: firstLeg.estimatedDuration,
           ),
         ),
 
@@ -458,84 +496,100 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
           ),
           // Build the transfer widget between previous leg and current leg
-          TimelineNode(
-            indicator: Icon(
-              Icons.transfer_within_a_station,
-              size: 24,
-              color: colorScheme.tertiary,
-            ),
-            lineColor: colorScheme.tertiary,
-            lineStyle: LineStyle.dotted,
-            content: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.transfer,
-                    style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
-                  ),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time_rounded,
-                        size: 14,
-                        color: colorScheme.tertiary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.waitingTime(
-                          TimeFormat.secondsToFormattedString(
-                            bus
-                                .waitTimeAfterLeg(legIndex - 1)
-                                .inSeconds
-                                .toDouble(),
-                            l10n,
-                          ),
+          GestureDetector(
+            onTap: () {
+              // Pass the transfer stop's coordinates to zoom in on it
+              widget.onTappedRoutePart(legs[legIndex].originStop.coordinates, legs[legIndex].originStop.coordinates);
+            },
+            child: TimelineNode(
+              indicator: Icon(
+                Icons.transfer_within_a_station,
+                size: 24,
+                color: colorScheme.tertiary,
+              ),
+              lineColor: colorScheme.tertiary,
+              lineStyle: LineStyle.dotted,
+              content: Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.transfer,
+                      style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
+                          color: colorScheme.tertiary,
                         ),
-                        style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n.waitingTime(
+                            TimeFormat.secondsToFormattedString(
+                              bus
+                                  .waitTimeAfterLeg(legIndex - 1)
+                                  .inSeconds
+                                  .toDouble(),
+                              l10n,
+                            ),
+                          ),
+                          style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           // Build the leg widget (departure) of the current leg (legIndex)
-          TimelineNode(
-            indicator: Icon(
-              Icons.directions_bus,
-              size: 26,
-              color: colorScheme.primary,
-            ),
-            lineColor: colorScheme.primary,
-            content: _buildBusLegWidget(
-              routeName: legs[legIndex].routeName,
-              stopName: legs[legIndex].originStop.getLocalizedName(l10n),
-              time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                legs[legIndex].departureDateTime,
+          GestureDetector(
+            onTap: () {
+              widget.onTappedRoutePart(legs[legIndex].originStop.coordinates, legs[legIndex].destinationStop.coordinates);
+            },
+            child: TimelineNode(
+              indicator: Icon(
+                Icons.directions_bus,
+                size: 26,
+                color: colorScheme.primary,
               ),
-              stopNames: legs[legIndex].stopNames,
-              estimatedDuration: legs[legIndex].estimatedDuration,
+              lineColor: colorScheme.primary,
+              content: _buildBusLegWidget(
+                routeName: legs[legIndex].routeName,
+                stopName: legs[legIndex].originStop.getLocalizedName(l10n),
+                time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                  legs[legIndex].departureDateTime,
+                ),
+                stopNames: legs[legIndex].stopNames,
+                estimatedDuration: legs[legIndex].estimatedDuration,
+              ),
             ),
           ),
         ],
 
         if (egress != null)
-          TimelineNode(
-            indicator: Icon(
-              Icons.directions_bus,
-              size: 26,
-              color: colorScheme.primary,
-            ),
-            lineStyle: LineStyle.dotted,
-            content: _buildWalkingWidget(
-              lastLeg.destinationStop.getLocalizedName(l10n),
-              TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                lastLeg.arrivalDateTime,
+          GestureDetector(
+            onTap: () {
+              widget.onTappedRoutePart(lastLeg.destinationStop.coordinates, trip.destinationPoint.coordinates);
+            },
+            child: TimelineNode(
+              indicator: Icon(
+                Icons.directions_bus,
+                size: 26,
+                color: colorScheme.primary,
               ),
-              "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
+              lineStyle: LineStyle.dotted,
+              content: _buildWalkingWidget(
+                lastLeg.destinationStop.getLocalizedName(l10n),
+                TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                  lastLeg.arrivalDateTime,
+                ),
+                "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
+              ),
             ),
           ),
 

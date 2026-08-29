@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -442,6 +441,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // when user selects a trip, the map shows the route
     _showTripInfoSheet(dragAt: SheetSizes.middle);
     _fetchRouteForSelectedTrip(trip);
+  }
+
+  /// Runs when user selected a part of a routing trip, for example the
+  /// access walk or the first leg of the bus trip.
+  void _onTappedRoutePart(LatLng startPoint, LatLng destPoint) {
+    // Minimize trip info sheet first
+    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.low);
+
+    // Find the center of the two points
+    final LatLng center = LatLng(
+      (startPoint.latitude + destPoint.latitude) / 2,
+      (startPoint.longitude + destPoint.longitude) / 2,
+    );
+
+    // Find the target zoom to be able to fit both points in the map's viewport
+    double targetZoom = _mapMovementService.getTargetZoom(startPoint, destPoint);
+
+    // Use the current zoom, and animate to the center of the two points
+    _mapMovementService.animatedMove(center, targetZoom);
   }
 
   void _onBackToAllTrips() {
@@ -1019,6 +1037,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       });
                       _refreshTripInfo(); // Re-fetch and apply filter
                     },
+                    onTappedRoutePart: _onTappedRoutePart,
                   )
                 : null,
 
@@ -1187,7 +1206,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         key: _scaffoldKey,
         drawer: SideDrawer(settingsController: widget.settingsController),
         body: isLoading
-            ? Center(child: CustomLoadingIndicator(message: AppLocalizations.of(context)!.loadingMap,))
+            ? Center(
+                child: CustomLoadingIndicator(
+                  message: AppLocalizations.of(context)!.loadingMap,
+                ),
+              )
             // Use a stack for positioned widget on top of the map
             : Stack(
                 children: [

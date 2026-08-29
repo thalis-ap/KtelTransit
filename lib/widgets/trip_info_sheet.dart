@@ -14,6 +14,7 @@ import 'package:ktel_transit/widgets/trip_sort_filter_buttons.dart';
 import 'package:ktel_transit/widgets/trip_sort_sheet.dart';
 import 'package:ktel_transit/widgets/trips_loading_skeleton.dart';
 import 'package:ktel_transit/widgets/trips_warning_banner.dart';
+import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import 'offline_banner.dart';
@@ -31,7 +32,8 @@ class TripInfoSheet extends StatelessWidget {
   final VoidCallback onClose;
   final VoidCallback onChangeTime, onResetTime;
   final VoidCallback onRetryConnection;
-  final Function(int index, RoutingTrip trip) onTripSelected;
+  final Function(int, RoutingTrip) onTripSelected;
+  final Function(LatLng, LatLng) onTappedRoutePart;
 
   final TripSortFilter? sortFilter;
   final ValueChanged<TripSortFilter> onSortFilterApplied;
@@ -63,6 +65,7 @@ class TripInfoSheet extends StatelessWidget {
     required this.controller,
     this.sortFilter, // can be null if nothing is applied
     required this.onSortFilterApplied,
+    required this.onTappedRoutePart,
   });
 
 
@@ -213,6 +216,7 @@ class TripInfoSheet extends StatelessWidget {
           child: ExtendedDetailsCard(
             routingTrip: trips![selectedTripIndex!],
             selectedDepartureTime: selectedSearchTime,
+            onTappedRoutePart: onTappedRoutePart,
           ),
         ),
       ],

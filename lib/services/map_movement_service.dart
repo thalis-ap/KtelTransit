@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -34,7 +36,44 @@ class MapMovementService {
     mapRotation = _rotationAnimation.value;
   }
 
-  /// Moves the map to a new location with a smooth animation.
+  /// This function returns the target zoom needed to be able to fit both start
+  /// and dest points in the map viewport. Adjust paddingFactor if needed to
+  /// include padding when zooming. For example 75% percent padding means that
+  /// the target zoom will be just enough to show the 2 points inside the
+  /// 75% of the viewport's dimensions
+  double getTargetZoom(LatLng start, LatLng dest, {double paddingFactor = 0.75}) {
+    final MapCamera mapCamera = mapController.camera;
+
+    double currentZoom = mapCamera.zoom;
+    Rect bounds = mapCamera.pixelBounds;
+
+    Offset startOffset = mapCamera.latLngToScreenOffset(start);
+    Offset destOffset = mapCamera.latLngToScreenOffset(dest);
+
+    // Current screen distance between the two points
+    double requiredWidth = (startOffset.dx - destOffset.dx).abs();
+    double requiredHeight = (startOffset.dy - destOffset.dy).abs();
+
+    // Available viewport size
+    double viewWidth = bounds.width;
+    double viewHeight = bounds.height;
+
+    double scaleX = requiredWidth / (viewWidth * paddingFactor);
+    double scaleY = requiredHeight / (viewHeight * paddingFactor);
+
+    // The larger scale factor determines the zoom change
+    double maxScale = max(scaleX, scaleY);
+
+    // Convert scale to zoom delta (assuming zoom doubles per step)
+    double zoomDelta = log(maxScale) / ln2; // natural logarithm
+
+    double targetZoom =
+        currentZoom - zoomDelta; // zoom out if scale > 1, in if < 1
+
+    return targetZoom;
+  }
+
+  /// Moves the map to a new location and zoom with a smooth animation.
   void animatedMove(LatLng destLocation, double destZoom, {Duration duration = const Duration(milliseconds: 500)}) {
     final latTween = Tween<double>(
       begin: mapController.camera.center.latitude,
