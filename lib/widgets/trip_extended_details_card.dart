@@ -244,21 +244,22 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(stopName, style: context.textTheme.titleSmall),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    routeName,
-                    style: context.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
+              child: Text(stopName, style: context.textTheme.titleSmall),
             ),
             Text(time, style: context.textTheme.titleSmall),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                routeName,
+                style: context.textTheme.bodyMedium,
+              ),
+            ),
+            Icon(Icons.chevron_right),
           ],
         ),
         const SizedBox(height: 24),
@@ -526,33 +527,45 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               lineColor: colorScheme.tertiary,
               lineStyle: LineStyle.dotted,
               content: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    l10n.transfer,
-                    style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
-                  ),
                   Row(
                     children: [
-                      Icon(
-                        Icons.access_time_rounded,
-                        size: 14,
-                        color: colorScheme.tertiary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.waitingTime(
-                          TimeFormat.secondsToFormattedString(
-                            bus
-                                .waitTimeAfterLeg(legIndex - 1)
-                                .inSeconds
-                                .toDouble(),
-                            l10n,
-                          ),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.transfer,
+                              style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time_rounded,
+                                  size: 14,
+                                  color: colorScheme.tertiary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l10n.waitingTime(
+                                    TimeFormat.secondsToFormattedString(
+                                      bus
+                                          .waitTimeAfterLeg(legIndex - 1)
+                                          .inSeconds
+                                          .toDouble(),
+                                      l10n,
+                                    ),
+                                  ),
+                                  style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
+                                ),
+                              ],
+                            ),
+
+                          ],
                         ),
-                        style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
                       ),
+                      Icon(Icons.chevron_right, color: colorScheme.tertiary,)
                     ],
                   ),
                   const Divider(height: 32, thickness: 2,),

@@ -372,21 +372,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     await _refreshTripInfo();
   }
 
-  void _onTripSelected(int index, RoutingTrip trip) {
+  Future<void> _onTripSelected(int index, RoutingTrip trip) async {
     setState(() {
       selectedTripIndex = index;
     });
-    // Make sure the trip sheet is at SheetSizes.middle size so that
-    // when user selects a trip, the map shows the route
-    _showTripInfoSheet(dragAt: SheetSizes.middle);
-    _fetchRouteForSelectedTrip(trip);
+
+    // Await the route-fetching
+    await _fetchRouteForSelectedTrip(trip);
+
+    // Then animate the map (use onTappedRoutePart as it does this exact thing)
+    _onTappedRoutePart(trip.startPoint.coordinates, trip.destinationPoint.coordinates, sheetSize: SheetSizes.middle);
   }
 
   /// Runs when user selected a part of a routing trip, for example the
   /// access walk or the first leg of the bus trip.
-  void _onTappedRoutePart(LatLng startPoint, LatLng destPoint) {
+  void _onTappedRoutePart(LatLng startPoint, LatLng destPoint, {double sheetSize = SheetSizes.low}) {
     // Minimize trip info sheet first
-    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.low);
+    _sheetManager.animateTo(SheetKeys.tripInfo, sheetSize);
 
     // Find the center of the two points
     final LatLng center = LatLng(
@@ -407,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       activeRoute = null;
     });
 
-    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.middle);
+    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.high);
   }
 
   /// Handles a back button press on each case

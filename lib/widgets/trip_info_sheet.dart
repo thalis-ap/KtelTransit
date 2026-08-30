@@ -19,7 +19,7 @@ import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
 import 'offline_banner.dart';
 
-class TripInfoSheet extends StatelessWidget {
+class TripInfoSheet extends StatefulWidget {
   final bool isLoading;
   final MapPoint startPoint;
   final MapPoint destinationPoint;
@@ -38,17 +38,7 @@ class TripInfoSheet extends StatelessWidget {
   final TripSortFilter? sortFilter;
   final ValueChanged<TripSortFilter> onSortFilterApplied;
 
-  final connectionService = ConnectionService();
-
-  // Snap points, kept in one place so header-drag snapping matches the
-  // sheet's own min/max/snapSizes configuration.
-  static const List<double> _snapPoints = [
-    SheetSizes.low,
-    SheetSizes.middle,
-    SheetSizes.high,
-  ];
-
-  TripInfoSheet({
+  const TripInfoSheet({
     super.key,
     required this.isLoading,
     required this.startPoint,
@@ -63,11 +53,67 @@ class TripInfoSheet extends StatelessWidget {
     required this.onRetryConnection,
     required this.onTripSelected,
     required this.controller,
-    this.sortFilter, // can be null if nothing is applied
+    this.sortFilter,
     required this.onSortFilterApplied,
     required this.onTappedRoutePart,
   });
 
+  @override
+  State<TripInfoSheet> createState() => _TripInfoSheetState();
+}
+
+class _TripInfoSheetState extends State<TripInfoSheet> {
+  final connectionService = ConnectionService();
+  ScrollController? _scrollController; // from DraggableScrollableSheet builder
+  double _savedScrollOffset = 0.0;
+
+  static const List<double> _snapPoints = [
+    SheetSizes.low,
+    SheetSizes.middle,
+    SheetSizes.high,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(TripInfoSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Only proceed if the controller is attached and has clients
+    if (_scrollController == null || !_scrollController!.hasClients) return;
+
+    final wasSelected = oldWidget.selectedTripIndex != null;
+    final isSelected = widget.selectedTripIndex != null;
+
+    // When a trip is SELECTED (went from null to non-null)
+    if (!wasSelected && isSelected) {
+      // Save current scroll position
+      _savedScrollOffset = _scrollController!.offset;
+      // Scroll to top after frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController != null && _scrollController!.hasClients) {
+          _scrollController!.animateTo(
+            0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+
+    // When we go BACK to the list (went from non-null to null)
+    if (wasSelected && !isSelected) {
+      // Restore saved scroll position after frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController != null && _scrollController!.hasClients && _savedScrollOffset > 0) {
+          _scrollController!.jumpTo(_savedScrollOffset);
+        }
+      });
+    }
+  }
 
   void _showSortSheet(BuildContext context) {
     showModalBottomSheet<TripSortFilter>(
@@ -77,11 +123,11 @@ class TripInfoSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => TripSortSheet(
-        currentFilter: sortFilter ?? const TripSortFilter(),
+        currentFilter: widget.sortFilter ?? const TripSortFilter(),
       ),
     ).then((newFilter) {
       if (newFilter != null) {
-        onSortFilterApplied(newFilter);
+        widget.onSortFilterApplied(newFilter);
       }
     });
   }
@@ -94,11 +140,11 @@ class TripInfoSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => TripFilterSheet(
-        currentFilter: sortFilter ?? const TripSortFilter(),
+        currentFilter: widget.sortFilter ?? const TripSortFilter(),
       ),
     ).then((newFilter) {
       if (newFilter != null) {
-        onSortFilterApplied(newFilter);
+        widget.onSortFilterApplied(newFilter);
       }
     });
   }
@@ -132,7 +178,6 @@ class TripInfoSheet extends StatelessWidget {
     );
   }
 
-  /// Builds the header widget of the trip info sheet title, date picker + close button
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -146,7 +191,7 @@ class TripInfoSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              l10n.availableRoutes, // add this key to your l10n files
+              l10n.availableRoutes,
               style: theme.textTheme.titleMedium,
             ),
             Container(
@@ -162,7 +207,7 @@ class TripInfoSheet extends StatelessWidget {
                   size: 22,
                   color: colorScheme.onSurfaceVariant,
                 ),
-                onPressed: onClose,
+                onPressed: widget.onClose,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -171,32 +216,24 @@ class TripInfoSheet extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         TimeSelectionBar(
-          selectedSearchTime: selectedSearchTime,
-          onChangeTime: onChangeTime,
-          onResetTime: onResetTime,
+          selectedSearchTime: widget.selectedSearchTime,
+          onChangeTime: widget.onChangeTime,
+          onResetTime: widget.onResetTime,
         ),
-        
         const SizedBox(height: 8),
-        // ✅ New: Sort/Filter buttons
         TripSortFilterButtons(
           onSortPressed: () => _showSortSheet(context),
           onFilterPressed: () => _showFilterSheet(context),
         ),
-        // Show active filter chip
-        if (sortFilter != null && _hasActiveFilters(sortFilter!))
+        if (widget.sortFilter != null && _hasActiveFilters(widget.sortFilter!))
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: _buildActiveFilterChip(context),
           ),
-
       ],
     );
   }
 
-
-
-  /// Builds the widget that shows up after selecting a trip
-  /// Back button and details card for this widget
   Widget _buildSelectedTripWidget(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -214,24 +251,23 @@ class TripInfoSheet extends StatelessWidget {
             ),
           ),
           child: ExtendedDetailsCard(
-            routingTrip: trips![selectedTripIndex!],
-            selectedDepartureTime: selectedSearchTime,
-            onTappedRoutePart: onTappedRoutePart,
+            routingTrip: widget.trips![widget.selectedTripIndex!],
+            selectedDepartureTime: widget.selectedSearchTime,
+            onTappedRoutePart: widget.onTappedRoutePart,
           ),
         ),
       ],
     );
   }
 
-  /// Build the trip sheet, loading or not
   Widget _buildTripsSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    if (isLoading) {
+    if (widget.isLoading) {
       return const TripsLoadingSkeleton();
     }
-    // Completely empty trips not even pure walking
-    if (trips == null || trips!.isEmpty) {
+
+    if (widget.trips == null || widget.trips!.isEmpty) {
       return TripWarningBanner(
         message: l10n.noTripsForRoute,
         icon: Icons.warning_rounded,
@@ -240,69 +276,59 @@ class TripInfoSheet extends StatelessWidget {
     }
 
     final groups = TripGroupingService.filterAndGroupTrips(
-      trips!,
-      selectedSearchTime,
+      widget.trips!,
+      widget.selectedSearchTime,
       DateTime.now(),
     );
 
     return TripGroupsView(
       groups: groups,
-      selectedDepartureTime: selectedSearchTime,
-      isLoading: isLoading,
+      selectedDepartureTime: widget.selectedSearchTime,
+      isLoading: widget.isLoading,
       onTripSelected: (trip) {
-        final originalIndex = trips!.indexWhere((t) => t == trip);
+        final originalIndex = widget.trips!.indexWhere((t) => t == trip);
         if (originalIndex != -1) {
-          onTripSelected(originalIndex, trip);
+          widget.onTripSelected(originalIndex, trip);
         }
       },
     );
   }
 
-  /// Manually resizes the sheet while the user drags on the fixed header
-  /// (title/close button/time bar), since that area sits outside the
-  /// scrollable that normally drives DraggableScrollableSheet's gestures.
-  void _handleHeaderDragUpdate(
-    DragUpdateDetails details,
-    double availableHeight,
-  ) {
-    if (!controller.isAttached) return;
+  void _handleHeaderDragUpdate(DragUpdateDetails details, double availableHeight) {
+    if (!widget.controller.isAttached) return;
     final delta = details.primaryDelta! / availableHeight;
-    final newSize = (controller.size - delta).clamp(
+    final newSize = (widget.controller.size - delta).clamp(
       SheetSizes.low,
       SheetSizes.high,
     );
-    controller.jumpTo(newSize);
+    widget.controller.jumpTo(newSize);
   }
 
-  /// On release, snap to the nearest configured sheet size — mirroring the
-  /// snap behavior DraggableScrollableSheet provides natively for drags
-  /// that originate inside the scrollable body.
   void _handleHeaderDragEnd(DragEndDetails details, double availableHeight) {
-    if (!controller.isAttached) return;
-    final currentSize = controller.size;
+    if (!widget.controller.isAttached) return;
+    final currentSize = widget.controller.size;
     final velocity = details.velocity.pixelsPerSecond.dy / availableHeight;
 
     double target;
     if (velocity.abs() > 1.0) {
-      // Fast fling: jump to the next snap point in that direction.
       if (velocity < 0) {
         target = _snapPoints.firstWhere(
-          (s) => s > currentSize + 0.01,
+              (s) => s > currentSize + 0.01,
           orElse: () => _snapPoints.last,
         );
       } else {
         target = _snapPoints.lastWhere(
-          (s) => s < currentSize - 0.01,
+              (s) => s < currentSize - 0.01,
           orElse: () => _snapPoints.first,
         );
       }
     } else {
       target = _snapPoints.reduce(
-        (a, b) => (a - currentSize).abs() < (b - currentSize).abs() ? a : b,
+            (a, b) => (a - currentSize).abs() < (b - currentSize).abs() ? a : b,
       );
     }
 
-    controller.animateTo(
+    widget.controller.animateTo(
       target,
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOutCubic,
@@ -314,17 +340,19 @@ class TripInfoSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
-    final l10n = AppLocalizations.of(context)!;
     bool previousConnectionStatus = connectionService.isConnected;
 
     return DraggableScrollableSheet(
-      controller: controller,
+      controller: widget.controller,
       initialChildSize: SheetSizes.middle,
       minChildSize: SheetSizes.low,
       maxChildSize: SheetSizes.high,
       snap: true,
       snapSizes: const [SheetSizes.middle],
       builder: (context, scrollController) {
+        // Store the draggable's scroll controller
+        _scrollController = scrollController;
+
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -334,23 +362,23 @@ class TripInfoSheet extends StatelessWidget {
           child: ListenableBuilder(
             listenable: connectionService,
             builder: (context, _) {
-              // Refresh the trips only if the connection status changed to true
-              if (previousConnectionStatus != connectionService.isConnected && connectionService.isConnected) {
-                onRetryConnection();
+              if (previousConnectionStatus != connectionService.isConnected &&
+                  connectionService.isConnected) {
+                widget.onRetryConnection();
                 previousConnectionStatus = connectionService.isConnected;
               }
               return AnimatedBuilder(
-                animation: controller,
+                animation: widget.controller,
                 builder: (context, _) {
                   final bool showConnectionBanner =
-                      (startPoint is! Stop || destinationPoint is! Stop) &&
-                      !connectionService.isConnected;
+                      (widget.startPoint is! Stop || widget.destinationPoint is! Stop) &&
+                          !connectionService.isConnected;
 
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- Fixed header: handle, title, close button, time bar ---
+                      // Fixed header
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onVerticalDragUpdate: (details) =>
@@ -367,7 +395,6 @@ class TripInfoSheet extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Sheet handle
                               Center(
                                 child: Container(
                                   width: 48,
@@ -380,22 +407,17 @@ class TripInfoSheet extends StatelessWidget {
                                   ),
                                 ),
                               ),
-
-                              if (selectedTripIndex == null)
+                              if (widget.selectedTripIndex == null)
                                 _buildHeader(context)
                               else
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     TextButton.icon(
-                                      onPressed: onBackToAllTrips,
-                                      icon: const Icon(
-                                        Icons.arrow_back,
-                                        size: 20,
-                                      ),
+                                      onPressed: widget.onBackToAllTrips,
+                                      icon: const Icon(Icons.arrow_back, size: 20),
                                       label: Text(
-                                        l10n.allTrips,
+                                        AppLocalizations.of(context)!.allTrips,
                                         style: context.textTheme.labelLarge?.copyWith(
                                           color: colorScheme.primary,
                                         ),
@@ -409,7 +431,6 @@ class TripInfoSheet extends StatelessWidget {
                         ),
                       ),
 
-                      // --- Offline Banner (shows only when offline) ---
                       if (showConnectionBanner)
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -417,12 +438,11 @@ class TripInfoSheet extends StatelessWidget {
                             vertical: 8.0,
                           ),
                           child: OfflineBanner(
-                            onRetry: onRetryConnection,
-
+                            onRetry: widget.onRetryConnection,
                           ),
                         ),
 
-                      // --- Scrollable body: trip list or selected trip details ---
+                      // Use the draggable's scrollController
                       Expanded(
                         child: SingleChildScrollView(
                           controller: scrollController,
@@ -435,7 +455,7 @@ class TripInfoSheet extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (selectedTripIndex != null && trips != null)
+                              if (widget.selectedTripIndex != null && widget.trips != null)
                                 _buildSelectedTripWidget(context)
                               else
                                 _buildTripsSheet(context),
