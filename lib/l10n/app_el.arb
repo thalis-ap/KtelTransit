@@ -239,5 +239,6 @@
   "filter": "Φίλτρο",
   "loadingMap": "Φορτώνεται ο χάρτης...",
   "loadingRoutes": "Φορτώνονται τα δρομολόγια...",
-  "loadingMapRoute": "Φόρτωση διαδρομής..."
+  "loadingMapRoute": "Φόρτωση διαδρομής...",
+  "loadingPreciseLocation": "Φόρτωση ακριβούς τοποθεσίας..."
 }

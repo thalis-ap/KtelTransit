@@ -451,4 +451,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get loadingMapRoute => 'Φόρτωση διαδρομής...';
+
+  @override
+  String get loadingPreciseLocation => 'Φόρτωση ακριβούς τοποθεσίας...';
 }

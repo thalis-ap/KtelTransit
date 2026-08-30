@@ -141,6 +141,7 @@
   "filter": "Filter",
   "loadingMap": "Loading the map...",
   "loadingRoutes": "Loading routes...",
-  "loadingMapRoute": "Loading map route..."
+  "loadingMapRoute": "Loading map route...",
+  "loadingPreciseLocation": "Loading precise location..."
 
 }

@@ -871,6 +871,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Φόρτωση διαδρομής...'**
   String get loadingMapRoute;
+
+  /// No description provided for @loadingPreciseLocation.
+  ///
+  /// In el, this message translates to:
+  /// **'Φόρτωση ακριβούς τοποθεσίας...'**
+  String get loadingPreciseLocation;
 }
 
 class _AppLocalizationsDelegate

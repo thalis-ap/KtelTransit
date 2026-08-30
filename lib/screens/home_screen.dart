@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool isLoading = true;
   bool isLoadingTrips = false;
   bool isLoadingRoute = false;
+  bool isLoadingPreciseLocation = false;
 
   // Stops related
   Stop? activeStop; // State variable to track if the StopSheet is open
@@ -554,31 +555,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     if (status == LocationPermissionStatus.serviceDisabled) {
       if (mounted) {
+        setState(() {
+          isLoadingPreciseLocation = true;
+        });
         final l10n = AppLocalizations.of(context)!;
         await _showLocationErrorDialog(
           l10n.locationDisabledTitle,
           l10n.locationDisabledMessage,
           Geolocator.openLocationSettings,
         );
+        setState(() {
+          isLoadingPreciseLocation = false;
+        });
       }
       return;
     }
 
     if (status == LocationPermissionStatus.deniedForever) {
       if (mounted) {
+        setState(() {
+          isLoadingPreciseLocation = true;
+        });
         final l10n = AppLocalizations.of(context)!;
         await _showLocationErrorDialog(
           l10n.locationDeniedTitle,
           l10n.locationDeniedMessage,
           Geolocator.openAppSettings,
         );
+        setState(() {
+          isLoadingPreciseLocation = false;
+        });
       }
+
       return;
     }
 
     if (status != LocationPermissionStatus.granted) {
       return; // Silently fail if permission not granted
     }
+
+    setState(() {
+      isLoadingPreciseLocation = true;
+    });
 
     // Get location and move map
     final location = await _locationService.getCurrentPosition(
@@ -588,6 +606,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (location != null && mounted) {
       setState(() {
         userLocation = MapPoint(coordinates: location);
+        isLoadingPreciseLocation = false;
       });
       _mapMovementService.animatedMove(location, 15.0);
     } else {
@@ -596,9 +615,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (lastKnown != null && mounted) {
         setState(() {
           userLocation = MapPoint(coordinates: lastKnown);
+          isLoadingPreciseLocation = false;
         });
         _mapMovementService.animatedMove(lastKnown, 15.0);
       }
+      // we don't set isLoadingPreciseLocation back to false in this else case
+      // since we are not mounted here and its insafe to do so
     }
   }
 
@@ -844,7 +866,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       compassHeading: _compassService.heading,
     );
   }
-
+  /// Builds a loading snackbar widget when the map route is being fetched -
+  /// loaded from the OSRM API. It stays there until the route is loaded.
   Widget _buildLoadingRouteSnackbar() {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
@@ -887,10 +910,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Text(
-                    l10n.loadingMapRoute,
-                    style: context.textTheme.labelLarge?.copyWith(
-                      color: colorScheme.onTertiary,
+                  Expanded(
+                    child: Text(
+                      l10n.loadingMapRoute,
+                      style: context.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onTertiary,
+                      ),
                     ),
                   ),
                 ],
@@ -901,7 +926,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       },
     );
   }
-
 
   /// Builds the search bar widget, unless we have selected a trip
   /// (i.e. selectedTripIndex != null), where we return a null widget
@@ -1162,10 +1186,73 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Text(
-                    l10n.loadingStops,
-                    style: context.textTheme.labelLarge?.copyWith(
+                  Expanded(
+                    child: Text(
+                      l10n.loadingStops,
+                      style: context.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onTertiary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Builds a loading snackbar widget when finding user location
+  /// It stays there until the location is founs and the map is focused,
+  Widget _buildLoadingLocationSnackbar() {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: ValueNotifier(isLoadingPreciseLocation),
+      builder: (context, isLoadingLocation, child) {
+        return AnimatedPositioned(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          // Slides up when loading, hides below the screen when done
+          bottom: isLoadingLocation ? 18.0 : -100.0,
+          left: 24,
+          right: 100,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: isLoadingLocation ? 1.0 : 0.0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: colorScheme.tertiary,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
                       color: colorScheme.onTertiary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      l10n.loadingPreciseLocation,
+                      style: context.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onTertiary,
+                      ),
                     ),
                   ),
                 ],
@@ -1223,6 +1310,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   _buildMap(),
                   
                   _buildLoadingRouteSnackbar(),
+
+                  _buildLoadingLocationSnackbar(),
 
                   // Search bar
                   _buildSearchBar(),
