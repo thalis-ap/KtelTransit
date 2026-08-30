@@ -865,6 +865,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Φορτώνονται τα δρομολόγια...'**
   String get loadingRoutes;
+
+  /// No description provided for @loadingMapRoute.
+  ///
+  /// In el, this message translates to:
+  /// **'Φόρτωση διαδρομής...'**
+  String get loadingMapRoute;
 }
 
 class _AppLocalizationsDelegate

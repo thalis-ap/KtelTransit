@@ -444,4 +444,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingRoutes => 'Loading routes...';
+
+  @override
+  String get loadingMapRoute => 'Loading map route...';
 }

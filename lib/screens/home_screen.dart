@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Loading variables
   bool isLoading = true;
   bool isLoadingTrips = false;
+  bool isLoadingRoute = false;
 
   // Stops related
   Stop? activeStop; // State variable to track if the StopSheet is open
@@ -228,6 +229,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _fetchRouteForSelectedTrip(RoutingTrip routingTrip) async {
     if (startPoint == null || destinationPoint == null) return;
 
+    // Make the top banner show the user that the route is loading
+    setState(() {
+      isLoadingRoute = true;
+    });
     try {
       if (routingTrip.busTrip != null) {
         // Update the bus trip object (with points + safe duration)
@@ -236,9 +241,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       setState(() {
         activeRoute = routingTrip;
+        isLoadingRoute = false;
       });
     } catch (e) {
-      debugPrint("Error fetching route: $e");
+      // TODO: Maybe show snackbar here?
+      setState(() {
+        isLoadingRoute = false;
+      });
     }
   }
 
@@ -377,14 +386,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedTripIndex = index;
     });
 
+    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.middle);
     _fetchRouteForSelectedTrip(trip);
   }
 
   /// Runs when user selected a part of a routing trip, for example the
   /// access walk or the first leg of the bus trip.
-  void _onTappedRoutePart(LatLng startPoint, LatLng destPoint, {double sheetSize = SheetSizes.low}) {
+  void _onTappedRoutePart(LatLng startPoint, LatLng destPoint) {
     // Minimize trip info sheet first
-    _sheetManager.animateTo(SheetKeys.tripInfo, sheetSize);
+    _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.low);
 
     // Find the center of the two points
     final LatLng center = LatLng(
@@ -835,6 +845,64 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildLoadingRouteSnackbar() {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: ValueNotifier(isLoadingRoute),
+      builder: (context, isLoadingRoute, child) {
+        return AnimatedPositioned(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          // Slides up when loading, hides below the screen when done
+          top: isLoadingRoute ? MediaQuery.of(context).padding.top + 10 : -100,
+          left: 24,
+          right: 100,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: isLoadingRoute ? 1.0 : 0.0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: colorScheme.tertiary,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: colorScheme.onTertiary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    l10n.loadingMapRoute,
+                    style: context.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.onTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
   /// Builds the search bar widget, unless we have selected a trip
   /// (i.e. selectedTripIndex != null), where we return a null widget
   Widget _buildSearchBar() {
@@ -1052,7 +1120,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Builds a loading snackbar widget when the region is changed
   /// It stays there until the region is loaded, and thus the
   /// isRegionLoadingNotifier becomes false and notifies the listenable builder
-  Widget _buildLoadingSnackbar() {
+  Widget _buildLoadingRegionSnackbar() {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -1153,6 +1221,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 children: [
                   // Builds the map
                   _buildMap(),
+                  
+                  _buildLoadingRouteSnackbar(),
 
                   // Search bar
                   _buildSearchBar(),
@@ -1167,7 +1237,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ..._buildSheets(),
 
                   // Loading snackbar
-                  _buildLoadingSnackbar(),
+                  _buildLoadingRegionSnackbar(),
                 ],
               ),
 

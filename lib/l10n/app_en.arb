@@ -140,6 +140,7 @@
   "sort": "Sort",
   "filter": "Filter",
   "loadingMap": "Loading the map...",
-  "loadingRoutes": "Loading routes..."
+  "loadingRoutes": "Loading routes...",
+  "loadingMapRoute": "Loading map route..."
 
 }
