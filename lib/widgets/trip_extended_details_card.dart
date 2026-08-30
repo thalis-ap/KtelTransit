@@ -196,7 +196,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               Text(departureTime, style: context.textTheme.titleSmall),
             ],
           ),
-          const SizedBox(height: 24),
+          const Divider(height: 20, thickness: 2),
           Row(
             children: [
               Icon(
@@ -218,6 +218,8 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
             ],
           ),
+          // const SizedBox(height: 12,),
+          const Divider(height: 20, thickness: 2,),
         ],
       ),
     );
@@ -248,6 +250,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                   Text(stopName, style: context.textTheme.titleSmall),
 
                   const SizedBox(height: 4),
+
                   Text(
                     routeName,
                     style: context.textTheme.bodyMedium,
@@ -259,6 +262,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           ],
         ),
         const SizedBox(height: 24),
+        const Divider(height: 16, thickness: 2,),
         StopsExpander(
           stopNames: stopNames,
           label: l10n.tripStopsCount(stopNames.length),
@@ -267,6 +271,8 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             l10n,
           ),
         ),
+        const Divider(height: 16, thickness: 2,),
+
       ],
     );
   }
@@ -326,12 +332,16 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 color: colorScheme.secondary,
               ),
               lineStyle: LineStyle.dotted,
-              content: _buildWalkingWidget(
-                trip.startPoint.getLocalizedName(l10n),
-                TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                  trip.getDepartureDateTime(widget.selectedDepartureTime),
-                ),
-                "${l10n.walk} ${TimeFormat.secondsToFormattedString(access.duration, l10n)}",
+              content: Column(
+                children: [
+                  _buildWalkingWidget(
+                    trip.startPoint.getLocalizedName(l10n),
+                    TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                      trip.getDepartureDateTime(widget.selectedDepartureTime),
+                    ),
+                    "${l10n.walk} ${TimeFormat.secondsToFormattedString(access.duration, l10n)}",
+                  ),
+                ],
               ),
             ),
           ),
@@ -483,15 +493,21 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             lineColor: colorScheme.tertiary,
             lineStyle: LineStyle.dotted,
             content: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: _buildArrivalWidget(
-                l10n: l10n,
-                title: legs[legIndex - 1].destinationStop.getLocalizedName(
-                  l10n,
-                ),
-                arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                  legs[legIndex - 1].arrivalDateTime,
-                ),
+              padding: const EdgeInsets.only(bottom: 0),
+              child: Column(
+                children: [
+                  _buildArrivalWidget(
+                    l10n: l10n,
+                    title: legs[legIndex - 1].destinationStop.getLocalizedName(
+                      l10n,
+                    ),
+                    arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                      legs[legIndex - 1].arrivalDateTime,
+                    ),
+                  ),
+                  const Divider(height: 32, thickness: 2,),
+
+                ],
               ),
             ),
           ),
@@ -509,40 +525,39 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
               lineColor: colorScheme.tertiary,
               lineStyle: LineStyle.dotted,
-              content: Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.transfer,
-                      style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time_rounded,
-                          size: 14,
-                          color: colorScheme.tertiary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l10n.waitingTime(
-                            TimeFormat.secondsToFormattedString(
-                              bus
-                                  .waitTimeAfterLeg(legIndex - 1)
-                                  .inSeconds
-                                  .toDouble(),
-                              l10n,
-                            ),
+              content: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.transfer,
+                    style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time_rounded,
+                        size: 14,
+                        color: colorScheme.tertiary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.waitingTime(
+                          TimeFormat.secondsToFormattedString(
+                            bus
+                                .waitTimeAfterLeg(legIndex - 1)
+                                .inSeconds
+                                .toDouble(),
+                            l10n,
                           ),
-                          style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                        style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 32, thickness: 2,),
+
+                ],
               ),
             ),
           ),

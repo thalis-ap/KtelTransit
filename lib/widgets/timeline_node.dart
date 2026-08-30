@@ -54,7 +54,7 @@ class TimelineNode extends StatelessWidget {
           // Right side: The actual card content
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top: 4.0, bottom: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: content,
             ),
           ),
