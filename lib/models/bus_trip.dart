@@ -5,6 +5,9 @@ import 'package:latlong2/latlong.dart';
 /// A single bus ride on one route, from one stop to another, with no
 /// transfers in between. A BusTrip with a transfer is just 2+ of these.
 class BusLeg {
+  final List<LatLng>? points;
+  final int? safeDuration; // seconds, from OSRM
+
   final String routeName;
   final DateTime departureDateTime;
   final DateTime arrivalDateTime;
@@ -42,6 +45,8 @@ class BusLeg {
     required this.originStop,
     required this.destinationStop,
     required this.fare,
+    this.points,
+    this.safeDuration,
   });
 
   BusLeg copyWith({
@@ -53,6 +58,8 @@ class BusLeg {
     List<String>? stopNames,
     Stop? originStop,
     Stop? destinationStop,
+    List<LatLng>? points,
+    int? safeDuration,
   }) {
     return BusLeg(
       routeName: routeName ?? this.routeName,
@@ -63,15 +70,17 @@ class BusLeg {
       stopNames: stopNames ?? this.stopNames,
       originStop: originStop ?? this.originStop,
       destinationStop: destinationStop ?? this.destinationStop,
+      points: points ?? this.points,
+      safeDuration: safeDuration ?? this.safeDuration,
     );
   }
 }
 
-/// This class is used for the actual osrm-computed trip and must not be
+/// This class is used for the actual bus trip and must not be
 /// confused with the Trip class, which is a generic class to hold basic info
 class BusTrip {
-  final List<LatLng>? points;
-  final int? safeDuration; // seconds, from OSRM
+  List<LatLng>? points;
+  int? safeDuration; // seconds, from OSRM
 
   final bool isStartAlsoOrigin;
 
@@ -82,14 +91,20 @@ class BusTrip {
   // Holds the total of all the legs' fares
   double totalFare = -1;
 
-  BusTrip({
-    required this.isStartAlsoOrigin,
-    required this.legs,
-    this.points,
-    this.safeDuration,
-  }) : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
+  BusTrip({required this.isStartAlsoOrigin, required this.legs})
+    : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
     // Will remain -1 if there are no legs (pure walking trip)
     totalFare = legs.fold(0, (sum, leg) => sum + leg.fare);
+    // Create the points by combining all the legs
+    points = legs.fold(
+      <LatLng>[],
+      (list, leg) => list ?? <LatLng>[] + (leg.points ?? []),
+    );
+    // Create the safeDuration combining all the legs again
+    safeDuration = legs.fold(
+      0,
+      (sum, leg) => sum ?? 0 + (leg.safeDuration ?? 0),
+    );
   }
 
   // ---- Convenience getters ----
@@ -105,9 +120,10 @@ class BusTrip {
   int get estimatedDuration =>
       legs.fold(0, (sum, leg) => sum + leg.estimatedDuration);
 
-  double get totalWaitTime =>
-      List.generate(legs.length - 1, (i) => i).fold(
-          0, (sum, legIndex) => sum + waitTimeAfterLeg(legIndex).inSeconds);
+  double get totalWaitTime => List.generate(
+    legs.length - 1,
+    (i) => i,
+  ).fold(0, (sum, legIndex) => sum + waitTimeAfterLeg(legIndex).inSeconds);
 
   String get estimatedFareAsString => FareService.fareAsString(totalFare);
 
@@ -126,10 +142,10 @@ class BusTrip {
     List<BusLeg>? legs,
   }) {
     return BusTrip(
-      points: points ?? this.points,
-      safeDuration: safeDuration ?? this.safeDuration,
-      isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
-      legs: legs ?? this.legs,
-    );
+        isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
+        legs: legs ?? this.legs,
+      )
+      ..points = points ?? this.points
+      ..safeDuration = safeDuration ?? this.safeDuration;
   }
 }

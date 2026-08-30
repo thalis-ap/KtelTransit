@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
@@ -223,76 +222,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _fetchRouteForSelectedTrip(cachedTrips![index]);
   }
 
-  /// Fetches the route(s) (i.e. the map points) for a given OsrmTrip object
-  /// and updates the routeTrips state variable to re-build the map with the
-  /// route
+  /// Fetches the route(s) (i.e. the map points) for a given RoutingTrip object
+  /// and updates the activeRoute state variable to re-build the map with the
+  /// routing trip that was selected
   Future<void> _fetchRouteForSelectedTrip(RoutingTrip routingTrip) async {
     if (startPoint == null || destinationPoint == null) return;
 
-    final languageCode = Localizations.localeOf(context).languageCode;
-
     try {
       if (routingTrip.busTrip != null) {
-        final BusTrip busTrip = routingTrip.busTrip!;
-
-        final Stop busStart = repository.stops.firstWhere(
-          (s) =>
-              s.getLocalizedNameByLangCode(languageCode) ==
-              busTrip.legs.first.originStop.getLocalizedNameByLangCode(
-                languageCode,
-              ),
-        );
-        final Stop busDest = repository.stops.firstWhere(
-          (s) =>
-              s.getLocalizedNameByLangCode(languageCode) ==
-              busTrip.legs.first.destinationStop.getLocalizedNameByLangCode(
-                languageCode,
-              ),
-        );
-
-        final LatLng startCoords = LatLng(
-          busStart.latitude,
-          busStart.longitude,
-        );
-        final LatLng destinationCoords = LatLng(
-          busDest.latitude,
-          busDest.longitude,
-        );
-
-        BusTrip updatedBusTrip;
-
-        if (busTrip.isTransfer) {
-          final Stop trStop = repository.stops.firstWhere(
-            (s) =>
-                s.getLocalizedNameByLangCode(languageCode) ==
-                routingTrip.busTrip!.legs[1].originStop
-                    .getLocalizedNameByLangCode(languageCode),
-          );
-
-          final BusTrip leg1 = await BusService.getRoute(
-            startCoords,
-            trStop.coordinates,
-            busTrip,
-          );
-          final BusTrip leg2 = await BusService.getRoute(
-            trStop.coordinates,
-            destinationCoords,
-            busTrip,
-          );
-
-          // Combine the points of the two legs into one single BusTrip object
-          updatedBusTrip = leg1.copyWith(
-            points: [...(leg1.points ?? []), ...(leg2.points ?? [])],
-          );
-        } else {
-          updatedBusTrip = await BusService.getRoute(
-            startCoords,
-            destinationCoords,
-            busTrip,
-          );
-        }
-
-        routingTrip.busTrip = updatedBusTrip;
+        // Update the bus trip object (with points + safe duration)
+        routingTrip.busTrip = await BusService.getCompleteTrip(routingTrip.busTrip!);
       }
 
       setState(() {

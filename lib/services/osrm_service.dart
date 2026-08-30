@@ -20,15 +20,14 @@ class _CachedBusRoute {
 class BusService {
   static final Map<String, _CachedBusRoute> _cache = {};
 
-  /// Returns a complete OsrmTrip object, including the points and safeDuration
-  /// attributes, once given a semi-complete OsrmTrip object and a start/dest
-  /// pair of LatLng points. It safely returns a new OsrmTrip object using
-  /// copyWith() function on the existing immutable object.
-  static Future<BusTrip> getRoute(
-    LatLng start,
-    LatLng destination,
-    BusTrip osrmTrip,
-  ) async {
+  /// Returns a complete BusLeg object, including the points and safeDuration
+  /// attributes, once given a semi-complete BusLeg object.
+  /// It safely returns a new BusLeg object using copyWith() function on the
+  /// existing immutable object.
+  static Future<BusLeg> getCompleteLeg(BusLeg leg) async {
+    final Stop start = leg.originStop;
+    final Stop destination = leg.destinationStop;
+  
     // Cache key is of the form start latlng | dest latlng
     final String cacheKey =
         '${start.latitude},${start.longitude}|${destination.latitude},${destination.longitude}';
@@ -36,11 +35,9 @@ class BusService {
     // If we already calculated the path between these two stops, inject the cached data!
     if (_cache.containsKey(cacheKey)) {
       final cachedData = _cache[cacheKey]!;
-      return osrmTrip.copyWith(
-        points: cachedData.points,
-        safeDuration: cachedData.safeDuration,
-      );
+      return leg.copyWith(points: cachedData.points, safeDuration: cachedData.safeDuration);
     }
+    
     // OSRM expects coordinates in Longitude,Latitude order
     final String url =
         'http://router.project-osrm.org/route/v1/driving/'
@@ -74,13 +71,35 @@ class BusService {
         points: points,
         safeDuration: safeDuration,
       );
-
-      // Returns a complete OsrmTrip object after adding the coordinates and
-      // duration of the trip in minutes fetched from the OSRM API.
-      return osrmTrip.copyWith(points: points, safeDuration: safeDuration);
+      
+      return leg.copyWith(points: points, safeDuration: safeDuration);
+      
     } catch (e) {
       throw Exception("Error fetching route $e");
     }
+  }
+
+
+  /// Returns a complete BusTrip object, including the points and safeDuration
+  /// attributes, once given a semi-complete BusTrip object. The function loops
+  /// through the trip's legs and incrementally builds the list of points by
+  /// adding each leg's points and the safeDuration by summing each leg's
+  /// safeDuration. Finally it safely returns a new BusTrip object using
+  /// copyWith() function on the existing immutable object.
+  /// Note: Caching is implemented in the getCompleteLeg() function
+  static Future<BusTrip> getCompleteTrip(BusTrip busTrip) async {
+    // Get all the leg routes
+    List<LatLng> busTripPoints = [];
+    int busTripSafeDuration = 0;
+    for (int i=0; i<busTrip.legs.length; i++) {
+      BusLeg currLeg = busTrip.legs[i];
+      currLeg = await getCompleteLeg(currLeg);
+      busTripPoints.addAll(currLeg.points ?? []);
+      busTripSafeDuration += currLeg.safeDuration ?? 0;
+    }
+
+    // Combine the points of all legs into the bus trip object
+    return busTrip.copyWith(points: busTripPoints, safeDuration: busTripSafeDuration);
   }
 }
 
