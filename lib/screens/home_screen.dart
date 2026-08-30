@@ -372,16 +372,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     await _refreshTripInfo();
   }
 
-  Future<void> _onTripSelected(int index, RoutingTrip trip) async {
+  void _onTripSelected(int index, RoutingTrip trip) {
     setState(() {
       selectedTripIndex = index;
     });
 
-    // Await the route-fetching
-    await _fetchRouteForSelectedTrip(trip);
-
-    // Then animate the map (use onTappedRoutePart as it does this exact thing)
-    _onTappedRoutePart(trip.startPoint.coordinates, trip.destinationPoint.coordinates, sheetSize: SheetSizes.middle);
+    _fetchRouteForSelectedTrip(trip);
   }
 
   /// Runs when user selected a part of a routing trip, for example the
