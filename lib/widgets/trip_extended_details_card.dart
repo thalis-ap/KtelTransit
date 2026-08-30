@@ -117,7 +117,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     return Column(
       children: [
         _buildHeader(colorScheme, l10n: l10n),
-        Divider(height: 32),
+        Divider(height: 32, thickness: 2,),
         GestureDetector(
           onTap: () {
             widget.onTappedRoutePart(trip.startPoint.coordinates, trip.destinationPoint.coordinates);
@@ -318,7 +318,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     return Column(
       children: [
         _buildHeader(colorScheme, l10n: l10n),
-        Divider(height: 32),
+        Divider(height: 32, thickness: 2,),
         if (access != null)
           GestureDetector(
             onTap: () {
@@ -429,7 +429,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     return Column(
       children: [
         _buildHeader(colorScheme, l10n: l10n),
-        Divider(height: 32),
+        Divider(height: 32, thickness: 2,),
         if (access != null)
           GestureDetector(
             onTap: () {
@@ -637,7 +637,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
 
     return Column(
       children: [
-        const Divider(height: 30),
+        const Divider(height: 30, thickness: 2,),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -674,7 +674,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 ],
               ),
             ],
-            const Divider(height: 20),
+            const Divider(height: 20, thickness: 2,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
