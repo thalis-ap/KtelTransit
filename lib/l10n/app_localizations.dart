@@ -176,11 +176,11 @@ abstract class AppLocalizations {
   /// **'Επαναφορά προσανατολισμού'**
   String get resetOrientationTooltip;
 
-  /// No description provided for @originLabel.
+  /// No description provided for @startLabel.
   ///
   /// In el, this message translates to:
   /// **'Αφετηρία'**
-  String get originLabel;
+  String get startLabel;
 
   /// No description provided for @destinationLabel.
   ///
@@ -446,11 +446,11 @@ abstract class AppLocalizations {
   /// **'Δεν βρέθηκε περιοχή.'**
   String get noRegionFound;
 
-  /// No description provided for @searchStopHint.
+  /// No description provided for @searchStartHint.
   ///
   /// In el, this message translates to:
-  /// **'Αναζήτηση στάσης...'**
-  String get searchStopHint;
+  /// **'Αναζήτηση αφετηρίας...'**
+  String get searchStartHint;
 
   /// No description provided for @noStopFound.
   ///

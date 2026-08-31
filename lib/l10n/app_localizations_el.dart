@@ -51,7 +51,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get resetOrientationTooltip => 'Επαναφορά προσανατολισμού';
 
   @override
-  String get originLabel => 'Αφετηρία';
+  String get startLabel => 'Αφετηρία';
 
   @override
   String get destinationLabel => 'Προορισμός';
@@ -207,7 +207,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noRegionFound => 'Δεν βρέθηκε περιοχή.';
 
   @override
-  String get searchStopHint => 'Αναζήτηση στάσης...';
+  String get searchStartHint => 'Αναζήτηση αφετηρίας...';
 
   @override
   String get noStopFound => 'Δεν βρέθηκε στάση.';

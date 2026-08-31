@@ -38,7 +38,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchDestinationHint => 'Search destination...';
 
   @override
-  String get selectStartHint => 'Select origin...';
+  String get selectStartHint => 'Select start...';
 
   @override
   String get selectDestinationHint => 'Select destination...';
@@ -50,7 +50,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetOrientationTooltip => 'Reset orientation';
 
   @override
-  String get originLabel => 'Origin';
+  String get startLabel => 'Start';
 
   @override
   String get destinationLabel => 'Destination';
@@ -204,7 +204,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noRegionFound => 'No region found.';
 
   @override
-  String get searchStopHint => 'Search stop...';
+  String get searchStartHint => 'Search start...';
 
   @override
   String get noStopFound => 'No stop found.';

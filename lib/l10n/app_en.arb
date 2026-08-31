@@ -58,7 +58,7 @@
   "unknownDays": "Unknown days",
   "searchRegionHint": "Search region...",
   "noRegionFound": "No region found.",
-  "searchStopHint": "Search stop...",
+  "searchStartHint": "Search start...",
   "noStopFound": "No stop found.",
   "durationHoursMinutes": "{hours} hr {minutes} min",
   "durationHours": "{count, plural, =1{1 hour} other{{count} hours}}",

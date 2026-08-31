@@ -134,7 +134,7 @@ class MapPointSheet extends StatelessWidget {
                           onSetStart(mapPoint);
                         },
                         icon: const Icon(Icons.my_location, size: 20),
-                        label: Text(l10n.originLabel),
+                        label: Text(l10n.startLabel),
                         style: FilledButton.styleFrom(
                           backgroundColor: colorScheme.secondary.withAlpha(50),
                           foregroundColor: colorScheme.secondary,

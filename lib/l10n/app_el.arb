@@ -124,7 +124,7 @@
   "unknownDays": "Άγνωστες ημέρες",
   "searchRegionHint": "Αναζήτηση περιοχής...",
   "noRegionFound": "Δεν βρέθηκε περιοχή.",
-  "searchStopHint": "Αναζήτηση στάσης...",
+  "searchStartHint": "Αναζήτηση αφετηρίας...",
   "noStopFound": "Δεν βρέθηκε στάση.",
   "durationHoursMinutes": "{hours} ώρ. {minutes} λεπ.",
   "@durationHoursMinutes": {
