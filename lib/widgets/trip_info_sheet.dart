@@ -119,6 +119,7 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     showModalBottomSheet<TripSortFilter>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -136,6 +137,7 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     showModalBottomSheet<TripSortFilter>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -342,135 +344,137 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     final screenHeight = MediaQuery.of(context).size.height;
     bool previousConnectionStatus = connectionService.isConnected;
 
-    return DraggableScrollableSheet(
-      controller: widget.controller,
-      initialChildSize: SheetSizes.middle,
-      minChildSize: SheetSizes.low,
-      maxChildSize: SheetSizes.high,
-      snap: true,
-      snapSizes: const [SheetSizes.middle],
-      builder: (context, scrollController) {
-        // Store the draggable's scroll controller
-        _scrollController = scrollController;
-
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: const [BoxShadow(blurRadius: 15, spreadRadius: 2)],
-          ),
-          child: ListenableBuilder(
-            listenable: connectionService,
-            builder: (context, _) {
-              if (previousConnectionStatus != connectionService.isConnected &&
-                  connectionService.isConnected) {
-                widget.onRetryConnection();
-                previousConnectionStatus = connectionService.isConnected;
-              }
-              return AnimatedBuilder(
-                animation: widget.controller,
-                builder: (context, _) {
-                  final bool showConnectionBanner =
-                      (widget.startPoint is! Stop || widget.destinationPoint is! Stop) &&
-                          !connectionService.isConnected;
-
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Fixed header
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onVerticalDragUpdate: (details) =>
-                            _handleHeaderDragUpdate(details, screenHeight),
-                        onVerticalDragEnd: (details) =>
-                            _handleHeaderDragEnd(details, screenHeight),
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 12.0,
-                            left: 24.0,
-                            right: 24.0,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Center(
-                                child: Container(
-                                  width: 48,
-                                  height: 5,
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.onSurfaceVariant
-                                        .withValues(alpha: 0.4),
-                                    borderRadius: BorderRadius.circular(3),
+    return SafeArea(
+      child: DraggableScrollableSheet(
+        controller: widget.controller,
+        initialChildSize: SheetSizes.middle,
+        minChildSize: SheetSizes.low,
+        maxChildSize: SheetSizes.high,
+        snap: true,
+        snapSizes: const [SheetSizes.middle],
+        builder: (context, scrollController) {
+          // Store the draggable's scroll controller
+          _scrollController = scrollController;
+      
+          return Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              boxShadow: const [BoxShadow(blurRadius: 15, spreadRadius: 2)],
+            ),
+            child: ListenableBuilder(
+              listenable: connectionService,
+              builder: (context, _) {
+                if (previousConnectionStatus != connectionService.isConnected &&
+                    connectionService.isConnected) {
+                  widget.onRetryConnection();
+                  previousConnectionStatus = connectionService.isConnected;
+                }
+                return AnimatedBuilder(
+                  animation: widget.controller,
+                  builder: (context, _) {
+                    final bool showConnectionBanner =
+                        (widget.startPoint is! Stop || widget.destinationPoint is! Stop) &&
+                            !connectionService.isConnected;
+      
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Fixed header
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onVerticalDragUpdate: (details) =>
+                              _handleHeaderDragUpdate(details, screenHeight),
+                          onVerticalDragEnd: (details) =>
+                              _handleHeaderDragEnd(details, screenHeight),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              top: 12.0,
+                              left: 24.0,
+                              right: 24.0,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(
+                                  child: Container(
+                                    width: 48,
+                                    height: 5,
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.4),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              if (widget.selectedTripIndex == null)
-                                _buildHeader(context)
-                              else
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    TextButton.icon(
-                                      onPressed: widget.onBackToAllTrips,
-                                      icon: const Icon(Icons.arrow_back, size: 20),
-                                      label: Text(
-                                        AppLocalizations.of(context)!.allTrips,
-                                        style: context.textTheme.labelLarge?.copyWith(
-                                          color: colorScheme.primary,
+                                if (widget.selectedTripIndex == null)
+                                  _buildHeader(context)
+                                else
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: widget.onBackToAllTrips,
+                                        icon: const Icon(Icons.arrow_back, size: 20),
+                                        label: Text(
+                                          AppLocalizations.of(context)!.allTrips,
+                                          style: context.textTheme.labelLarge?.copyWith(
+                                            color: colorScheme.primary,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              const SizedBox(height: 8),
-                            ],
+                                    ],
+                                  ),
+                                const SizedBox(height: 8),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-
-                      if (showConnectionBanner)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0,
-                            vertical: 8.0,
+      
+                        if (showConnectionBanner)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0,
+                              vertical: 8.0,
+                            ),
+                            child: OfflineBanner(
+                              onRetry: widget.onRetryConnection,
+                            ),
                           ),
-                          child: OfflineBanner(
-                            onRetry: widget.onRetryConnection,
+      
+                        // Use the draggable's scrollController
+                        Expanded(
+                          child: SingleChildScrollView(
+                            controller: scrollController,
+                            padding: const EdgeInsets.only(
+                              left: 24.0,
+                              right: 24.0,
+                              bottom: 16.0,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (widget.selectedTripIndex != null && widget.trips != null)
+                                  _buildSelectedTripWidget(context)
+                                else
+                                  _buildTripsSheet(context),
+                              ],
+                            ),
                           ),
                         ),
-
-                      // Use the draggable's scrollController
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: scrollController,
-                          padding: const EdgeInsets.only(
-                            left: 24.0,
-                            right: 24.0,
-                            bottom: 16.0,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (widget.selectedTripIndex != null && widget.trips != null)
-                                _buildSelectedTripWidget(context)
-                              else
-                                _buildTripsSheet(context),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-        );
-      },
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

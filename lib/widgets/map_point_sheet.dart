@@ -50,122 +50,124 @@ class MapPointSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return DraggableScrollableSheet(
-      controller: controller,
-      initialChildSize: SheetSizes.middle,
-      minChildSize: SheetSizes.low,
-      maxChildSize: SheetSizes.high,
-      snap: true,
-      snapSizes: const [SheetSizes.middle],
-      shouldCloseOnMinExtent: false,
-      builder: (context, scrollController) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.only(
-            top: 12.0,
-            left: 24.0,
-            right: 24.0,
-            bottom: 24.0,
-          ),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: const [BoxShadow(blurRadius: 16, spreadRadius: 2)],
-          ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 48,
-                    height: 5,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.4,
-                      ),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        mapPoint.getLocalizedName(l10n),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 32,
+    return SafeArea(
+      child: DraggableScrollableSheet(
+        controller: controller,
+        initialChildSize: SheetSizes.middle,
+        minChildSize: SheetSizes.low,
+        maxChildSize: SheetSizes.high,
+        snap: true,
+        snapSizes: const [SheetSizes.middle],
+        shouldCloseOnMinExtent: false,
+        builder: (context, scrollController) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 12.0,
+              left: 24.0,
+              right: 24.0,
+              bottom: 24.0,
+            ),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              boxShadow: const [BoxShadow(blurRadius: 16, spreadRadius: 2)],
+            ),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         color: colorScheme.onSurfaceVariant.withValues(
-                          alpha: 0.1,
+                          alpha: 0.4,
                         ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.close,
-                          size: 22,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: onClose,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(), // Keeps it compact
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+                  ),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () {
-                          onSetStart(mapPoint);
-                        },
-                        icon: const Icon(Icons.my_location, size: 20),
-                        label: Text(l10n.startLabel),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: colorScheme.secondary.withAlpha(50),
-                          foregroundColor: colorScheme.secondary,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          mapPoint.getLocalizedName(l10n),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () {
-                          onSetDestination(mapPoint);
-                        },
-                        icon: const Icon(Icons.place, size: 20),
-                        label: Text(l10n.destinationLabel),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: colorScheme.primary.withAlpha(50),
-                          foregroundColor: colorScheme.primary,
+                      Container(
+                        width: 32,
+                        decoration: BoxDecoration(
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.1,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            size: 22,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed: onClose,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(), // Keeps it compact
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                if (followUpWidgets.isEmpty)
-                  ...buildFollowUpWidgets(context)
-                else
-                  ...followUpWidgets,
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            onSetStart(mapPoint);
+                          },
+                          icon: const Icon(Icons.my_location, size: 20),
+                          label: Text(l10n.startLabel),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.secondary.withAlpha(50),
+                            foregroundColor: colorScheme.secondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            onSetDestination(mapPoint);
+                          },
+                          icon: const Icon(Icons.place, size: 20),
+                          label: Text(l10n.destinationLabel),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.primary.withAlpha(50),
+                            foregroundColor: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (followUpWidgets.isEmpty)
+                    ...buildFollowUpWidgets(context)
+                  else
+                    ...followUpWidgets,
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
