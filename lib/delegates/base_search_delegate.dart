@@ -3,17 +3,6 @@ import 'package:flutter/material.dart';
 abstract class BaseSearchDelegate<T> extends SearchDelegate<T?> {
   BaseSearchDelegate({super.searchFieldLabel});
 
-  String normalizeGreek(String input) {
-    const withAccents = 'άέήίϊΐόύϋΰώ';
-    const withoutAccents = 'αεηιιιουυυω';
-
-    String result = input.toLowerCase();
-    for (int i = 0; i < withAccents.length; i++) {
-      result = result.replaceAll(withAccents[i], withoutAccents[i]);
-    }
-    return result;
-  }
-
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [

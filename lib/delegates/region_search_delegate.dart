@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
+import '../utilities/language_format.dart';
 import 'base_search_delegate.dart';
 
 class RegionSearchDelegate extends BaseSearchDelegate<Region> {
@@ -17,12 +18,12 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
   Widget _buildSuggestionsList(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final normalizedSearch = normalizeGreek(query);
+    final clearSearch = LanguageFormat.clearText(query);
     final languageCode = Localizations.localeOf(context).languageCode;
 
     final suggestions = regions.where((region) {
-      final normalizedRegionName = normalizeGreek(region.getLocalizedName(languageCode));
-      return normalizedRegionName.contains(normalizedSearch);
+      final clearRegionName = LanguageFormat.clearText(region.getLocalizedName(languageCode));
+      return clearRegionName.contains(clearSearch);
     }).toList();
 
     if (suggestions.isEmpty) {

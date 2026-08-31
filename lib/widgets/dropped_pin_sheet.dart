@@ -4,6 +4,7 @@ import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
 import 'package:ktel_transit/services/osrm_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
+import 'package:ktel_transit/utilities/language_format.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import '../models/stop.dart';
@@ -139,7 +140,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
       final languageCode = Localizations.localeOf(context).languageCode;
 
       // Try to retrieve a name and update point.name as soon as we can
-      final name = await GeocodingService.getPlaceName(
+      String? name = await GeocodingService.getPlaceName(
         widget.mapPoint.coordinates,
         languageCode,
       );
@@ -154,6 +155,11 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
           });
         }
       } else {
+        // If user is not using the greek language translate to Greeklish
+        if (languageCode != "el") {
+          name = LanguageFormat.toGreeklish(name);
+        }
+        
         // If the API found a name and the user hasn't closed the sheet yet, update the UI
         if (mounted) {
           setState(() {

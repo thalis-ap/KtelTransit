@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
+import 'package:ktel_transit/utilities/language_format.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
@@ -24,15 +25,15 @@ class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
 
   Widget _buildSuggestionsList(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    // 1. Grab the active language from the context
+    // Grab the active language from the context
     final languageCode = Localizations.localeOf(context).languageCode;
-    final normalizedQuery = normalizeGreek(query);
+    final clearQuery = LanguageFormat.clearText(query);
 
     final suggestions = stops.where((stop) {
-      // 2. Search against the localized name instead of just the Greek one
+      // Search against the localized name instead of just the Greek one
       final localizedName = stop.getLocalizedName(l10n);
-      final normalizedStopName = normalizeGreek(localizedName);
-      return normalizedStopName.contains(normalizedQuery);
+      final clearStopName = LanguageFormat.clearText(localizedName);
+      return clearStopName.contains(clearQuery);
     }).toList();
 
     return Column(
