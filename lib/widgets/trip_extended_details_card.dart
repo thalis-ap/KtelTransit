@@ -405,7 +405,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             l10n: l10n,
             title: l10n.arrivalAt(trip.destinationPoint.getLocalizedName(l10n)),
             arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-              leg.arrivalDateTime,
+              trip.getArrivalDateTime(widget.selectedDepartureTime),
             ),
           ),
         ),
