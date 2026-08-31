@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -104,6 +105,11 @@ class CustomMap extends StatelessWidget {
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.symplyapps.ktel_transit',
+              tileProvider: FMTCTileProvider(
+                stores: const {
+                  'osmcache': BrowseStoreStrategy.readUpdateCreate, // auto-cache tiles as user browses
+                },
+              ),
               tileBuilder: Theme.of(context).brightness == Brightness.dark
                   ? darkModeTileBuilder
                   : null,
