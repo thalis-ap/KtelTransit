@@ -29,28 +29,44 @@ class LanguageFormat {
   };
 
   /// Converts a Greek string to Greeklish (Latin script).
-  /// This is a fast, local, best-effort transliteration.
+  /// Handles digraphs (μπ, ντ, etc.) and the αυ/ευ voicing rule.
   static String toGreeklish(String input) {
     if (input.isEmpty) return input;
 
     // Make sure to remove tonous before processing the input
     input = removeTonous(input);
 
-    // We use a list to build the result efficiently.
     final buffer = StringBuffer();
-    final chars = input.toLowerCase().split(''); // Work with lowercase for matching.
-
-    // We'll iterate manually to handle digraphs (two-letter combos) first.
+    final chars = input.toLowerCase().split('');
     int i = 0;
+
+    // Helper to check if a letter is a voiceless consonant.
+    bool isVoiceless(String c) => 'κπτσφχθξψ'.contains(c);
+
     while (i < chars.length) {
-      // Check if we have at least two characters left to form a digraph.
+      // Check for two-letter combinations (digraphs) that should be handled first.
       if (i + 1 < chars.length) {
         final two = chars[i] + chars[i + 1];
 
-        // Handle Greek digraphs (common ones).
-        // The order here matters: we map the most specific ones first.
+        // Special handling for αυ and ευ with context.
+        if (two == 'αυ' || two == 'ευ') {
+          // Look ahead to the next character after the digraph.
+          final next = (i + 2 < chars.length) ? chars[i + 2] : null;
+          // Determine if the following consonant is voiceless.
+          final isVoiced = (next != null && !isVoiceless(next)) || next == null || 'αειου'.contains(next);
+          // Choose v or f.
+          final v = isVoiced ? 'v' : 'f';
+          final prefix = (two == 'αυ') ? 'a' : 'e';
+          buffer.write('$prefix$v');
+          i += 2;
+          continue;
+        }
+
+        // Other digraphs (unchanged).
         switch (two) {
           case 'μπ':
+          // At the start of a word, it's often just 'b', but we keep 'mp' for simplicity.
+          // (You can add a special case for word start if desired.)
             buffer.write('mp');
             i += 2;
             continue;
@@ -78,36 +94,24 @@ class LanguageFormat {
             buffer.write('ou');
             i += 2;
             continue;
-          case 'αυ':
-          // Simple approximation: "av" is fine (ELOT says av/af).
-            buffer.write('av');
-            i += 2;
-            continue;
-          case 'ευ':
-            buffer.write('ev');
-            i += 2;
-            continue;
         }
       }
 
-      // If it wasn't a digraph, map the single character.
+      // Single character mapping.
       final char = chars[i];
       final mapped = _singleCharMap[char];
       if (mapped != null) {
         buffer.write(mapped);
       } else {
-        // If it's already a Latin character, punctuation, or space, keep it.
-        buffer.write(char);
+        buffer.write(char); // Keep non-Greek characters.
       }
       i++;
     }
 
-    final result = buffer.toString();
-
-    // Capitalize the first letter if the original was capitalized.
-    // (We need to check the original first character to preserve case.)
+    String result = buffer.toString();
+    // Preserve case of the first letter.
     if (input.isNotEmpty && input[0] == input[0].toUpperCase()) {
-      return result[0].toUpperCase() + result.substring(1);
+      result = result[0].toUpperCase() + result.substring(1);
     }
     return result;
   }
