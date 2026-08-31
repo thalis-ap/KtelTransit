@@ -13,6 +13,7 @@ import '../utilities/distance_format.dart';
 class ExtendedDetailsCard extends StatefulWidget {
   final RoutingTrip routingTrip;
   final DateTime selectedDepartureTime;
+
   // This is a function that will be called upon tapping a part of a the route
   // for example a walking leg, or one of the bus legs. The first argument is
   // the start coordinates of the leg and the second is the destination's
@@ -117,10 +118,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     return Column(
       children: [
         _buildHeader(colorScheme, l10n: l10n),
-        Divider(height: 32, thickness: 2,),
+        Divider(height: 32, thickness: 2),
         GestureDetector(
           onTap: () {
-            widget.onTappedRoutePart(trip.startPoint.coordinates, trip.destinationPoint.coordinates);
+            widget.onTappedRoutePart(
+              trip.startPoint.coordinates,
+              trip.destinationPoint.coordinates,
+            );
           },
           child: TimelineNode(
             indicator: Icon(
@@ -185,10 +189,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                     Text(title, style: context.textTheme.titleSmall),
                     if (subtitle.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: context.textTheme.bodyMedium,
-                      ),
+                      Text(subtitle, style: context.textTheme.bodyMedium),
                     ],
                   ],
                 ),
@@ -206,10 +207,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  durationText,
-                  style: context.textTheme.bodyMedium,
-                ),
+                child: Text(durationText, style: context.textTheme.bodyMedium),
               ),
               Icon(
                 Icons.chevron_right,
@@ -219,7 +217,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ],
           ),
           // const SizedBox(height: 12,),
-          const Divider(height: 20, thickness: 2,),
+          const Divider(height: 20, thickness: 2),
         ],
       ),
     );
@@ -254,16 +252,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         Row(
           children: [
             Expanded(
-              child: Text(
-                routeName,
-                style: context.textTheme.bodyMedium,
-              ),
+              child: Text(routeName, style: context.textTheme.bodyMedium),
             ),
             Icon(Icons.chevron_right),
           ],
         ),
         const SizedBox(height: 24),
-        const Divider(height: 16, thickness: 2,),
+        const Divider(height: 16, thickness: 2),
         StopsExpander(
           stopNames: stopNames,
           label: l10n.tripStopsCount(stopNames.length),
@@ -272,8 +267,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             l10n,
           ),
         ),
-        const Divider(height: 16, thickness: 2,),
-
+        const Divider(height: 16, thickness: 2),
       ],
     );
   }
@@ -289,17 +283,9 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Text(
-            title,
-            style: context.textTheme.titleSmall,
-          ),
-        ),
+        Expanded(child: Text(title, style: context.textTheme.titleSmall)),
         const SizedBox(width: 10),
-        Text(
-          arrivalTime,
-          style: context.textTheme.titleSmall,
-        ),
+        Text(arrivalTime, style: context.textTheme.titleSmall),
       ],
     );
   }
@@ -319,12 +305,15 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     return Column(
       children: [
         _buildHeader(colorScheme, l10n: l10n),
-        Divider(height: 32, thickness: 2,),
+        Divider(height: 32, thickness: 2),
         if (access != null)
           GestureDetector(
             onTap: () {
               // From the trip's start point to the origin stop
-              widget.onTappedRoutePart(trip.startPoint.coordinates, leg.originStop.coordinates);
+              widget.onTappedRoutePart(
+                trip.startPoint.coordinates,
+                leg.originStop.coordinates,
+              );
             },
             child: TimelineNode(
               indicator: Icon(
@@ -350,7 +339,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         // We have no transfers, just build the single leg
         GestureDetector(
           onTap: () {
-            widget.onTappedRoutePart(leg.originStop.coordinates, leg.destinationStop.coordinates);
+            widget.onTappedRoutePart(
+              leg.originStop.coordinates,
+              leg.destinationStop.coordinates,
+            );
           },
           child: TimelineNode(
             indicator: Icon(
@@ -379,7 +371,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           GestureDetector(
             onTap: () {
               // From the bus destination stop to the destination point of the trip
-              widget.onTappedRoutePart(leg.destinationStop.coordinates, trip.destinationPoint.coordinates);
+              widget.onTappedRoutePart(
+                leg.destinationStop.coordinates,
+                trip.destinationPoint.coordinates,
+              );
             },
             child: TimelineNode(
               indicator: Icon(
@@ -430,11 +425,14 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     return Column(
       children: [
         _buildHeader(colorScheme, l10n: l10n),
-        Divider(height: 32, thickness: 2,),
+        Divider(height: 32, thickness: 2),
         if (access != null)
           GestureDetector(
             onTap: () {
-              widget.onTappedRoutePart(trip.startPoint.coordinates, firstLeg.originStop.coordinates);
+              widget.onTappedRoutePart(
+                trip.startPoint.coordinates,
+                firstLeg.originStop.coordinates,
+              );
             },
             child: TimelineNode(
               indicator: Icon(
@@ -459,7 +457,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         // can loop in the following pattern: arrivalWidget -> transferWidget -> legWidget
         GestureDetector(
           onTap: () {
-            widget.onTappedRoutePart(firstLeg.originStop.coordinates, firstLeg.destinationStop.coordinates);
+            widget.onTappedRoutePart(
+              firstLeg.originStop.coordinates,
+              firstLeg.destinationStop.coordinates,
+            );
           },
           child: TimelineNode(
             indicator: Icon(
@@ -502,12 +503,12 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                     title: legs[legIndex - 1].destinationStop.getLocalizedName(
                       l10n,
                     ),
-                    arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                      legs[legIndex - 1].arrivalDateTime,
-                    ),
+                    arrivalTime:
+                        TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                          legs[legIndex - 1].arrivalDateTime,
+                        ),
                   ),
-                  const Divider(height: 32, thickness: 2,),
-
+                  const Divider(height: 32, thickness: 2),
                 ],
               ),
             ),
@@ -516,7 +517,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           GestureDetector(
             onTap: () {
               // Pass the transfer stop's coordinates to zoom in on it
-              widget.onTappedRoutePart(legs[legIndex].originStop.coordinates, legs[legIndex].originStop.coordinates);
+              widget.onTappedRoutePart(
+                legs[legIndex].originStop.coordinates,
+                legs[legIndex].originStop.coordinates,
+              );
             },
             child: TimelineNode(
               indicator: Icon(
@@ -537,7 +541,9 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                           children: [
                             Text(
                               l10n.transfer,
-                              style: context.textTheme.labelLarge?.copyWith(color: colorScheme.tertiary),
+                              style: context.textTheme.labelLarge?.copyWith(
+                                color: colorScheme.tertiary,
+                              ),
                             ),
                             Row(
                               children: [
@@ -557,19 +563,19 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                                       l10n,
                                     ),
                                   ),
-                                  style: context.textTheme.bodySmall?.copyWith(color: colorScheme.tertiary),
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.tertiary,
+                                  ),
                                 ),
                               ],
                             ),
-
                           ],
                         ),
                       ),
-                      Icon(Icons.chevron_right, color: colorScheme.tertiary,)
+                      Icon(Icons.chevron_right, color: colorScheme.tertiary),
                     ],
                   ),
-                  const Divider(height: 32, thickness: 2,),
-
+                  const Divider(height: 32, thickness: 2),
                 ],
               ),
             ),
@@ -577,7 +583,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           // Build the leg widget (departure) of the current leg (legIndex)
           GestureDetector(
             onTap: () {
-              widget.onTappedRoutePart(legs[legIndex].originStop.coordinates, legs[legIndex].destinationStop.coordinates);
+              widget.onTappedRoutePart(
+                legs[legIndex].originStop.coordinates,
+                legs[legIndex].destinationStop.coordinates,
+              );
             },
             child: TimelineNode(
               indicator: Icon(
@@ -592,7 +601,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   legs[legIndex].departureDateTime,
                 ),
-                stopNames: legs[legIndex].stopNames,
+                stopNames: legs[legIndex].stopNamesFromTo(
+                  legs[legIndex].originStop.getLocalizedName(l10n),
+                  legs[legIndex].destinationStop.getLocalizedName(l10n),
+                ),
                 estimatedDuration: legs[legIndex].estimatedDuration,
               ),
             ),
@@ -602,7 +614,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         if (egress != null)
           GestureDetector(
             onTap: () {
-              widget.onTappedRoutePart(lastLeg.destinationStop.coordinates, trip.destinationPoint.coordinates);
+              widget.onTappedRoutePart(
+                lastLeg.destinationStop.coordinates,
+                trip.destinationPoint.coordinates,
+              );
             },
             child: TimelineNode(
               indicator: Icon(
@@ -650,13 +665,15 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
 
     return Column(
       children: [
-        const Divider(height: 30, thickness: 2,),
+        const Divider(height: 30, thickness: 2),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.costBreakdown,
-              style: context.textTheme.labelLarge?.copyWith(color: colorScheme.secondary),
+              style: context.textTheme.labelLarge?.copyWith(
+                color: colorScheme.secondary,
+              ),
             ),
             const SizedBox(height: 10),
             for (int i = 0; i < legs.length; i++) ...[
@@ -680,14 +697,16 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                       const SizedBox(width: 4),
                       Text(
                         FareService.fareAsString(legs[i].fare),
-                        style: context.textTheme.labelLarge?.copyWith(color: colorScheme.secondary),
+                        style: context.textTheme.labelLarge?.copyWith(
+                          color: colorScheme.secondary,
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
             ],
-            const Divider(height: 20, thickness: 2,),
+            const Divider(height: 20, thickness: 2),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -702,7 +721,9 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                     const SizedBox(width: 6),
                     Text(
                       FareService.fareAsString(totalFare),
-                      style: context.textTheme.titleSmall?.copyWith(color: colorScheme.secondary),
+                      style: context.textTheme.titleSmall?.copyWith(
+                        color: colorScheme.secondary,
+                      ),
                     ),
                   ],
                 ),
@@ -810,10 +831,7 @@ class _StopsExpanderState extends State<StopsExpander> {
                         ),
                       ),
                       Expanded(
-                        child: Text(
-                          name,
-                          style: context.textTheme.bodyMedium,
-                        ),
+                        child: Text(name, style: context.textTheme.bodyMedium),
                       ),
                     ],
                   ),
