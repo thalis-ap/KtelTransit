@@ -7,7 +7,6 @@ import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
-import 'package:ktel_transit/services/auto_selection_trip_service.dart';
 import 'package:ktel_transit/services/compass_service.dart';
 import 'package:ktel_transit/services/connection_service.dart';
 import 'package:ktel_transit/services/map_movement_service.dart';
@@ -69,7 +68,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   DateTime selectedSearchTime = DateTime.now();
   int? selectedTripIndex;
 
-  TripSortFilter? _sortFilter;
+  // Initialize with the default selections
+  TripSortFilter _sortFilter = TripSortFilter();
 
   // Sheets
   final SheetManagerService _sheetManager = SheetManagerService();
@@ -201,27 +201,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Tries to automatically fetch a route and display it on the map (calling
-  /// fetchRouteForSelectedTrip) by using the AutoSelector class. If the user
-  /// has this feature off then this function has no effect at all
+  /// Automatically fetches the route for the first trip (i.e. the 'best' trip
+  /// based on user's filters)
   void _autoFetchRouteForSelectedTrip() {
     // See if there are any trips to select from
     if (cachedTrips == null) return;
 
-    // If optionId is AutoSelectBestRouteOption.noneOptionId then
-    // getBestTripIndex will return -1 and fetching will be skipped
-    final AutoSelector autoSelector = AutoSelector(
-      trips: cachedTrips!,
-      selectedDateTime: selectedSearchTime,
-      optionId: widget.settingsController.autoSelectBestRouteOption,
-    );
-
-    int index = autoSelector.getBestTripIndex();
-    // Return in case getter returns -1
-    if (index < 0) return;
-
-    // Show the route on the map for the best route
-    _fetchRouteForSelectedTrip(cachedTrips![index]);
+    // Show the route on the map for the 'best' route
+    _fetchRouteForSelectedTrip(cachedTrips!.first);
   }
 
   /// Fetches the route(s) (i.e. the map points) for a given RoutingTrip object
@@ -278,13 +265,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedSearchTime,
     );
 
-    if (_sortFilter != null) {
-      tripsFound = TripSortingService.apply(
-        tripsFound,
-        _sortFilter!,
-        selectedSearchTime,
-      );
-    }
+    tripsFound = TripSortingService.apply(
+      tripsFound,
+      _sortFilter,
+      selectedSearchTime,
+    );
 
     return tripsFound.isNotEmpty ? tripsFound : null;
   }
@@ -301,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         currentRegionName: repository.currentRegion!.getLocalizedName(
           languageCode,
         ),
-        searchFieldLabel: l10n.searchStopHint,
+        searchFieldLabel: isStart ? l10n.searchStartHint : l10n.searchDestinationHint,
         onChangeRegionTap: () => RegionUtils.promptRegionChange(
           context,
           repository,
