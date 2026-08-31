@@ -13,7 +13,7 @@
   "selectDestinationHint": "Επιλέξτε προορισμό...",
   "swapDirectionTooltip": "Αλλαγή κατεύθυνσης",
   "resetOrientationTooltip": "Επαναφορά προσανατολισμού",
-  "originLabel": "Αφετηρία",
+  "startLabel": "Αφετηρία",
   "destinationLabel": "Προορισμός",
   "upcomingDeparturesToday": "ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ",
   "departuresOnDay": "ΑΝΑΧΩΡΗΣΕΙΣ {day}",
