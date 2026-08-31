@@ -392,7 +392,6 @@ class GtfsRepository {
     DateTime date,
   ) {
     final languageCode = _settingsController?.locale.languageCode ?? 'el';
-    final maxWaitMinutes = _settingsController?.maxWaitTime ?? 24;
 
     // Get service IDs valid on this date
     List<String> validServiceIds = getServiceIds(date);
@@ -500,7 +499,7 @@ class GtfsRepository {
                     st.departureTime,
                   );
                   return tDepartMins >= tArrivalMins &&
-                      tDepartMins <= tArrivalMins + 60 * maxWaitMinutes;
+                      tDepartMins <= tArrivalMins + 60 * 24;
                 }).toList();
 
             for (StopTime stTransB in potentialLeg2) {
