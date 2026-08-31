@@ -1023,36 +1023,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           return // TripInfoSheet
           _buildAnimatedSheet(
             (startPoint != null && destinationPoint != null)
-                ? TripInfoSheet(
-                    key: ValueKey('${sheetName}_sheet'),
-                    isLoading: isLoadingTrips,
-                    controller: _sheetManager.tripInfoController,
-                    startPoint: startPoint!,
-                    destinationPoint: destinationPoint!,
-                    trips: cachedTrips,
-                    selectedTripIndex: selectedTripIndex,
-                    selectedSearchTime: selectedSearchTime,
-                    onBackToAllTrips: _onBackToAllTrips,
-                    onClose: _closeTripInfoSheet,
-                    onChangeTime: _showDateTimePickerDialog,
-                    onResetTime: _onResetTime,
-                    onTripSelected: (index, trip) =>
-                        _onTripSelected(index, trip),
-                    onRetryConnection: () async {
-                      await connectionService.checkConnection();
-                      if (connectionService.isConnected) {
-                        _refreshTripInfo();
-                      }
-                    },
-                    sortFilter: _sortFilter,
-                    onSortFilterApplied: (filter) {
-                      setState(() {
-                        _sortFilter = filter;
-                      });
-                      _refreshTripInfo(); // Re-fetch and apply filter
-                    },
-                    onTappedRoutePart: _onTappedRoutePart,
-                  )
+                ? SafeArea(
+                  child: TripInfoSheet(
+                      key: ValueKey('${sheetName}_sheet'),
+                      isLoading: isLoadingTrips,
+                      controller: _sheetManager.tripInfoController,
+                      startPoint: startPoint!,
+                      destinationPoint: destinationPoint!,
+                      trips: cachedTrips,
+                      selectedTripIndex: selectedTripIndex,
+                      selectedSearchTime: selectedSearchTime,
+                      onBackToAllTrips: _onBackToAllTrips,
+                      onClose: _closeTripInfoSheet,
+                      onChangeTime: _showDateTimePickerDialog,
+                      onResetTime: _onResetTime,
+                      onTripSelected: (index, trip) =>
+                          _onTripSelected(index, trip),
+                      onRetryConnection: () async {
+                        await connectionService.checkConnection();
+                        if (connectionService.isConnected) {
+                          _refreshTripInfo();
+                        }
+                      },
+                      sortFilter: _sortFilter,
+                      onSortFilterApplied: (filter) {
+                        setState(() {
+                          _sortFilter = filter;
+                        });
+                        _refreshTripInfo(); // Re-fetch and apply filter
+                      },
+                      onTappedRoutePart: _onTappedRoutePart,
+                    ),
+                )
                 : null,
 
             sheetName,
