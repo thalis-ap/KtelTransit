@@ -812,11 +812,11 @@ abstract class AppLocalizations {
   /// **'Φίλτρα'**
   String get filters;
 
-  /// No description provided for @includeWalking.
+  /// No description provided for @noPureWalking.
   ///
   /// In el, this message translates to:
-  /// **'Χωρίς περπάτημα'**
-  String get includeWalking;
+  /// **'Όχι μόνο περπάτημα'**
+  String get noPureWalking;
 
   /// No description provided for @includeDirectTripsOnly.
   ///

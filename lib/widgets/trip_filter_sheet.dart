@@ -61,13 +61,13 @@ class _TripFilterSheetState extends State<TripFilterSheet> {
 
           // Walking toggle
           SwitchListTile(
-            value: _localFilter.dontIncludeWalking,
+            value: _localFilter.noPureWalking,
             onChanged: (value) {
               setState(() {
                 _localFilter = _localFilter.copyWith(dontIncludeWalking: value);
               });
             },
-            title: Text(l10n.includeWalking),
+            title: Text(l10n.noPureWalking),
             contentPadding: EdgeInsets.zero,
           ),
 

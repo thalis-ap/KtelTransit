@@ -350,7 +350,7 @@ class TripDetailsCard extends StatelessWidget {
             child: _buildWalkAccess(
               context,
               departureTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                busTrip.startDepartureDateTime,
+                routingTrip.getDepartureDateTime(selectedDepartureTime),
               ),
               l10n: l10n,
             ),

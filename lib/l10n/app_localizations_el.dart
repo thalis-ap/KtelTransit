@@ -423,7 +423,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get filters => 'Φίλτρα';
 
   @override
-  String get includeWalking => 'Χωρίς περπάτημα';
+  String get noPureWalking => 'Όχι μόνο περπάτημα';
 
   @override
   String get includeDirectTripsOnly => 'Μόνο απευθείας διαδρομές';

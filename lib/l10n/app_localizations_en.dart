@@ -419,7 +419,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filters => 'Filters';
 
   @override
-  String get includeWalking => 'No walking';
+  String get noPureWalking => 'No pure-walking trips';
 
   @override
   String get includeDirectTripsOnly => 'Direct trips only';

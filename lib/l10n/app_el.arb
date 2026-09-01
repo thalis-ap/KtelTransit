@@ -230,7 +230,7 @@
   "sortByDepartureTime": "Ώρα αναχώρησης",
   "sortByWaitingTime": "Διάρκεια αναμονής",
   "filters": "Φίλτρα",
-  "includeWalking": "Χωρίς περπάτημα",
+  "noPureWalking": "Όχι μόνο περπάτημα",
   "includeDirectTripsOnly": "Μόνο απευθείας διαδρομές",
   "resetFilters": "Επαναφορά φίλτρων",
   "filtersActive": "Φίλτρα ενεργά",

@@ -132,7 +132,7 @@
   "sortByDepartureTime": "Departure time",
   "sortByWaitingTime": "Waiting time",
   "filters": "Filters",
-  "includeWalking": "No walking",
+  "noPureWalking": "No pure-walking trips",
   "includeDirectTripsOnly": "Direct trips only",
   "resetFilters": "Reset filters",
   "filtersActive": "Filters active",

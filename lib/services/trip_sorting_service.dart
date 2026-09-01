@@ -20,7 +20,7 @@ class TripSortingService {
   ) {
     return trips.where((trip) {
       // If filter says no walking, exclude pure walking trips
-      if (filter.dontIncludeWalking && trip.busTrip == null) {
+      if (filter.noPureWalking && trip.busTrip == null) {
         return false;
       }
 

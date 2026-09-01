@@ -152,7 +152,7 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
   }
 
   bool _hasActiveFilters(TripSortFilter filter) {
-    return filter.dontIncludeWalking == true ||
+    return filter.noPureWalking == true ||
         filter.includeDirectOnly == true;
   }
 

@@ -17,13 +17,14 @@ enum SortDirection {
 class TripSortFilter {
   final SortCriterion sortBy;
   final SortDirection sortDirection;
-  final bool dontIncludeWalking;
+  final bool noPureWalking;
+
   final bool includeDirectOnly;
 
   const TripSortFilter({
     this.sortBy = SortCriterion.arrivalTime,
     this.sortDirection = SortDirection.ascending,
-    this.dontIncludeWalking = false,
+    this.noPureWalking = false,
     this.includeDirectOnly = false,
   });
 
@@ -36,7 +37,7 @@ class TripSortFilter {
     return TripSortFilter(
       sortBy: sortBy ?? this.sortBy,
       sortDirection: sortDirection ?? this.sortDirection,
-      dontIncludeWalking: dontIncludeWalking ?? this.dontIncludeWalking,
+      noPureWalking: dontIncludeWalking ?? this.noPureWalking,
       includeDirectOnly: includeDirectOnly ?? this.includeDirectOnly,
     );
   }
