@@ -30,6 +30,9 @@ class _RoutesScreenState extends State<RoutesScreen> {
   }
 
   Future<void> _loadData() async {
+    setState(() {
+      isLoading = true;
+    });
     await repository.loadData();
     setState(() {
       isLoading = false;
@@ -46,62 +49,82 @@ class _RoutesScreenState extends State<RoutesScreen> {
       body: Column(
         children: [
           RegionInfoBanner(
-            regionName: repository.currentRegion?.getLocalizedName(languageCode) ??
+            regionName:
+                repository.currentRegion?.getLocalizedName(languageCode) ??
                 l10n.notChosen,
             onChangeTap: () => RegionUtils.promptRegionChange(
               context,
               repository,
               availableRegions,
+              beforeAction: () {},
+              onSelectedAction: () {
+                // Set isLoading to true while the gtfs loads the data
+                setState(() {
+                  isLoading = true;
+                });
+              },
+              // Set isLoading to false immediately after gtfs repo changed region.
+              // No need to call _loadData() here as gtfs repo has already loaded
+              // its new region's data since changeRegion() was called on it.
+              afterAction: () {
+                setState(() {
+                  isLoading = false;
+                });
+              },
             ),
           ),
           Expanded(
             child: isLoading
-                ? Center(child: CustomLoadingIndicator(message: l10n.loadingRoutes,))
+                ? Center(
+                    child: CustomLoadingIndicator(message: l10n.loadingRoutes),
+                  )
                 : ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: repository.routes.length,
-              itemBuilder: (context, index) {
-                final Route route = repository.routes[index];
-                final List<Trip> trips = repository.trips
-                    .where((t) => t.routeId == route.routeId)
-                    .toList();
-                final List<Trip> going =
-                trips.where((t) => t.directionId == 0).toList();
-                final List<Trip> returning =
-                trips.where((t) => t.directionId == 1).toList();
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: repository.routes.length,
+                    itemBuilder: (context, index) {
+                      final Route route = repository.routes[index];
+                      final List<Trip> trips = repository.trips
+                          .where((t) => t.routeId == route.routeId)
+                          .toList();
+                      final List<Trip> going = trips
+                          .where((t) => t.directionId == 0)
+                          .toList();
+                      final List<Trip> returning = trips
+                          .where((t) => t.directionId == 1)
+                          .toList();
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 6.0,
-                    horizontal: 8.0,
-                  ),
-                  elevation: 2,
-                  child: ExpansionTile(
-                    leading: const Icon(Icons.directions_bus),
-                    title: Text(route.getLocalizedLongName(languageCode)),
-                    children: [
-                      if (going.isNotEmpty)
-                        DirectionSection(
-                          title:
-                          "${going.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.outbound})",
-                          trips: going,
-                          repository: repository,
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 6.0,
+                          horizontal: 8.0,
                         ),
-                      if (going.isNotEmpty && returning.isNotEmpty)
-                        const Divider(height: 32),
-                      if (returning.isNotEmpty)
-                        DirectionSection(
-                          title:
-                          "${returning.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.returnTrip})",
-                          trips: returning,
-                          repository: repository,
+                        elevation: 2,
+                        child: ExpansionTile(
+                          leading: const Icon(Icons.directions_bus),
+                          title: Text(route.getLocalizedLongName(languageCode)),
+                          children: [
+                            if (going.isNotEmpty)
+                              DirectionSection(
+                                title:
+                                    "${going.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.outbound})",
+                                trips: going,
+                                repository: repository,
+                              ),
+                            if (going.isNotEmpty && returning.isNotEmpty)
+                              const Divider(height: 32),
+                            if (returning.isNotEmpty)
+                              DirectionSection(
+                                title:
+                                    "${returning.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.returnTrip})",
+                                trips: returning,
+                                repository: repository,
+                              ),
+                            const SizedBox(height: 8),
+                          ],
                         ),
-                      const SizedBox(height: 8),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),
@@ -159,25 +182,33 @@ class _DirectionSectionState extends State<DirectionSection> {
     // Build a map stopId -> formatted time for the selected trip
     final Map<String, String> stopTimesMap = {};
     for (final st in tripStops) {
-      stopTimesMap[st.stopId] =
-          TimeFormat.gtfsTimeToFormattedString(st.departureTime);
+      stopTimesMap[st.stopId] = TimeFormat.gtfsTimeToFormattedString(
+        st.departureTime,
+      );
     }
 
     // Get the actual Stop objects in order
-    final List<Stop> routeStops = tripStops.map((st) {
-      try {
-        return widget.repository.stops
-            .firstWhere((stop) => stop.stopId == st.stopId);
-      } catch (_) {
-        return null;
-      }
-    }).whereType<Stop>().toList();
+    final List<Stop> routeStops = tripStops
+        .map((st) {
+          try {
+            return widget.repository.stops.firstWhere(
+              (stop) => stop.stopId == st.stopId,
+            );
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<Stop>()
+        .toList();
 
     // ----- 2. Build the list of departure times (chips) grouped by days -----
     // We'll create a list of objects: (trip, dayString, timeString)
     final List<MapEntry<Trip, String>> entries = [];
     for (final trip in widget.trips) {
-      final dayString = widget.repository.getReadableDays(trip.serviceId, context);
+      final dayString = widget.repository.getReadableDays(
+        trip.serviceId,
+        context,
+      );
       final tripStopTimes = widget.repository.stopTimes
           .where((st) => st.tripId == trip.tripId)
           .toList();
@@ -215,10 +246,7 @@ class _DirectionSectionState extends State<DirectionSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                day,
-                style: context.textTheme.labelLarge,
-              ),
+              Text(day, style: context.textTheme.labelLarge),
               const SizedBox(height: 4),
               Wrap(
                 spacing: 8.0,
@@ -249,7 +277,11 @@ class _DirectionSectionState extends State<DirectionSection> {
                       ),
                       child: Text(
                         time,
-                        style: context.textTheme.labelLarge?.copyWith(color: isSelected ? colorScheme.onPrimary : colorScheme.primary) ,
+                        style: context.textTheme.labelLarge?.copyWith(
+                          color: isSelected
+                              ? colorScheme.onPrimary
+                              : colorScheme.primary,
+                        ),
                       ),
                     ),
                   );
@@ -268,10 +300,7 @@ class _DirectionSectionState extends State<DirectionSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Title
-          Text(
-            widget.title,
-            style: context.textTheme.titleMedium,
-          ),
+          Text(widget.title, style: context.textTheme.titleMedium),
           const SizedBox(height: 8),
 
           // Stop list (with times from selected trip)
@@ -294,10 +323,7 @@ class _DirectionSectionState extends State<DirectionSection> {
                         style: context.textTheme.bodyMedium,
                       ),
                     ),
-                    Text(
-                      time,
-                      style: context.textTheme.bodyMedium,
-                    ),
+                    Text(time, style: context.textTheme.bodyMedium),
                   ],
                 ),
               );

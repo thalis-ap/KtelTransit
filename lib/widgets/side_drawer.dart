@@ -22,6 +22,10 @@ class SideDrawer extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final languageCode = settingsController.locale.languageCode;
 
+    // Capture the Scaffold and Navigator states BEFORE opening the region search sheet
+    final scaffold = Scaffold.maybeOf(context);
+    final navigator = Navigator.of(context, rootNavigator: true);
+
     return Drawer(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListView(
@@ -53,6 +57,14 @@ class SideDrawer extends StatelessWidget {
                   context,
                   repository,
                   availableRegions,
+                  beforeAction: () {},
+                  onSelectedAction: () {
+                    scaffold?.closeDrawer();
+
+                    // Pop every open drawer, search sheet, and secondary screen
+                    // until we hit the very first screen (the HomeScreen map)
+                    navigator.popUntil((route) => route.isFirst);
+                  }
                 ),
               );
             },

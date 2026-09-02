@@ -33,7 +33,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       isChangingRegion = true;
     });
 
-    await RegionUtils.promptRegionChange(context, repository, availableRegions);
+    // Capture the Scaffold and Navigator states BEFORE opening the search sheet
+    final scaffold = Scaffold.maybeOf(context);
+    final navigator = Navigator.of(context, rootNavigator: true);
+
+    await RegionUtils.promptRegionChange(context, repository, availableRegions, beforeAction: () {}, onSelectedAction: () {
+      scaffold?.closeDrawer();
+
+      // Pop every open drawer, search sheet, and secondary screen
+      // until we hit the very first screen (Welcome screen here)
+      navigator.popUntil((route) => route.isFirst);
+    });
 
     if (!mounted) return;
 

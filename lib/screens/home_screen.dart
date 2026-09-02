@@ -279,6 +279,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!;
     final languageCode = widget.settingsController.locale.languageCode;
 
+    // Capture the Scaffold and Navigator states BEFORE opening the search sheet
+    final scaffold = Scaffold.maybeOf(context);
+    final navigator = Navigator.of(context, rootNavigator: true);
+
     final MapPoint? selectedPoint = await showSearch<MapPoint?>(
       context: context,
       delegate: StopSearchDelegate(
@@ -291,6 +295,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           context,
           repository,
           availableRegions,
+          beforeAction: () {
+
+          },
+          onSelectedAction: () {
+            scaffold?.closeDrawer();
+
+            // Pop every open drawer, search sheet, and secondary screen
+            // until we hit the very first screen (the HomeScreen map)
+            navigator.popUntil((route) => route.isFirst);
+          }
         ),
         userLocation: userLocation,
       ),
