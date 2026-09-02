@@ -4,6 +4,7 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/screens/welcome_screen.dart';
 import 'package:ktel_transit/services/settings_service.dart';
+import 'package:ktel_transit/services/version_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,8 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  VersionService.instance.loadVersion();
 
   // Find out if user has a region selected
   final bool hasSavedRegion = await checkSavedRegion();
