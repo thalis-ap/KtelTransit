@@ -43,7 +43,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         Row(
           children: [
             Text(
-              "${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(widget.selectedDepartureTime)} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(widget.selectedDepartureTime)}",
+              "${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(trip.getDepartureDateTime(widget.selectedDepartureTime))} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(widget.selectedDepartureTime)}",
               style: context.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
