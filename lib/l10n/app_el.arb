@@ -189,20 +189,34 @@
   "availableRoutes": "Διαθέσιμα δρομολόγια",
   "metersFormat": "{meters} μ",
   "@metersFormat": {
-    "placeholders": { "meters": { "type": "int" } }
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
   },
   "kilometersFormat": "{km} χλμ",
   "@kilometersFormat": {
-    "placeholders": { "km": { "type": "String" } }
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
   },
   "disembarkAt": "Αποβίβαση: {stop}",
   "@disembarkAt": {
-    "placeholders": { "stop": { "type": "String" } }
+    "placeholders": {
+      "stop": {
+        "type": "String"
+      }
+    }
   },
   "tripStopsCount": "Διαδρομή: {count} στάσεις",
   "@tripStopsCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "noInternetConnection": "Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.",
@@ -240,5 +254,25 @@
   "loadingMap": "Φορτώνεται ο χάρτης...",
   "loadingRoutes": "Φορτώνονται τα δρομολόγια...",
   "loadingMapRoute": "Φόρτωση διαδρομής...",
-  "loadingPreciseLocation": "Φόρτωση ακριβούς τοποθεσίας..."
+  "loadingPreciseLocation": "Φόρτωση ακριβούς τοποθεσίας...",
+  "info_app_name": "Τοπικά ΚΤΕΛ",
+  "info_version": "Έκδοση",
+  "info_developer": "Δημιουργός",
+  "info_description": "Η εφαρμογή παρέχει εύκολη και γρήγορη πρόσβαση στα δρομολόγια των τοπικών ΚΤΕΛ και αστικών λεωφορείων σε όλη την Ελλάδα.",
+  "info_features_title": "Χαρακτηριστικά",
+  "info_feature_search": "Αναζήτηση στάσεων και προορισμών",
+  "info_feature_map": "Προβολή διαδρομών σε χάρτη",
+  "info_feature_routing": "Υπολογισμός διαδρομών με λεωφορείο και περπάτημα",
+  "info_feature_stops": "Πληροφορίες στάσεων και αναχωρήσεων",
+  "info_feature_regions": "Υποστήριξη πολλαπλών περιοχών",
+  "info_contact": "Επικοινωνία",
+  "info_credit_maps": "Οι χάρτες παρέχονται από το OpenStreetMap",
+  "info_credit_data": "Τα δεδομένα δρομολογίων παρέχονται από τα ΚΤΕΛ",
+  "info_osrm_credit": "Οι υπολογισμοί διαδρομών παρέχονται από το OSRM",
+  "info_source_code": "Δείτε τον πηγαίο κώδικα",
+  "info_github_link": "Αποθετήριο GitHub",
+  "info_developer_name": "Θαλής Αποστολάτος",
+  "tickets_placeholder_title": "Πληροφορίες ανά Περιοχή",
+  "tickets_placeholder_desc": "Οι τιμές και οι πολιτικές των εισιτηρίων διαφέρουν ανάλογα με την επιλεγμένη περιοχή. Επικοινωνήστε με το τοπικό σας ΚΤΕΛ για ακριβείς τιμές.",
+  "tickets_placeholder_note": "Αναλυτικές πληροφορίες κομίστρου θα προστεθούν για κάθε περιοχή σε μελλοντική ενημέρωση."
 }

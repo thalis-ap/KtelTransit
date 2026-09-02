@@ -450,4 +450,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingPreciseLocation => 'Loading precise location...';
+
+  @override
+  String get info_app_name => 'Local KTEL';
+
+  @override
+  String get info_version => 'Version';
+
+  @override
+  String get info_developer => 'Developer';
+
+  @override
+  String get info_description =>
+      'This app provides easy and fast access to local KTEL and urban bus schedules across Greece.';
+
+  @override
+  String get info_features_title => 'Features';
+
+  @override
+  String get info_feature_search => 'Search stops and destinations';
+
+  @override
+  String get info_feature_map => 'View routes on a map';
+
+  @override
+  String get info_feature_routing => 'Calculate bus and walking routes';
+
+  @override
+  String get info_feature_stops => 'Stop details and departures';
+
+  @override
+  String get info_feature_regions => 'Support for multiple regions';
+
+  @override
+  String get info_contact => 'Contact';
+
+  @override
+  String get info_credit_maps => 'Maps provided by OpenStreetMap';
+
+  @override
+  String get info_credit_data => 'Route data provided by KTEL agencies';
+
+  @override
+  String get info_osrm_credit => 'Route calculations powered by OSRM';
+
+  @override
+  String get info_source_code => 'View source code';
+
+  @override
+  String get info_github_link => 'GitHub repository';
+
+  @override
+  String get info_developer_name => 'Thalis Apostolatos';
+
+  @override
+  String get tickets_placeholder_title => 'Region-Specific Information';
+
+  @override
+  String get tickets_placeholder_desc =>
+      'Ticket prices and policies vary depending on the selected region. Please check with your local KTEL office for accurate fares.';
+
+  @override
+  String get tickets_placeholder_note =>
+      'Detailed fare information will be added for each region in a future update.';
 }

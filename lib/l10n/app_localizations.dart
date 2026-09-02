@@ -877,6 +877,126 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Φόρτωση ακριβούς τοποθεσίας...'**
   String get loadingPreciseLocation;
+
+  /// No description provided for @info_app_name.
+  ///
+  /// In el, this message translates to:
+  /// **'Τοπικά ΚΤΕΛ'**
+  String get info_app_name;
+
+  /// No description provided for @info_version.
+  ///
+  /// In el, this message translates to:
+  /// **'Έκδοση'**
+  String get info_version;
+
+  /// No description provided for @info_developer.
+  ///
+  /// In el, this message translates to:
+  /// **'Δημιουργός'**
+  String get info_developer;
+
+  /// No description provided for @info_description.
+  ///
+  /// In el, this message translates to:
+  /// **'Η εφαρμογή παρέχει εύκολη και γρήγορη πρόσβαση στα δρομολόγια των τοπικών ΚΤΕΛ και αστικών λεωφορείων σε όλη την Ελλάδα.'**
+  String get info_description;
+
+  /// No description provided for @info_features_title.
+  ///
+  /// In el, this message translates to:
+  /// **'Χαρακτηριστικά'**
+  String get info_features_title;
+
+  /// No description provided for @info_feature_search.
+  ///
+  /// In el, this message translates to:
+  /// **'Αναζήτηση στάσεων και προορισμών'**
+  String get info_feature_search;
+
+  /// No description provided for @info_feature_map.
+  ///
+  /// In el, this message translates to:
+  /// **'Προβολή διαδρομών σε χάρτη'**
+  String get info_feature_map;
+
+  /// No description provided for @info_feature_routing.
+  ///
+  /// In el, this message translates to:
+  /// **'Υπολογισμός διαδρομών με λεωφορείο και περπάτημα'**
+  String get info_feature_routing;
+
+  /// No description provided for @info_feature_stops.
+  ///
+  /// In el, this message translates to:
+  /// **'Πληροφορίες στάσεων και αναχωρήσεων'**
+  String get info_feature_stops;
+
+  /// No description provided for @info_feature_regions.
+  ///
+  /// In el, this message translates to:
+  /// **'Υποστήριξη πολλαπλών περιοχών'**
+  String get info_feature_regions;
+
+  /// No description provided for @info_contact.
+  ///
+  /// In el, this message translates to:
+  /// **'Επικοινωνία'**
+  String get info_contact;
+
+  /// No description provided for @info_credit_maps.
+  ///
+  /// In el, this message translates to:
+  /// **'Οι χάρτες παρέχονται από το OpenStreetMap'**
+  String get info_credit_maps;
+
+  /// No description provided for @info_credit_data.
+  ///
+  /// In el, this message translates to:
+  /// **'Τα δεδομένα δρομολογίων παρέχονται από τα ΚΤΕΛ'**
+  String get info_credit_data;
+
+  /// No description provided for @info_osrm_credit.
+  ///
+  /// In el, this message translates to:
+  /// **'Οι υπολογισμοί διαδρομών παρέχονται από το OSRM'**
+  String get info_osrm_credit;
+
+  /// No description provided for @info_source_code.
+  ///
+  /// In el, this message translates to:
+  /// **'Δείτε τον πηγαίο κώδικα'**
+  String get info_source_code;
+
+  /// No description provided for @info_github_link.
+  ///
+  /// In el, this message translates to:
+  /// **'Αποθετήριο GitHub'**
+  String get info_github_link;
+
+  /// No description provided for @info_developer_name.
+  ///
+  /// In el, this message translates to:
+  /// **'Θαλής Αποστολάτος'**
+  String get info_developer_name;
+
+  /// No description provided for @tickets_placeholder_title.
+  ///
+  /// In el, this message translates to:
+  /// **'Πληροφορίες ανά Περιοχή'**
+  String get tickets_placeholder_title;
+
+  /// No description provided for @tickets_placeholder_desc.
+  ///
+  /// In el, this message translates to:
+  /// **'Οι τιμές και οι πολιτικές των εισιτηρίων διαφέρουν ανάλογα με την επιλεγμένη περιοχή. Επικοινωνήστε με το τοπικό σας ΚΤΕΛ για ακριβείς τιμές.'**
+  String get tickets_placeholder_desc;
+
+  /// No description provided for @tickets_placeholder_note.
+  ///
+  /// In el, this message translates to:
+  /// **'Αναλυτικές πληροφορίες κομίστρου θα προστεθούν για κάθε περιοχή σε μελλοντική ενημέρωση.'**
+  String get tickets_placeholder_note;
 }
 
 class _AppLocalizationsDelegate

@@ -454,4 +454,70 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get loadingPreciseLocation => 'Φόρτωση ακριβούς τοποθεσίας...';
+
+  @override
+  String get info_app_name => 'Τοπικά ΚΤΕΛ';
+
+  @override
+  String get info_version => 'Έκδοση';
+
+  @override
+  String get info_developer => 'Δημιουργός';
+
+  @override
+  String get info_description =>
+      'Η εφαρμογή παρέχει εύκολη και γρήγορη πρόσβαση στα δρομολόγια των τοπικών ΚΤΕΛ και αστικών λεωφορείων σε όλη την Ελλάδα.';
+
+  @override
+  String get info_features_title => 'Χαρακτηριστικά';
+
+  @override
+  String get info_feature_search => 'Αναζήτηση στάσεων και προορισμών';
+
+  @override
+  String get info_feature_map => 'Προβολή διαδρομών σε χάρτη';
+
+  @override
+  String get info_feature_routing =>
+      'Υπολογισμός διαδρομών με λεωφορείο και περπάτημα';
+
+  @override
+  String get info_feature_stops => 'Πληροφορίες στάσεων και αναχωρήσεων';
+
+  @override
+  String get info_feature_regions => 'Υποστήριξη πολλαπλών περιοχών';
+
+  @override
+  String get info_contact => 'Επικοινωνία';
+
+  @override
+  String get info_credit_maps => 'Οι χάρτες παρέχονται από το OpenStreetMap';
+
+  @override
+  String get info_credit_data =>
+      'Τα δεδομένα δρομολογίων παρέχονται από τα ΚΤΕΛ';
+
+  @override
+  String get info_osrm_credit =>
+      'Οι υπολογισμοί διαδρομών παρέχονται από το OSRM';
+
+  @override
+  String get info_source_code => 'Δείτε τον πηγαίο κώδικα';
+
+  @override
+  String get info_github_link => 'Αποθετήριο GitHub';
+
+  @override
+  String get info_developer_name => 'Θαλής Αποστολάτος';
+
+  @override
+  String get tickets_placeholder_title => 'Πληροφορίες ανά Περιοχή';
+
+  @override
+  String get tickets_placeholder_desc =>
+      'Οι τιμές και οι πολιτικές των εισιτηρίων διαφέρουν ανάλογα με την επιλεγμένη περιοχή. Επικοινωνήστε με το τοπικό σας ΚΤΕΛ για ακριβείς τιμές.';
+
+  @override
+  String get tickets_placeholder_note =>
+      'Αναλυτικές πληροφορίες κομίστρου θα προστεθούν για κάθε περιοχή σε μελλοντική ενημέρωση.';
 }

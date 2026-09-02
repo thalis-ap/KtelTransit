@@ -142,6 +142,25 @@
   "loadingMap": "Loading the map...",
   "loadingRoutes": "Loading routes...",
   "loadingMapRoute": "Loading map route...",
-  "loadingPreciseLocation": "Loading precise location..."
-
+  "loadingPreciseLocation": "Loading precise location...",
+  "info_app_name": "Local KTEL",
+  "info_version": "Version",
+  "info_developer": "Developer",
+  "info_description": "This app provides easy and fast access to local KTEL and urban bus schedules across Greece.",
+  "info_features_title": "Features",
+  "info_feature_search": "Search stops and destinations",
+  "info_feature_map": "View routes on a map",
+  "info_feature_routing": "Calculate bus and walking routes",
+  "info_feature_stops": "Stop details and departures",
+  "info_feature_regions": "Support for multiple regions",
+  "info_contact": "Contact",
+  "info_credit_maps": "Maps provided by OpenStreetMap",
+  "info_credit_data": "Route data provided by KTEL agencies",
+  "info_osrm_credit": "Route calculations powered by OSRM",
+  "info_source_code": "View source code",
+  "info_github_link": "GitHub repository",
+  "info_developer_name": "Thalis Apostolatos",
+  "tickets_placeholder_title": "Region-Specific Information",
+  "tickets_placeholder_desc": "Ticket prices and policies vary depending on the selected region. Please check with your local KTEL office for accurate fares.",
+  "tickets_placeholder_note": "Detailed fare information will be added for each region in a future update."
 }
