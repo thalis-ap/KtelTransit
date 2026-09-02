@@ -43,8 +43,9 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         Row(
           children: [
             Text(
-              "${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(trip.getDepartureDateTime(widget.selectedDepartureTime))} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(widget.selectedDepartureTime)}",
+              "${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(trip.getDepartureDateTime(widget.selectedDepartureTime))} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(trip.getDepartureDateTime(widget.selectedDepartureTime))}",
               style: context.textTheme.bodyMedium?.copyWith(
+
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -110,8 +111,10 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
 
   /// Pure walking card, origin name walking text and arrival at text
   Widget _buildPureWalkingWidget(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
+
 
     final trip = widget.routingTrip;
 
@@ -150,12 +153,14 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               Expanded(
                 child: Text(
                   l10n.arrivalAt(trip.destinationPoint.getLocalizedName(l10n)),
+                  style: theme.textTheme.titleSmall,
                 ),
               ),
               Text(
                 TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   trip.getArrivalDateTime(widget.selectedDepartureTime),
                 ),
+                style: theme.textTheme.titleSmall,
               ),
             ],
           ),

@@ -76,7 +76,7 @@ class TripDetailsCard extends StatelessWidget {
         ),
         Text(
           departureTimeText,
-          style: context.textTheme.labelMedium,
+          style: context.textTheme.titleSmall,
         ),
       ],
     );
@@ -276,6 +276,7 @@ class TripDetailsCard extends StatelessWidget {
         Text(
           departureFromTime,
           style: context.textTheme.labelLarge,
+
         ),
       ],
     );
