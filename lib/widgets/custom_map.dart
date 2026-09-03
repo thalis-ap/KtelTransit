@@ -65,14 +65,13 @@ class CustomMap extends StatelessWidget {
 
     // Find the active transfer stop, to determine its icon correctly
     Stop? activeTransferStop;
-    if (selectedTripIndex != null && trips != null) {
-      final activeTrip = trips![selectedTripIndex!];
-      if (activeTrip.busTrip?.isTransfer ?? false) {
+    if (activeRoute != null) {
+      if (activeRoute!.busTrip?.isTransfer ?? false) {
         try {
           activeTransferStop = repository.stops.firstWhere(
             (s) =>
                 s.getLocalizedNameByLangCode(languageCode) ==
-                activeTrip.busTrip!.legs.first.destinationStop.getLocalizedNameByLangCode(languageCode),
+                activeRoute!.busTrip!.legs.first.destinationStop.getLocalizedNameByLangCode(languageCode),
           );
         } catch (_) {}
       }
