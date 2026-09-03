@@ -252,7 +252,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         cachedTrips = tripInfo;
         isLoadingTrips = false;
 
-        _autoFetchRouteForSelectedTrip();
+        // Only fetch a route if we are looking at all the trips (i.e.
+        // selectedTripIndex == null. If we have selected a trip (i.e. we are
+        // in extended details card, then do not fetch any routes, we are already
+        // showing the selected one
+        if (selectedTripIndex == null) {
+          _autoFetchRouteForSelectedTrip();
+        }
       });
     }
   }
