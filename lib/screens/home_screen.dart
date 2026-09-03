@@ -208,19 +208,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (cachedTrips == null) return;
 
     // Show the route on the map for the 'best' route
-    _fetchRouteForSelectedTrip(cachedTrips!.first);
+    _fetchRouteForSelectedTrip(cachedTrips!.first, showLoading: false);
   }
 
   /// Fetches the route(s) (i.e. the map points) for a given RoutingTrip object
   /// and updates the activeRoute state variable to re-build the map with the
   /// routing trip that was selected
-  Future<void> _fetchRouteForSelectedTrip(RoutingTrip routingTrip) async {
+  Future<void> _fetchRouteForSelectedTrip(RoutingTrip routingTrip, {bool showLoading = true}) async {
     if (startPoint == null || destinationPoint == null) return;
 
     // Make the top banner show the user that the route is loading
-    setState(() {
-      isLoadingRoute = true;
-    });
+    if (showLoading) {
+      setState(() {
+        isLoadingRoute = true;
+      });
+    }
     try {
       if (routingTrip.busTrip != null) {
         // Update the bus trip object (with points + safe duration)
@@ -232,7 +234,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         isLoadingRoute = false;
       });
     } catch (e) {
-      // TODO: Maybe show snackbar here?
       setState(() {
         isLoadingRoute = false;
       });
