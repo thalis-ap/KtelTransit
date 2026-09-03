@@ -319,7 +319,7 @@ class TripDetailsCard extends StatelessWidget {
   }) {
     return _buildWalkingRow(
       context,
-      "${l10n.walkFrom} ${routingTrip.busTrip!.legs.first.destinationStop.getLocalizedName(l10n)}",
+      "${l10n.walkFrom} ${routingTrip.busTrip!.legs.last.destinationStop.getLocalizedName(l10n)}",
       TimeFormat.dateTimeToFormattedStringHoursMinutes(
         routingTrip.busTrip!.destArrivalDateTime,
       ),
