@@ -100,6 +100,8 @@ class _RoutesScreenState extends State<RoutesScreen> {
                         ),
                         elevation: 2,
                         child: ExpansionTile(
+                          shape: const Border(),
+                          collapsedShape: const Border(),
                           leading: const Icon(Icons.directions_bus),
                           title: Text(route.getLocalizedLongName(languageCode)),
                           children: [
