@@ -997,6 +997,42 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Αναλυτικές πληροφορίες κομίστρου θα προστεθούν για κάθε περιοχή σε μελλοντική ενημέρωση.'**
   String get tickets_placeholder_note;
+
+  /// No description provided for @announcements.
+  ///
+  /// In el, this message translates to:
+  /// **'Ανακοινώσεις'**
+  String get announcements;
+
+  /// No description provided for @loadingAnnouncements.
+  ///
+  /// In el, this message translates to:
+  /// **'Φορτώνονται οι ανακοινώσεις...'**
+  String get loadingAnnouncements;
+
+  /// No description provided for @emptyAnnouncements.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν βρέθηκαν ανακοινώσεις'**
+  String get emptyAnnouncements;
+
+  /// No description provided for @announcementUrl.
+  ///
+  /// In el, this message translates to:
+  /// **'Σύνδεσμος ανακοίνωσης'**
+  String get announcementUrl;
+
+  /// No description provided for @linkFail.
+  ///
+  /// In el, this message translates to:
+  /// **'Αδυναμία ανοίγματος συνδέσμου'**
+  String get linkFail;
+
+  /// No description provided for @attachedFiles.
+  ///
+  /// In el, this message translates to:
+  /// **'Συνημμένα αρχεία'**
+  String get attachedFiles;
 }
 
 class _AppLocalizationsDelegate

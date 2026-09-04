@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/screens/announcements_screen.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
@@ -81,7 +82,18 @@ class SideDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.confirmation_number),
+            leading: const Icon(Icons.notifications_none_outlined),
+            title: Text(l10n.announcements),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AnnouncementsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.confirmation_number_outlined),
             title: Text(l10n.tickets),
             onTap: () {
               Navigator.pop(context);
@@ -106,7 +118,7 @@ class SideDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.info),
+            leading: const Icon(Icons.info_outline),
             title: Text(l10n.info),
             onTap: () {
               Navigator.pop(context);

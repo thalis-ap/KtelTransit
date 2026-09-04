@@ -162,5 +162,15 @@
   "info_developer_name": "Thalis Apostolatos",
   "tickets_placeholder_title": "Region-Specific Information",
   "tickets_placeholder_desc": "Ticket prices and policies vary depending on the selected region. Please check with your local KTEL office for accurate fares.",
-  "tickets_placeholder_note": "Detailed fare information will be added for each region in a future update."
+  "tickets_placeholder_note": "Detailed fare information will be added for each region in a future update.",
+  "announcements": "Announcements",
+  "loadingAnnouncements": "Loading announcements...",
+  "emptyAnnouncements": "No announcements found",
+  "announcementUrl": "Announcement link",
+  "linkFail": "Failed to open url",
+  "attachedFiles": "Attached files"
+
+
+
+
 }

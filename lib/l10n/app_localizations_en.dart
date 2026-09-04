@@ -513,4 +513,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tickets_placeholder_note =>
       'Detailed fare information will be added for each region in a future update.';
+
+  @override
+  String get announcements => 'Announcements';
+
+  @override
+  String get loadingAnnouncements => 'Loading announcements...';
+
+  @override
+  String get emptyAnnouncements => 'No announcements found';
+
+  @override
+  String get announcementUrl => 'Announcement link';
+
+  @override
+  String get linkFail => 'Failed to open url';
+
+  @override
+  String get attachedFiles => 'Attached files';
 }

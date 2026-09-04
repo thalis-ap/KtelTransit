@@ -520,4 +520,22 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get tickets_placeholder_note =>
       'Αναλυτικές πληροφορίες κομίστρου θα προστεθούν για κάθε περιοχή σε μελλοντική ενημέρωση.';
+
+  @override
+  String get announcements => 'Ανακοινώσεις';
+
+  @override
+  String get loadingAnnouncements => 'Φορτώνονται οι ανακοινώσεις...';
+
+  @override
+  String get emptyAnnouncements => 'Δεν βρέθηκαν ανακοινώσεις';
+
+  @override
+  String get announcementUrl => 'Σύνδεσμος ανακοίνωσης';
+
+  @override
+  String get linkFail => 'Αδυναμία ανοίγματος συνδέσμου';
+
+  @override
+  String get attachedFiles => 'Συνημμένα αρχεία';
 }

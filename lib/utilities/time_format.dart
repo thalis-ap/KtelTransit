@@ -11,6 +11,10 @@ class TimeFormat {
     return "${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}";
   }
 
+  static String dateTimeToFormattedStringFull(DateTime dateTime) {
+    return "${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year.toString().padLeft(4, '0')}";
+  }
+
   /// Strips up the dateTime object from hours, minutes and seconds and returns
   /// a clear date only object (useful for date only comparisons)
   static DateTime dateTimeToDateOnly(DateTime dateTime) {
