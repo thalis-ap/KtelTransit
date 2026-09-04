@@ -81,17 +81,6 @@ class SideDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.info),
-            title: Text(l10n.info),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const InfoScreen()),
-              );
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.confirmation_number),
             title: Text(l10n.tickets),
             onTap: () {
@@ -113,6 +102,17 @@ class SideDrawer extends StatelessWidget {
                   builder: (context) =>
                       SettingsScreen(settingsController: settingsController),
                 ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: Text(l10n.info),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InfoScreen()),
               );
             },
           ),
