@@ -20,32 +20,48 @@ class GtfsLocal {
   /// Loads all GTFS files from a directory path into the repository
   /// Returns true if successful, false otherwise
   Future<RegionLoadResult> loadFromPath(
-    String regionPath,
-    GtfsRepository repository, {
-    required String languageCode,
-  }) async {
+      String regionPath,
+      GtfsRepository repository, {
+        required String languageCode,
+      }) async {
     try {
-      repository.clear();
+      // Create temporary lists to hold data while loading.
+      // This ensures we don't wipe the live repository if the load fails or takes time.
+      final List<Stop> tempStops = [];
+      final List<Route> tempRoutes = [];
+      final List<Trip> tempTrips = [];
+      final List<StopTime> tempStopTimes = [];
+      final List<Calendar> tempCalendars = [];
 
       // Load translations (if exists)
       final translations = await _loadTranslations(regionPath, languageCode);
 
-      // Load all files in parallel
+      // Load all files in parallel into our temporary lists
       List<RegionLoadResult> results = await Future.wait([
-        _loadStops(regionPath, repository, translations),
-        _loadRoutes(regionPath, repository, translations),
-        _loadTrips(regionPath, repository),
-        _loadStopTimes(regionPath, repository),
-        _loadCalendar(regionPath, repository),
+        _loadStops(regionPath, tempStops, translations),
+        _loadRoutes(regionPath, tempRoutes, translations),
+        _loadTrips(regionPath, tempTrips),
+        _loadStopTimes(regionPath, tempStopTimes),
+        _loadCalendar(regionPath, tempCalendars),
       ]);
 
-      // Build indexes - this is required for performance
-      repository.buildIndexes();
+      if (results.every((res) => res.isSuccess)) {
+        // Atomic swap: Only clear and update the live repository once everything is ready
+        repository.clear();
+        repository.stops = tempStops;
+        repository.routes = tempRoutes;
+        repository.trips = tempTrips;
+        repository.stopTimes = tempStopTimes;
+        repository.calendars = tempCalendars;
 
-      // Return success result if every load succeded, else return the first error encountered
-      return results.every((res) => res.isSuccess)
-          ? RegionLoadResult.success()
-          : results.first;
+        // Build indexes - this is required for performance
+        repository.buildIndexes();
+
+        return RegionLoadResult.success();
+      } else {
+        // Return the first error encountered
+        return results.firstWhere((res) => !res.isSuccess);
+      }
     } catch (e) {
       debugPrint('Error loading GTFS from $regionPath: $e');
       return RegionLoadResult.failure();
@@ -54,9 +70,9 @@ class GtfsLocal {
 
   // ---- Private loading methods ----
   Future<Map<String, String>> _loadTranslations(
-    String regionPath,
-    String languageCode,
-  ) async {
+      String regionPath,
+      String languageCode,
+      ) async {
     final filePath = '$regionPath/translations.txt';
     final file = File(filePath);
     if (!await file.exists()) return {};
@@ -110,10 +126,10 @@ class GtfsLocal {
   }
 
   Future<RegionLoadResult> _loadStops(
-    String regionPath,
-    GtfsRepository repository,
-    Map<String, String> translations,
-  ) async {
+      String regionPath,
+      List<Stop> outStops,
+      Map<String, String> translations,
+      ) async {
     final filePath = '$regionPath/stops.txt';
     final file = File(filePath);
     if (!await file.exists()) return RegionLoadResult.missingFiles();
@@ -149,7 +165,7 @@ class GtfsLocal {
 
       final translatedName = translations['stop_$stopId'] ?? name;
 
-      repository.stops.add(
+      outStops.add(
         Stop(
           stopId: stopId,
           name: translatedName,
@@ -162,10 +178,10 @@ class GtfsLocal {
   }
 
   Future<RegionLoadResult> _loadRoutes(
-    String regionPath,
-    GtfsRepository repository,
-    Map<String, String> translations,
-  ) async {
+      String regionPath,
+      List<Route> outRoutes,
+      Map<String, String> translations,
+      ) async {
     final filePath = '$regionPath/routes.txt';
     final file = File(filePath);
     if (!await file.exists()) return RegionLoadResult.missingFiles();
@@ -201,7 +217,7 @@ class GtfsLocal {
       final translatedShort = translations['route_short_$routeId'] ?? shortName;
       final translatedLong = translations['route_long_$routeId'] ?? longName;
 
-      repository.routes.add(
+      outRoutes.add(
         Route(
           agencyId: agencyId,
           routeId: routeId,
@@ -216,9 +232,9 @@ class GtfsLocal {
   }
 
   Future<RegionLoadResult> _loadTrips(
-    String regionPath,
-    GtfsRepository repository,
-  ) async {
+      String regionPath,
+      List<Trip> outTrips,
+      ) async {
     final filePath = '$regionPath/trips.txt';
     final file = File(filePath);
     if (!await file.exists()) return RegionLoadResult.missingFiles();
@@ -255,7 +271,7 @@ class GtfsLocal {
       final headsign = row[headsignIdx].toString();
       final directionId = int.parse(row[directionIdIdx].toString());
 
-      repository.trips.add(
+      outTrips.add(
         Trip(
           tripId: tripId,
           routeId: routeId,
@@ -270,9 +286,9 @@ class GtfsLocal {
   }
 
   Future<RegionLoadResult> _loadStopTimes(
-    String regionPath,
-    GtfsRepository repository,
-  ) async {
+      String regionPath,
+      List<StopTime> outStopTimes,
+      ) async {
     final filePath = '$regionPath/stop_times.txt';
     final file = File(filePath);
     if (!await file.exists()) return RegionLoadResult.missingFiles();
@@ -309,7 +325,7 @@ class GtfsLocal {
       final departureTime = row[departureTimeIdx].toString();
       final stopSequence = int.parse(row[stopSequenceIdx].toString());
 
-      repository.stopTimes.add(
+      outStopTimes.add(
         StopTime(
           tripId: tripId,
           stopId: stopId,
@@ -324,9 +340,9 @@ class GtfsLocal {
   }
 
   Future<RegionLoadResult> _loadCalendar(
-    String regionPath,
-    GtfsRepository repository,
-  ) async {
+      String regionPath,
+      List<Calendar> outCalendars,
+      ) async {
     final filePath = '$regionPath/calendar.txt';
     final file = File(filePath);
     if (!await file.exists()) return RegionLoadResult.missingFiles();
@@ -378,7 +394,7 @@ class GtfsLocal {
       final startDate = row[startDateIdx].toString();
       final endDate = row[endDateIdx].toString();
 
-      repository.calendars.add(
+      outCalendars.add(
         Calendar(
           serviceId: serviceId,
           monday: monday,

@@ -6,6 +6,8 @@ import 'package:ktel_transit/gtfs/gtfs_storage.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/region.dart';
+
 class GtfsRemote {
   final GtfsStorage _storage = GtfsStorage();
 
@@ -24,26 +26,81 @@ class GtfsRemote {
   /// Checks if the remote manifest has a newer version than the locally stored one.
   Future<bool> checkForUpdates() async {
     try {
-      final response = await http.get(Uri.parse(_manifestUrl));
-      if (response.statusCode != 200) return false;
+      final manifest = await getManifest();
 
-      final manifest = jsonDecode(response.body);
+      // Silently fail if we cannot get the manifest
+      if (manifest == null) return false;
+
       final remoteVersion = manifest['version'] as String;
+      print("Remote manifest version is: $remoteVersion");
 
-      final prefs = await SharedPreferences.getInstance();
-      final localVersion = prefs.getString(_prefKeyManifestVersion) ?? '';
-
-      return remoteVersion != localVersion;
+      return remoteVersion != await getLocalManifestVersion();
     } catch (e) {
       debugPrint('Error checking for updates: $e');
       return false;
     }
   }
 
+  Future<List<String>> getRegionsThatNeedUpdate() async {
+    try {
+      final manifest = await getManifest();
+
+      // Silently fail if we cannot get the manifest
+      if (manifest == null) return [];
+
+      // Deliberately always diff hashes here rather than short-circuiting
+      // on manifest version. extractRegionZip() only stamps a region's
+      // hash (and the manifest version) once IT successfully extracts, so
+      // if a previous update run got interrupted partway through, some
+      // downloaded regions can still be stale even though the manifest
+      // version already matches. Per-region hash comparison stays correct
+      // no matter how a previous run ended, and self-heals on retry.
+      final List<String> changedIds = [];
+      for (Region region in getAvailableRegionsFromManifest(manifest)) {
+        final RegionMetadata? metadata = getRegionMetadata(manifest, region.id);
+        if (metadata == null) continue;
+
+        // Found a region with a different hash
+        if (metadata.hash != await getLocalHash(region.id)) {
+          changedIds.add(region.id);
+        }
+      }
+
+      return changedIds;
+    } catch (e) {
+      debugPrint('Error checking for regions that need update: $e');
+      return [];
+    }
+  }
+
+  List<Region> getAvailableRegionsFromManifest(Map<String, dynamic> manifest) {
+    final regions = manifest['regions'] as Map<String, dynamic>?;
+    if (regions == null) return [];
+
+    return regions.entries.map((entry) {
+      return Region.fromJson(entry.key, entry.value);
+    }).toList();
+  }
+
+  RegionMetadata? getRegionMetadata(Map<String, dynamic> manifest, String regionId) {
+    final regions = manifest['regions'] as Map<String, dynamic>?;
+    if (regions == null) return null;
+
+    final data = regions[regionId];
+    if (data == null) return null;
+    return RegionMetadata(hash: data['hash'] as String, size: data['size'] as int);
+  }
+
   /// Fetches the full manifest.json from the repository.
   Future<Map<String, dynamic>?> getManifest() async {
     try {
-      final response = await http.get(Uri.parse(_manifestUrl));
+      // final response = await http.get(Uri.parse(_manifestUrl));
+
+      // TODO replace with above in production
+      final response = await http.get(
+        Uri.parse('https://api.github.com/repos/thalis-ap/KtelTransitGtfs/contents/manifest.json'),
+        headers: {'Accept': 'application/vnd.github.v3.raw'},
+      );
       if (response.statusCode != 200) return null;
       return jsonDecode(response.body) as Map<String, dynamic>;
     } catch (e) {
@@ -56,8 +113,16 @@ class GtfsRemote {
   /// Does not extract, nor update preferences.
   Future<RegionErrorCode> downloadRegionZip(String regionId) async {
     try {
-      final zipUrl = '$_regionBaseUrl$regionId/gtfs.zip';
-      final zipResponse = await http.get(Uri.parse(zipUrl));
+      // final zipUrl = '$_regionBaseUrl$regionId/gtfs.zip';
+      // final zipResponse = await http.get(Uri.parse(zipUrl));
+
+      // TODO replace with the above in production
+      final zipResponse = await http.get(
+        Uri.parse('https://api.github.com/repos/thalis-ap/KtelTransitGtfs/contents/regions/$regionId/gtfs.zip'),
+        headers: {
+          'Accept': 'application/vnd.github.v3.raw',
+        },
+      );
 
       if (zipResponse.statusCode != 200) {
         debugPrint('Failed to download zip for $regionId: ${zipResponse.statusCode}');
@@ -168,20 +233,26 @@ class GtfsRemote {
     return successCount;
   }
 
-  /// Returns the stored hash for a region, if any.
-  Future<String?> getStoredHash(String regionId) async {
+  /// Returns the local hash for a region, if any.
+  Future<String?> getLocalHash(String regionId) async {
     final prefs = await SharedPreferences.getInstance();
-    final storedHashes = prefs.getString(_prefKeyRegionHashes) ?? '{}';
+    final localHashes = prefs.getString(_prefKeyRegionHashes) ?? '{}';
     final Map<String, String> hashes = Map<String, String>.from(
-      jsonDecode(storedHashes) as Map,
+      jsonDecode(localHashes) as Map,
     );
     return hashes[regionId];
   }
 
-  /// Returns the stored manifest version.
-  Future<String?> getStoredManifestVersion() async {
+  /// Returns the local manifest version.
+  Future<String?> getLocalManifestVersion() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_prefKeyManifestVersion);
+  }
+
+  /// Saved the new manifest version locally
+  Future<void> saveLocalManifestVersion(String newVersion) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefKeyManifestVersion, newVersion);
   }
 
   /// Clears all locally stored GTFS data and preferences (for testing or reset).
