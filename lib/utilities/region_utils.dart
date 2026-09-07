@@ -237,6 +237,7 @@ class RegionUtils {
     final selectedRegion = await showSearch<Region?>(
       context: context,
       delegate: RegionSearchDelegate(
+        searchFieldLabel: AppLocalizations.of(context)!.searchRegionHint,
         regions: availableRegions,
         gtfsManager: gtfsManager,
       ),
