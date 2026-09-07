@@ -79,15 +79,17 @@ class CustomMap extends StatelessWidget {
       }
     }
 
-    // We should listen to the repository's current region notifier, to update
-    // the map's focus (center, zoom) when the region is changed
-    return ValueListenableBuilder<Region?>(
-      valueListenable: gtfsManager.currentRegionNotifier,
-      builder: (context, activeRegion, child) {
+    // Listen to both region switches and background data updates
+    return ValueListenableBuilder<int>(
+      valueListenable: gtfsManager.regionStatusVersion,
+      builder: (context, _, _) {
+        final activeRegion = gtfsManager.currentRegion;
+        if (activeRegion == null) return const SizedBox.shrink();
+
         return FlutterMap(
           mapController: mapController,
           options: MapOptions(
-            initialCenter: activeRegion!.center,
+            initialCenter: activeRegion.center,
             initialZoom: activeRegion.defaultZoom,
             minZoom: 6.0,
             maxZoom: 20.0,
