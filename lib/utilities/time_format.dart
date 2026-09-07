@@ -12,7 +12,7 @@ class TimeFormat {
   }
 
   static String dateTimeToFormattedStringFull(DateTime dateTime) {
-    return "${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year.toString().padLeft(4, '0')}";
+    return "${dateTimeToFormattedStringDateMonth(dateTime)}/${dateTime.year.toString().padLeft(4, '0')} - ${dateTimeToFormattedStringHoursMinutes(dateTime)}";
   }
 
   /// Strips up the dateTime object from hours, minutes and seconds and returns
@@ -24,10 +24,10 @@ class TimeFormat {
   /// Returns a String object that represents a human readable time of the
   /// difference between the two DateTime objects, localized to active language.
   static String waitTimeToFormattedString(
-      DateTime departure,
-      DateTime arrival,
-      AppLocalizations l10n,
-      ) {
+    DateTime departure,
+    DateTime arrival,
+    AppLocalizations l10n,
+  ) {
     Duration diff = departure.difference(arrival);
 
     int mins = diff.inMinutes;
@@ -77,12 +77,14 @@ class TimeFormat {
     return gtfsTimeToSeconds(after) - gtfsTimeToSeconds(before);
   }
 
-  static String secondsToFormattedString(double seconds, AppLocalizations l10n) {
+  static String secondsToFormattedString(
+    double seconds,
+    AppLocalizations l10n,
+  ) {
     int s = seconds.round();
     int h = s ~/ 3600;
     int m = s % 3600 ~/ 60;
 
     return h > 0 ? l10n.hoursMinutesFormat(h, m) : l10n.minutesFormat(m);
-
   }
 }
