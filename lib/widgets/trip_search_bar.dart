@@ -100,7 +100,7 @@ class TripSearchBar extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const Divider(height: 20, thickness: 1),
+                      const Divider(height: 20, thickness: 2),
                       InkWell(
                         onTap: () => onSearch(false),
                         child: Row(

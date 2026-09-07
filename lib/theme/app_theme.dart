@@ -10,7 +10,7 @@ class AppTheme {
 
   static const String compassIconPath = "assets/icons/compass.png";
 
-  static const int alphaOnMapWidget = 180;
+  static const int alphaOnMapWidget = 200;
 
   static const Color seedColor = Colors.blue;
 
