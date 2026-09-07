@@ -1,5 +1,12 @@
 import 'package:latlong2/latlong.dart';
 
+class RegionMetadata {
+  final String hash;
+  final int size;
+
+  const RegionMetadata({required this.hash, required this.size});
+}
+
 class Region {
   final String id;
   final String name, englishName;
@@ -17,6 +24,20 @@ class Region {
 
   String getLocalizedName(String languageCode) {
     return languageCode == 'en' ? englishName : name;
+  }
+
+  factory Region.fromJson(String id, Map<String, dynamic> json) {
+    final centerList = json['center'] as List;
+    return Region(
+      id: id,
+      name: json['name'] as String,
+      englishName: json['englishName'] as String,
+      center: LatLng(
+        (centerList[0] as num).toDouble(),
+        (centerList[1] as num).toDouble(),
+      ),
+      defaultZoom: (json['defaultZoom'] as num).toDouble(),
+    );
   }
 }
 
