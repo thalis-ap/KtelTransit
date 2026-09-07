@@ -1,6 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:ktel_transit/models/region.dart';
-import 'package:ktel_transit/utilities/region_utils.dart';
 
 class CustomValueNotifier<T> extends ValueNotifier<T> {
   CustomValueNotifier(super._value);
