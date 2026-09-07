@@ -30,7 +30,7 @@ class TripSearchBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: colorScheme.surface.withAlpha(AppTheme.alphaOnMapWidget),
         borderRadius: BorderRadius.circular(24),
       ),
       child: (startPoint == null && destinationPoint == null)
@@ -86,7 +86,7 @@ class TripSearchBar extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                startPoint?.getLocalizedName(l10n) ??
+                                startPoint?.name ??
                                     l10n.selectStartHint,
                                 style: startPoint != null
                                     ? context.textTheme.bodyLarge
@@ -113,7 +113,7 @@ class TripSearchBar extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                destinationPoint?.getLocalizedName(l10n) ??
+                                destinationPoint?.name ??
                                     l10n.selectDestinationHint,
                                 style: destinationPoint != null
                                     ? context.textTheme.bodyLarge

@@ -20,7 +20,7 @@ class CompassButton extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: colorScheme.surface.withAlpha(AppTheme.alphaOnMapWidget),
         shape: BoxShape.circle,
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),

@@ -25,7 +25,7 @@ class ChooseOnMapBar extends StatelessWidget {
         vertical: 8,
       ),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: colorScheme.surface.withAlpha(AppTheme.alphaOnMapWidget),
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(

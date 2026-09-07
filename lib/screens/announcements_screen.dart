@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/announcement.dart';
-import 'package:ktel_transit/models/region.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/region.dart';
 import '../utilities/time_format.dart';
 import '../widgets/custom_loading_indicator.dart';
 import '../widgets/region_info_banner.dart';
@@ -19,7 +19,7 @@ class AnnouncementsScreen extends StatefulWidget {
 }
 
 class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
-  final GtfsRepository repository = GtfsRepository();
+  final GtfsManager gtfsManager = GtfsManager();
 
   bool isLoading = false;
 
@@ -27,18 +27,25 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
 
   @override
   void initState() {
-    _fetchAnnouncements();
+    _loadAnnouncements();
     super.initState();
   }
 
-  void _fetchAnnouncements() async {
+  /// Wrapper function so that we can call _fetchAnnouncements by itself
+  /// without handling state
+  void _loadAnnouncements() async {
     setState(() {
       isLoading = true;
     });
+    await _fetchAnnouncements();
+    setState(() {
+      isLoading = false;
+    });
+  }
 
+  Future<void> _fetchAnnouncements() async {
     // TODO fetch announcements
-    await Future.delayed(Duration(seconds: 1));
-    announcements.addAll([
+    announcements = [
       Announcement(
         title: "Δοκιμαστικός τίτλος 1",
         content:
@@ -59,11 +66,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
         englishContent:
             "English test content. Switching to english should show this one",
       ),
-    ]);
-
-    setState(() {
-      isLoading = false;
-    });
+    ];
   }
 
   @override
@@ -79,19 +82,19 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
         children: [
           RegionInfoBanner(
             regionName:
-                repository.currentRegion?.getLocalizedName(languageCode) ??
+                gtfsManager.currentRegion?.getLocalizedName(languageCode) ??
                 l10n.notChosen,
             onChangeTap: () => RegionUtils.promptRegionChange(
               context,
-              repository,
-              availableRegions,
+              gtfsManager,
               beforeAction: () {},
-              onSelectedAction: () {
+              onSelectedAction: (Region region) {
                 setState(() {
                   isLoading = true;
                 });
               },
-              afterAction: () {
+              afterAction: () async {
+                await _fetchAnnouncements();
                 setState(() {
                   isLoading = false;
                 });

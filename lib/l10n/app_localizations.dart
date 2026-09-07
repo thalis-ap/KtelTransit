@@ -1033,6 +1033,84 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Συνημμένα αρχεία'**
   String get attachedFiles;
+
+  /// No description provided for @unknownRegion.
+  ///
+  /// In el, this message translates to:
+  /// **'Άγνωστη περιοχή'**
+  String get unknownRegion;
+
+  /// No description provided for @downloadingFilesFor.
+  ///
+  /// In el, this message translates to:
+  /// **'Λήψη αρχείων για την {region}'**
+  String downloadingFilesFor(String region);
+
+  /// No description provided for @extractingFilesFor.
+  ///
+  /// In el, this message translates to:
+  /// **'Εξαγωγή αρχείων για την {region}'**
+  String extractingFilesFor(String region);
+
+  /// No description provided for @loadingRegion.
+  ///
+  /// In el, this message translates to:
+  /// **'Φόρτωση περιοχής {region}'**
+  String loadingRegion(String region);
+
+  /// Σφάλμα όταν δεν υπάρχει σύνδεση
+  ///
+  /// In el, this message translates to:
+  /// **'Σφάλμα δικτύου. Ελέγξτε τη σύνδεσή σας στο διαδίκτυο.'**
+  String get regionErrorNetwork;
+
+  /// Σφάλμα όταν αποτυγχάνει η λήψη
+  ///
+  /// In el, this message translates to:
+  /// **'Αποτυχία λήψης δεδομένων περιοχής.'**
+  String get regionErrorDownloadFailed;
+
+  /// Σφάλμα όταν αποτυγχάνει η εξαγωγή από zip
+  ///
+  /// In el, this message translates to:
+  /// **'Αποτυχία εξαγωγής αρχείων. Τα δεδομένα μπορεί να είναι κατεστραμμένα.'**
+  String get regionErrorExtractionFailed;
+
+  /// Σφάλμα όταν λείπουν βασικά αρχεία GTFS
+  ///
+  /// In el, this message translates to:
+  /// **'Λείπουν ορισμένα απαραίτητα αρχεία.'**
+  String get regionErrorMissingFiles;
+
+  /// Σφάλμα όταν αποτυγχάνει η ανάλυση CSV
+  ///
+  /// In el, this message translates to:
+  /// **'Αποτυχία ανάλυσης δεδομένων.'**
+  String get regionErrorParsingFailed;
+
+  /// Σφάλμα όταν ο αποθηκευτικός χώρος είναι γεμάτος
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν υπάρχει αρκετός αποθηκευτικός χώρος.'**
+  String get regionErrorStorageFull;
+
+  /// Γενικό μήνυμα σφάλματος
+  ///
+  /// In el, this message translates to:
+  /// **'Παρουσιάστηκε άγνωστο σφάλμα.'**
+  String get regionErrorUnknown;
+
+  /// Button label to change region on error
+  ///
+  /// In el, this message translates to:
+  /// **'Αλλαγή περιοχής'**
+  String get changeRegion;
+
+  /// No description provided for @close.
+  ///
+  /// In el, this message translates to:
+  /// **'Κλείσιμο'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate

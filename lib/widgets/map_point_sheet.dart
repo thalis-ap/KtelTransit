@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/map_point.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/gtfs/gtfs_repository.dart';
 
 import '../services/sheet_manager_service.dart';
 
@@ -98,7 +98,7 @@ class MapPointSheet extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          mapPoint.getLocalizedName(l10n),
+                          mapPoint.name,
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

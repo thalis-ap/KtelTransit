@@ -6,7 +6,7 @@ import 'package:ktel_transit/services/osrm_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/language_format.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/gtfs/gtfs_repository.dart';
 import '../models/stop.dart';
 import '../services/distance_service.dart';
 import '../services/geocoding_service.dart';
@@ -71,7 +71,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
     if (widget.mapPoint.coordinates != oldWidget.mapPoint.coordinates) {
       // Clear the old data so the loading indicator shows up
       setState(() {
-        widget.mapPoint.name = null;
+        widget.mapPoint.name = "";
         nearestStops = [];
       });
 
@@ -164,7 +164,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
         if (mounted) {
           setState(() {
             // fetchedName = name;
-            widget.mapPoint.name = name;
+            widget.mapPoint.name = name!;
           });
         }
       }
@@ -215,7 +215,6 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
   void _showErroredStopDialog(int index) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final languageCode = Localizations.localeOf(context).languageCode;
 
     Stop stop = nearestStops[index].key;
 
@@ -231,7 +230,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
             ],
           ),
           content: Text(
-            l10n.routeErrorMessage(stop.getLocalizedNameByLangCode(languageCode)),
+            l10n.routeErrorMessage(stop.name),
           ),
           actions: [
             TextButton(
@@ -253,7 +252,6 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
 
   List<Widget> followUpWidgets() {
     final theme = Theme.of(context);
-    final languageCode = Localizations.localeOf(context).languageCode;
     final l10n = AppLocalizations.of(context)!;
 
     return [
@@ -320,7 +318,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
                 child: const Icon(Icons.directions_bus, size: 20),
               ),
               title: Text(
-                stop.getLocalizedNameByLangCode(languageCode),
+                stop.name,
                 style: context.textTheme.labelLarge,
               ),
               trailing: Row(

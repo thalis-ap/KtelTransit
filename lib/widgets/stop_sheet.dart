@@ -22,17 +22,16 @@ class StopSheet extends MapPointSheet {
   }) : super(mapPoint: stop);
 
   String getSubtitle(BuildContext context, Departure dep) {
-    final languageCode = Localizations.localeOf(context).languageCode;
     final l10n = AppLocalizations.of(context)!;
 
     if (dep.originStop.stopId == dep.departureStop.stopId) {
-      final stopName = dep.originStop.getLocalizedNameByLangCode(languageCode);
+      final stopName = dep.originStop.name;
       final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.originDepartureTime);
 
       // Using your existing localization and appending the time
       return "${l10n.departureFrom(stopName)} - $time";
     } else {
-      final stopName = dep.departureStop.getLocalizedNameByLangCode(languageCode);
+      final stopName = dep.departureStop.name;
       final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.departureTime);
 
       // Using your existing localization and appending the time

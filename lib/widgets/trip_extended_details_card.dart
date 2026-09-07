@@ -137,7 +137,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
             lineStyle: LineStyle.dotted,
             content: _buildWalkingWidget(
-              trip.startPoint.getLocalizedName(l10n),
+              trip.startPoint.name,
               TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 trip.getDepartureDateTime(widget.selectedDepartureTime),
               ),
@@ -152,7 +152,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             children: [
               Expanded(
                 child: Text(
-                  l10n.arrivalAt(trip.destinationPoint.getLocalizedName(l10n)),
+                  l10n.arrivalAt(trip.destinationPoint.name),
                   style: theme.textTheme.titleSmall,
                 ),
               ),
@@ -330,7 +330,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               content: Column(
                 children: [
                   _buildWalkingWidget(
-                    trip.startPoint.getLocalizedName(l10n),
+                    trip.startPoint.name,
                     TimeFormat.dateTimeToFormattedStringHoursMinutes(
                       trip.getDepartureDateTime(widget.selectedDepartureTime),
                     ),
@@ -359,13 +359,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             lineColor: colorScheme.primary,
             content: _buildBusLegWidget(
               routeName: leg.routeName,
-              stopName: leg.originStop.getLocalizedName(l10n),
+              stopName: leg.originStop.name,
               time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 leg.departureDateTime,
               ),
               stopNames: leg.stopNamesFromTo(
-                leg.originStop.getLocalizedName(l10n),
-                leg.destinationStop.getLocalizedName(l10n),
+                leg.originStop.name,
+                leg.destinationStop.name,
               ),
               estimatedDuration: leg.estimatedDuration,
             ),
@@ -389,11 +389,11 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
               lineStyle: LineStyle.dotted,
               content: _buildWalkingWidget(
-                leg.destinationStop.getLocalizedName(l10n),
+                leg.destinationStop.name,
                 TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   leg.arrivalDateTime,
                 ),
-                "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
+                "${l10n.walkTo} ${trip.destinationPoint.name} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
               ),
             ),
           ),
@@ -403,7 +403,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           lineColor: Colors.transparent,
           content: _buildArrivalWidget(
             l10n: l10n,
-            title: l10n.arrivalAt(trip.destinationPoint.getLocalizedName(l10n)),
+            title: l10n.arrivalAt(trip.destinationPoint.name),
             arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               trip.getArrivalDateTime(widget.selectedDepartureTime),
             ),
@@ -447,7 +447,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
               lineStyle: LineStyle.dotted,
               content: _buildWalkingWidget(
-                trip.startPoint.getLocalizedName(l10n),
+                trip.startPoint.name,
                 TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   trip.getDepartureDateTime(widget.selectedDepartureTime),
                 ),
@@ -476,13 +476,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             lineColor: colorScheme.primary,
             content: _buildBusLegWidget(
               routeName: firstLeg.routeName,
-              stopName: firstLeg.originStop.getLocalizedName(l10n),
+              stopName: firstLeg.originStop.name,
               time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                 firstLeg.departureDateTime,
               ),
               stopNames: firstLeg.stopNamesFromTo(
-                firstLeg.originStop.getLocalizedName(l10n),
-                firstLeg.destinationStop.getLocalizedName(l10n),
+                firstLeg.originStop.name,
+                firstLeg.destinationStop.name,
               ),
               estimatedDuration: firstLeg.estimatedDuration,
             ),
@@ -505,9 +505,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 children: [
                   _buildArrivalWidget(
                     l10n: l10n,
-                    title: legs[legIndex - 1].destinationStop.getLocalizedName(
-                      l10n,
-                    ),
+                    title: legs[legIndex - 1].destinationStop.name,
                     arrivalTime:
                         TimeFormat.dateTimeToFormattedStringHoursMinutes(
                           legs[legIndex - 1].arrivalDateTime,
@@ -602,13 +600,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               lineColor: colorScheme.primary,
               content: _buildBusLegWidget(
                 routeName: legs[legIndex].routeName,
-                stopName: legs[legIndex].originStop.getLocalizedName(l10n),
+                stopName: legs[legIndex].originStop.name,
                 time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   legs[legIndex].departureDateTime,
                 ),
                 stopNames: legs[legIndex].stopNamesFromTo(
-                  legs[legIndex].originStop.getLocalizedName(l10n),
-                  legs[legIndex].destinationStop.getLocalizedName(l10n),
+                  legs[legIndex].originStop.name,
+                  legs[legIndex].destinationStop.name,
                 ),
                 estimatedDuration: legs[legIndex].estimatedDuration,
               ),
@@ -632,11 +630,11 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
               lineStyle: LineStyle.dotted,
               content: _buildWalkingWidget(
-                lastLeg.destinationStop.getLocalizedName(l10n),
+                lastLeg.destinationStop.name,
                 TimeFormat.dateTimeToFormattedStringHoursMinutes(
                   lastLeg.arrivalDateTime,
                 ),
-                "${l10n.walkTo} ${trip.destinationPoint.getLocalizedName(l10n)} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
+                "${l10n.walkTo} ${trip.destinationPoint.name} (${TimeFormat.secondsToFormattedString(egress.duration, l10n)})",
               ),
             ),
           ),
@@ -646,7 +644,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           lineColor: Colors.transparent,
           content: _buildArrivalWidget(
             l10n: l10n,
-            title: l10n.arrivalAt(trip.destinationPoint.getLocalizedName(l10n)),
+            title: l10n.arrivalAt(trip.destinationPoint.name),
             arrivalTime: TimeFormat.dateTimeToFormattedStringHoursMinutes(
               lastLeg.arrivalDateTime,
             ),
@@ -687,7 +685,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${i + 1}. ${legs[i].originStop.getLocalizedName(l10n)} - ${legs[i].destinationStop.getLocalizedName(l10n)}",
+                    "${i + 1}. ${legs[i].originStop.name} - ${legs[i].destinationStop.name}",
                     style: context.textTheme.labelLarge?.copyWith(
                       color: colorScheme.primary,
                     ),

@@ -168,9 +168,63 @@
   "emptyAnnouncements": "No announcements found",
   "announcementUrl": "Announcement link",
   "linkFail": "Failed to open url",
-  "attachedFiles": "Attached files"
+  "attachedFiles": "Attached files",
+  "unknownRegion": "Unknown region",
+  "downloadingFilesFor": "Downloading files for {region}",
+  "@downloadingFilesFor": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "extractingFilesFor": "Extracting files for {region}",
+  "@extractingFilesFor": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingRegion": "Loading region {region}",
+  "@loadingRegion": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
 
+  "regionErrorNetwork": "Network error. Please check your internet connection.",
+  "@regionErrorNetwork": {
+    "description": "Error shown when network is unavailable"
+  },
+  "regionErrorDownloadFailed": "Failed to download region data.",
+  "@regionErrorDownloadFailed": {
+    "description": "Error shown when the download of a region fails"
+  },
+  "regionErrorExtractionFailed": "Failed to extract files. The data may be corrupted.",
+  "@regionErrorExtractionFailed": {
+    "description": "Error shown when zip extraction fails"
+  },
+  "regionErrorMissingFiles": "Some required files are missing.",
+  "@regionErrorMissingFiles": {
+    "description": "Error shown when core GTFS files are missing after extraction"
+  },
+  "regionErrorParsingFailed": "Failed to parse the data.",
+  "@regionErrorParsingFailed": {
+    "description": "Error shown when CSV parsing fails"
+  },
+  "regionErrorStorageFull": "Not enough storage space.",
+  "@regionErrorStorageFull": {
+    "description": "Error shown when device storage is full"
+  },
+  "regionErrorUnknown": "An unknown error occurred.",
+  "@regionErrorUnknown": {
+    "description": "Fallback error message for unhandled errors"
+  },
+  "changeRegion": "Change Region",
 
-
-
+  "@changeRegion": { "description": "Button label to change region on error" },
+  "close": "Close"
 }

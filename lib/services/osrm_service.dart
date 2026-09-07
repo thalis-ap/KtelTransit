@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/gtfs/gtfs_repository.dart';
 import 'package:ktel_transit/services/distance_service.dart';
 import 'package:latlong2/latlong.dart';
 

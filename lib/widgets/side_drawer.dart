@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/screens/announcements_screen.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -12,9 +12,9 @@ import '../services/settings_service.dart';
 import '../utilities/region_utils.dart';
 
 class SideDrawer extends StatelessWidget {
-  final SettingsController settingsController;
+  final GtfsManager gtfsManager = GtfsManager();
 
-  final GtfsRepository repository = GtfsRepository();
+  final SettingsController settingsController;
 
   SideDrawer({super.key, required this.settingsController});
 
@@ -47,7 +47,7 @@ class SideDrawer extends StatelessWidget {
 
           // Region Selector
           ValueListenableBuilder<Region?>(
-            valueListenable: repository.currentRegionNotifier,
+            valueListenable: gtfsManager.currentRegionNotifier,
             builder: (context, currentRegion, child) {
               return ListTile(
                 leading: const Icon(Icons.map_outlined),
@@ -56,10 +56,9 @@ class SideDrawer extends StatelessWidget {
                 trailing: const Icon(Icons.search),
                 onTap: () => RegionUtils.promptRegionChange(
                   context,
-                  repository,
-                  availableRegions,
+                 gtfsManager,
                   beforeAction: () {},
-                  onSelectedAction: () {
+                  onSelectedAction: (Region region) {
                     scaffold?.closeDrawer();
 
                     // Pop every open drawer, search sheet, and secondary screen

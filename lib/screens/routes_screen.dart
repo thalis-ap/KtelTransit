@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart' hide Route;
-import 'package:ktel_transit/models/region.dart';
+import 'package:intl/intl.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import 'package:ktel_transit/widgets/custom_loading_indicator.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
+import '../models/region.dart';
 import '../models/route.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/gtfs/gtfs_repository.dart';
 import '../models/stop.dart';
 import '../utilities/region_utils.dart';
 
@@ -19,25 +21,11 @@ class RoutesScreen extends StatefulWidget {
 }
 
 class _RoutesScreenState extends State<RoutesScreen> {
-  final GtfsRepository repository = GtfsRepository();
+  final GtfsManager gtfsManager = GtfsManager();
 
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() {
-      isLoading = true;
-    });
-    await repository.loadData();
-    setState(() {
-      isLoading = false;
-    });
-  }
+  // Data is already loaded in the repository, only change this var when
+  // changing regions, which means that data must be reloaded
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -50,14 +38,13 @@ class _RoutesScreenState extends State<RoutesScreen> {
         children: [
           RegionInfoBanner(
             regionName:
-                repository.currentRegion?.getLocalizedName(languageCode) ??
+                gtfsManager.currentRegion?.getLocalizedName(languageCode) ??
                 l10n.notChosen,
             onChangeTap: () => RegionUtils.promptRegionChange(
               context,
-              repository,
-              availableRegions,
+              gtfsManager,
               beforeAction: () {},
-              onSelectedAction: () {
+              onSelectedAction: (Region region) {
                 // Set isLoading to true while the gtfs loads the data
                 setState(() {
                   isLoading = true;
@@ -80,10 +67,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(8.0),
-                    itemCount: repository.routes.length,
+                    itemCount: gtfsManager.repository.routes.length,
                     itemBuilder: (context, index) {
-                      final Route route = repository.routes[index];
-                      final List<Trip> trips = repository.trips
+                      final Route route = gtfsManager.repository.routes[index];
+                      final List<Trip> trips = gtfsManager.repository.trips
                           .where((t) => t.routeId == route.routeId)
                           .toList();
                       final List<Trip> going = trips
@@ -103,23 +90,23 @@ class _RoutesScreenState extends State<RoutesScreen> {
                           shape: const Border(),
                           collapsedShape: const Border(),
                           leading: const Icon(Icons.directions_bus),
-                          title: Text(route.getLocalizedLongName(languageCode)),
+                          title: Text(route.longName),
                           children: [
                             if (going.isNotEmpty)
                               DirectionSection(
                                 title:
-                                    "${going.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.outbound})",
+                                    "${going.first.getShortDisplayName(route.longName)} (${l10n.outbound})",
                                 trips: going,
-                                repository: repository,
+                                repository: gtfsManager.repository,
                               ),
                             if (going.isNotEmpty && returning.isNotEmpty)
                               const Divider(height: 32),
                             if (returning.isNotEmpty)
                               DirectionSection(
                                 title:
-                                    "${returning.first.getShortDisplayName(route.getLocalizedLongName(languageCode))} (${l10n.returnTrip})",
+                                    "${returning.first.getShortDisplayName(route.longName)} (${l10n.returnTrip})",
                                 trips: returning,
-                                repository: repository,
+                                repository: gtfsManager.repository,
                               ),
                             const SizedBox(height: 8),
                           ],
@@ -170,7 +157,6 @@ class _DirectionSectionState extends State<DirectionSection> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final languageCode = Localizations.localeOf(context).languageCode;
 
     if (widget.trips.isEmpty) return const SizedBox.shrink();
     if (_selectedTrip == null) return const SizedBox.shrink();
@@ -207,7 +193,7 @@ class _DirectionSectionState extends State<DirectionSection> {
     // We'll create a list of objects: (trip, dayString, timeString)
     final List<MapEntry<Trip, String>> entries = [];
     for (final trip in widget.trips) {
-      final dayString = widget.repository.getReadableDays(
+      final dayString = _getReadableDays(
         trip.serviceId,
         context,
       );
@@ -321,7 +307,7 @@ class _DirectionSectionState extends State<DirectionSection> {
                   children: [
                     Expanded(
                       child: Text(
-                        "${index + 1}. ${stop.getLocalizedNameByLangCode(languageCode)}",
+                        "${index + 1}. ${stop.name}",
                         style: context.textTheme.bodyMedium,
                       ),
                     ),
@@ -338,5 +324,72 @@ class _DirectionSectionState extends State<DirectionSection> {
         ],
       ),
     );
+  }
+
+  /// Returns a human readable string of the operating days localized to the user's active language.
+  String _getReadableDays(String serviceId, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    try {
+      final calendar = widget.repository.calendars.firstWhere((c) => c.serviceId == serviceId);
+
+      final List<bool> activeFlags = [
+        calendar.monday,
+        calendar.tuesday,
+        calendar.wednesday,
+        calendar.thursday,
+        calendar.friday,
+        calendar.saturday,
+        calendar.sunday,
+      ];
+
+      // Base Monday reference date (2024-01-01 was a Monday)
+      final baseMonday = DateTime(2024, 1, 1);
+      final List<String> dayNames = List.generate(7, (i) {
+        final dayDate = baseMonday.add(Duration(days: i));
+        final name = DateFormat('EEEE', locale).format(dayDate);
+        return name[0].toUpperCase() + name.substring(1);
+      });
+
+      if (!activeFlags.contains(false)) {
+        return l10n.daily;
+      }
+
+      List<String> formattedBlocks = [];
+      int currentIndex = 0;
+
+      while (currentIndex < 7) {
+        if (activeFlags[currentIndex]) {
+          int startIndex = currentIndex;
+
+          while (currentIndex < 7 && activeFlags[currentIndex]) {
+            currentIndex++;
+          }
+
+          int endIndex = currentIndex - 1;
+
+          if (startIndex == endIndex) {
+            formattedBlocks.add(dayNames[startIndex]);
+          } else if (endIndex == startIndex + 1) {
+            formattedBlocks.add(
+              "${dayNames[startIndex]} & ${dayNames[endIndex]}",
+            );
+          } else {
+            formattedBlocks.add(
+              "${dayNames[startIndex]} - ${dayNames[endIndex]}",
+            );
+          }
+        } else {
+          currentIndex++;
+        }
+      }
+
+      if (formattedBlocks.isEmpty) return l10n.unknownDays;
+
+      return formattedBlocks.join(', ');
+    } catch (e) {
+      return l10n.unknownDays;
+    }
   }
 }

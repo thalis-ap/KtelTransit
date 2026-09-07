@@ -531,4 +531,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attachedFiles => 'Attached files';
+
+  @override
+  String get unknownRegion => 'Unknown region';
+
+  @override
+  String downloadingFilesFor(String region) {
+    return 'Downloading files for $region';
+  }
+
+  @override
+  String extractingFilesFor(String region) {
+    return 'Extracting files for $region';
+  }
+
+  @override
+  String loadingRegion(String region) {
+    return 'Loading region $region';
+  }
+
+  @override
+  String get regionErrorNetwork =>
+      'Network error. Please check your internet connection.';
+
+  @override
+  String get regionErrorDownloadFailed => 'Failed to download region data.';
+
+  @override
+  String get regionErrorExtractionFailed =>
+      'Failed to extract files. The data may be corrupted.';
+
+  @override
+  String get regionErrorMissingFiles => 'Some required files are missing.';
+
+  @override
+  String get regionErrorParsingFailed => 'Failed to parse the data.';
+
+  @override
+  String get regionErrorStorageFull => 'Not enough storage space.';
+
+  @override
+  String get regionErrorUnknown => 'An unknown error occurred.';
+
+  @override
+  String get changeRegion => 'Change Region';
+
+  @override
+  String get close => 'Close';
 }

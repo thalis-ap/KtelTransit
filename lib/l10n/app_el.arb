@@ -280,5 +280,63 @@
   "emptyAnnouncements": "Δεν βρέθηκαν ανακοινώσεις",
   "announcementUrl": "Σύνδεσμος ανακοίνωσης",
   "linkFail": "Αδυναμία ανοίγματος συνδέσμου",
-  "attachedFiles": "Συνημμένα αρχεία"
+  "attachedFiles": "Συνημμένα αρχεία",
+  "unknownRegion": "Άγνωστη περιοχή",
+  "downloadingFilesFor": "Λήψη αρχείων για την {region}",
+  "@downloadingFilesFor": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "extractingFilesFor": "Εξαγωγή αρχείων για την {region}",
+  "@extractingFilesFor": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingRegion": "Φόρτωση περιοχής {region}",
+  "@loadingRegion": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+
+  "regionErrorNetwork": "Σφάλμα δικτύου. Ελέγξτε τη σύνδεσή σας στο διαδίκτυο.",
+  "@regionErrorNetwork": {
+    "description": "Σφάλμα όταν δεν υπάρχει σύνδεση"
+  },
+  "regionErrorDownloadFailed": "Αποτυχία λήψης δεδομένων περιοχής.",
+  "@regionErrorDownloadFailed": {
+    "description": "Σφάλμα όταν αποτυγχάνει η λήψη"
+  },
+  "regionErrorExtractionFailed": "Αποτυχία εξαγωγής αρχείων. Τα δεδομένα μπορεί να είναι κατεστραμμένα.",
+  "@regionErrorExtractionFailed": {
+    "description": "Σφάλμα όταν αποτυγχάνει η εξαγωγή από zip"
+  },
+  "regionErrorMissingFiles": "Λείπουν ορισμένα απαραίτητα αρχεία.",
+  "@regionErrorMissingFiles": {
+    "description": "Σφάλμα όταν λείπουν βασικά αρχεία GTFS"
+  },
+  "regionErrorParsingFailed": "Αποτυχία ανάλυσης δεδομένων.",
+  "@regionErrorParsingFailed": {
+    "description": "Σφάλμα όταν αποτυγχάνει η ανάλυση CSV"
+  },
+  "regionErrorStorageFull": "Δεν υπάρχει αρκετός αποθηκευτικός χώρος.",
+  "@regionErrorStorageFull": {
+    "description": "Σφάλμα όταν ο αποθηκευτικός χώρος είναι γεμάτος"
+  },
+  "regionErrorUnknown": "Παρουσιάστηκε άγνωστο σφάλμα.",
+  "@regionErrorUnknown": {
+    "description": "Γενικό μήνυμα σφάλματος"
+  },
+  "changeRegion": "Αλλαγή περιοχής",
+  "@changeRegion": { "description": "Button label to change region on error" },
+  "close": "Κλείσιμο"
+
 }

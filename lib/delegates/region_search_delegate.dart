@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
 import '../utilities/language_format.dart';
+import '../utilities/region_utils.dart';
 import 'base_search_delegate.dart';
 
 class RegionSearchDelegate extends BaseSearchDelegate<Region> {
   final List<Region> regions;
-  final Region? currentRegion;
+  final GtfsManager gtfsManager;
 
   RegionSearchDelegate({
     required this.regions,
-    required this.currentRegion,
+    required this.gtfsManager,
     super.searchFieldLabel,
   });
 
@@ -39,7 +41,9 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         final region = suggestions[index];
-        final isSelected = region.id == currentRegion?.id;
+        final regionStatus = gtfsManager.getRegionStatus(region.id);
+
+        final isSelected = region.id == gtfsManager.currentRegion?.id;
         return ListTile(
           leading: const Icon(Icons.map_outlined),
           title: Text(
@@ -48,11 +52,25 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
           ),
           trailing: isSelected
               ? Icon(Icons.check, color: colorScheme.primary)
-              : null,
+              : Icon(_getStatusIcon(regionStatus)),
           onTap: () => close(context, region),
         );
       },
     );
+  }
+
+  IconData? _getStatusIcon(RegionStatus status) {
+    if (status.isReady) {
+      return Icons.check_circle_outline; // or Icons.save_outlined
+    } else if (status.isExtracted) {
+      return Icons.folder_open_outlined; // extracted but not marked ready? maybe use same as ready
+    } else if (status.isDownloaded) {
+      return Icons.file_download_done_outlined;
+    } else if (status.isCorrupted) {
+      return Icons.error_outline;
+    } else {
+      return Icons.cloud_download_outlined; // not downloaded
+    }
   }
 
   @override

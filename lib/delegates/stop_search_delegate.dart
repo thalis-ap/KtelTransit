@@ -26,13 +26,11 @@ class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
   Widget _buildSuggestionsList(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     // Grab the active language from the context
-    final languageCode = Localizations.localeOf(context).languageCode;
     final clearQuery = LanguageFormat.clearText(query);
 
     final suggestions = stops.where((stop) {
       // Search against the localized name instead of just the Greek one
-      final localizedName = stop.getLocalizedName(l10n);
-      final clearStopName = LanguageFormat.clearText(localizedName);
+      final clearStopName = LanguageFormat.clearText(stop.name);
       return clearStopName.contains(clearQuery);
     }).toList();
 
@@ -99,8 +97,7 @@ class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       title: Text(
-                        // 3. Display the localized name in the list
-                        stop.getLocalizedNameByLangCode(languageCode),
+                        stop.name,
                         style: context.textTheme.bodyLarge,
                       ),
                       onTap: () {

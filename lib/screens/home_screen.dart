@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:ktel_transit/services/compass_service.dart';
@@ -15,7 +15,6 @@ import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/choose_on_map_bar.dart';
 import 'package:ktel_transit/widgets/compass_button.dart';
-import 'package:ktel_transit/widgets/custom_loading_indicator.dart';
 import 'package:ktel_transit/widgets/custom_map.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
@@ -45,7 +44,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  final GtfsRepository repository = GtfsRepository();
+  final GtfsManager gtfsManager = GtfsManager();
   final LocationService _locationService = LocationService();
 
   // Loading variables
@@ -104,10 +103,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // Add the listener to run the function _onRegionChanged when GtfsRepository
-    // changeRegion function runs.
-    repository.currentRegionNotifier.addListener(_onRegionChanged);
-    _loadData();
+    gtfsManager.currentRegionNotifier.addListener(_onRegionChanged);
+    // Defer the data loading until AFTER the first frame is built.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
     _loadUserLocation(showDialogs: false);
 
     _startServices();
@@ -117,11 +117,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _mapMovementService.dispose();
-    _compassService.removeListener(
-      _onCompassStateChanged,
-    ); // We'll use a separate method or inline
-    _compassService.dispose(); // Handles subscription cancellation
-    repository.currentRegionNotifier.removeListener(_onRegionChanged);
+    _compassService.removeListener(_onCompassStateChanged);
+    _compassService.dispose();
+    gtfsManager.currentRegionNotifier.removeListener(_onRegionChanged);
     _sheetManager.dispose();
     super.dispose();
   }
@@ -151,12 +149,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Asynchronous function to load repository data and user location
+  /// Asynchronous function to load region
   Future<void> _loadData() async {
-    await repository.init(settingsController: widget.settingsController);
-    setState(() {
-      isLoading = false;
-    });
+    final regionId = gtfsManager.currentRegion?.id;
+    if (regionId == null) {
+      // TODO: Add a snackbar maybe or go to wlecome screen immediately
+      //  Should not happen because that would mean we don't have any region saved
+      // (we should be on welcome screen then)
+    } else {
+      RegionLoadResult loadResult = await gtfsManager.loadRegion(regionId);
+      if (loadResult.isSuccess) {
+        setState(() {
+          isLoading = false;
+        });
+      } else {
+        // TODO: Handle other cases (snackbars)
+      }
+    }
   }
 
   /// Tries to fetch user location. Shows dialogs if [showDialogs] is true.
@@ -196,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final location = await _locationService.getBestAvailableLocation();
     if (location != null && mounted) {
       setState(() {
-        userLocation = MapPoint(coordinates: location);
+        userLocation = MapPoint(name: "", coordinates: location);
       });
     }
   }
@@ -214,7 +223,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Fetches the route(s) (i.e. the map points) for a given RoutingTrip object
   /// and updates the activeRoute state variable to re-build the map with the
   /// routing trip that was selected
-  Future<void> _fetchRouteForSelectedTrip(RoutingTrip routingTrip, {bool showLoading = true}) async {
+  Future<void> _fetchRouteForSelectedTrip(
+    RoutingTrip routingTrip, {
+    bool showLoading = true,
+  }) async {
     if (startPoint == null || destinationPoint == null) return;
 
     // Make the top banner show the user that the route is loading
@@ -226,7 +238,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     try {
       if (routingTrip.busTrip != null) {
         // Update the bus trip object (with points + safe duration)
-        routingTrip.busTrip = await BusService.getCompleteTrip(routingTrip.busTrip!);
+        routingTrip.busTrip = await BusService.getCompleteTrip(
+          routingTrip.busTrip!,
+        );
       }
 
       setState(() {
@@ -293,25 +307,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final MapPoint? selectedPoint = await showSearch<MapPoint?>(
       context: context,
       delegate: StopSearchDelegate(
-        repository.stops,
-        currentRegionName: repository.currentRegion!.getLocalizedName(
+        gtfsManager.repository.stops,
+        currentRegionName: gtfsManager.currentRegion!.getLocalizedName(
           languageCode,
         ),
-        searchFieldLabel: isStart ? l10n.searchStartHint : l10n.searchDestinationHint,
+        searchFieldLabel: isStart
+            ? l10n.searchStartHint
+            : l10n.searchDestinationHint,
         onChangeRegionTap: () => RegionUtils.promptRegionChange(
           context,
-          repository,
-          availableRegions,
-          beforeAction: () {
-
-          },
-          onSelectedAction: () {
+          gtfsManager,
+          beforeAction: () {},
+          onSelectedAction: (Region region) {
             scaffold?.closeDrawer();
 
             // Pop every open drawer, search sheet, and secondary screen
             // until we hit the very first screen (the HomeScreen map)
             navigator.popUntil((route) => route.isFirst);
-          }
+          },
         ),
         userLocation: userLocation,
       ),
@@ -410,7 +423,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
 
     // Find the target zoom to be able to fit both points in the map's viewport
-    double targetZoom = _mapMovementService.getTargetZoom(startPoint, destPoint);
+    double targetZoom = _mapMovementService.getTargetZoom(
+      startPoint,
+      destPoint,
+    );
 
     // Use the current zoom, and animate to the center of the two points
     _mapMovementService.animatedMove(center, targetZoom);
@@ -522,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// This function will run each time the user changes the region of
   /// GtfsRepository() in any way (through the drawer, delegates)
   void _onRegionChanged() {
-    final Region region = repository.currentRegion!;
+    final Region region = gtfsManager.currentRegion!;
 
     // Only animate if the map is ready
     if (isMapReady) {
@@ -556,6 +572,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// it. On error accessing user's location it prompts them to either accept
   /// the permission or change it in settings, depending on their choice.
   Future<void> _onMyLocationPressed() async {
+    await gtfsManager.deleteRegion();
+    return;
+
     // First, check status and show dialogs if needed
     final status = await _locationService.getPermissionStatus();
 
@@ -611,7 +630,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     if (location != null && mounted) {
       setState(() {
-        userLocation = MapPoint(coordinates: location);
+        userLocation = MapPoint(name: "", coordinates: location);
         isLoadingPreciseLocation = false;
       });
       _mapMovementService.animatedMove(location, 15.0);
@@ -620,7 +639,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final lastKnown = await _locationService.getLastKnownPosition();
       if (lastKnown != null && mounted) {
         setState(() {
-          userLocation = MapPoint(coordinates: lastKnown);
+          userLocation = MapPoint(name: "", coordinates: lastKnown);
           isLoadingPreciseLocation = false;
         });
         _mapMovementService.animatedMove(lastKnown, 15.0);
@@ -635,7 +654,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (isSelectingMapPoint) return;
 
     setState(() {
-      selectedMapPoint = MapPoint(coordinates: coordinates);
+      selectedMapPoint = MapPoint(
+        name: AppLocalizations.of(context)!.chosenPoint,
+        coordinates: coordinates,
+      );
     });
     _sheetManager.showSheet(SheetKeys.droppedPin);
   }
@@ -844,6 +866,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Builds everything related to the map
   Widget _buildMap() {
     return CustomMap(
+      currentRegion: gtfsManager.currentRegion!,
       mapController: mapController,
       onLongPress: (coordinates) => _showDroppedPinSheet(coordinates),
       onMapReady: () {
@@ -872,6 +895,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       compassHeading: _compassService.heading,
     );
   }
+
   /// Builds a loading snackbar widget when the map route is being fetched -
   /// loaded from the OSRM API. It stays there until the route is loaded.
   Widget _buildLoadingRouteSnackbar() {
@@ -1006,6 +1030,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   /// Shown only when selecting a map point (isSelectingMapPoint = true)
   Widget _buildConfirmMapPointButton() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Positioned(
       bottom: MediaQuery.of(context).padding.bottom + 32,
       left: 32,
@@ -1013,7 +1038,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: FilledButton(
         onPressed: _onConfirmChooseOnMap,
         style: FilledButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.tertiary,
+          backgroundColor: colorScheme.tertiary,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
@@ -1021,7 +1046,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         child: Text(
           AppLocalizations.of(context)!.setLocation,
-          style: context.textTheme.titleMedium,
+          style: context.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onTertiary,
+          ),
         ),
       ),
     );
@@ -1045,7 +1072,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           _buildAnimatedSheet(
             (startPoint != null && destinationPoint != null)
                 ? SafeArea(
-                  child: TripInfoSheet(
+                    child: TripInfoSheet(
                       key: ValueKey('${sheetName}_sheet'),
                       isLoading: isLoadingTrips,
                       controller: _sheetManager.tripInfoController,
@@ -1075,7 +1102,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       },
                       onTappedRoutePart: _onTappedRoutePart,
                     ),
-                )
+                  )
                 : null,
 
             sheetName,
@@ -1088,7 +1115,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     key: ValueKey('${sheetName}_sheet'),
                     stop: activeStop!,
                     controller: _sheetManager.stopController,
-                    repository: repository,
+                    repository: gtfsManager.repository,
                     onSetStart: (MapPoint _) {
                       _onSetStartPoint(activeStop!);
                       _closeStopSheet();
@@ -1110,7 +1137,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     key: ValueKey('${sheetName}_sheet'),
                     mapPoint: selectedMapPoint!,
                     controller: _sheetManager.droppedPinController,
-                    repository: repository,
+                    repository: gtfsManager.repository,
                     onSetStart: (MapPoint p) {
                       _onSetStartPoint(selectedMapPoint!);
                     },
@@ -1149,68 +1176,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  /// Builds a loading snackbar widget when the region is changed
-  /// It stays there until the region is loaded, and thus the
-  /// isRegionLoadingNotifier becomes false and notifies the listenable builder
-  Widget _buildLoadingRegionSnackbar() {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ValueListenableBuilder<bool>(
-      valueListenable: repository.isRegionLoadingNotifier,
-      builder: (context, isLoadingRegion, child) {
-        return AnimatedPositioned(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutBack,
-          // Slides up when loading, hides below the screen when done
-          bottom: isLoadingRegion ? 18.0 : -100.0,
-          left: 24,
-          right: 100,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: isLoadingRegion ? 1.0 : 0.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(
-                color: colorScheme.tertiary,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: colorScheme.onTertiary,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      l10n.loadingStops,
-                      style: context.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onTertiary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   /// Builds a loading snackbar widget when finding user location
   /// It stays there until the location is founs and the map is focused,
   Widget _buildLoadingLocationSnackbar() {
@@ -1233,7 +1198,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
-                color: colorScheme.tertiary,
+                color: colorScheme.tertiary.withAlpha(
+                  AppTheme.alphaOnMapWidget,
+                ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
                   BoxShadow(
@@ -1280,7 +1247,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // 2. We have selected both start/dest points
     // 3. We have selected a map point (long press, DroppedPinSheet is open)
     // 4. We have selected a stop (StopSheet is open)
-    return isLoading ||
+    return
             isSelectingMapPoint ||
             (startPoint != null && destinationPoint != null) ||
             (selectedMapPoint != null) ||
@@ -1289,7 +1256,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         : FloatingActionButton(
             onPressed: _onMyLocationPressed,
             // slight lighter color to avoid same color with the map
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh
+                .withAlpha(AppTheme.alphaOnMapWidget),
             child: Icon(Icons.my_location, color: AppTheme.blueish),
           );
   }
@@ -1305,38 +1273,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: SideDrawer(settingsController: widget.settingsController),
-        body: isLoading
-            ? Center(
-                child: CustomLoadingIndicator(
-                  message: AppLocalizations.of(context)!.loadingMap,
-                ),
-              )
+
+        body:
             // Use a stack for positioned widget on top of the map
-            : Stack(
-                children: [
-                  // Builds the map
-                  _buildMap(),
-                  
-                  _buildLoadingRouteSnackbar(),
+            Stack(
+              children: [
+                // Builds the map
+                _buildMap(),
 
-                  _buildLoadingLocationSnackbar(),
+                _buildLoadingRouteSnackbar(),
 
-                  // Search bar
-                  _buildSearchBar(),
+                _buildLoadingLocationSnackbar(),
 
-                  // Compass button
-                  _buildCompassButton(),
+                // Search bar
+                _buildSearchBar(),
 
-                  // Map point selecting widgets
-                  ..._buildMapPointSelectionWidgets(),
+                // Compass button
+                _buildCompassButton(),
 
-                  // Build the sheets we must
-                  ..._buildSheets(),
+                // Map point selecting widgets
+                ..._buildMapPointSelectionWidgets(),
 
-                  // Loading snackbar
-                  _buildLoadingRegionSnackbar(),
-                ],
-              ),
+                // Build the sheets we must
+                ..._buildSheets(),
+              ],
+            ),
 
         floatingActionButton: _buildMyLocationButton(),
       ),

@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/map_point.dart';
@@ -14,7 +14,9 @@ import '../theme/app_theme.dart';
 import 'compass_cone.dart';
 
 class CustomMap extends StatelessWidget {
-  final GtfsRepository repository = GtfsRepository();
+  final GtfsManager gtfsManager = GtfsManager();
+
+  final Region currentRegion;
 
   final MapController mapController;
 
@@ -40,6 +42,7 @@ class CustomMap extends StatelessWidget {
 
   CustomMap({
     super.key,
+    required this.currentRegion,
     required this.mapController,
     required this.onLongPress,
     required this.onMapReady,
@@ -61,17 +64,16 @@ class CustomMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final languageCode = Localizations.localeOf(context).languageCode;
 
     // Find the active transfer stop, to determine its icon correctly
     Stop? activeTransferStop;
     if (activeRoute != null) {
       if (activeRoute!.busTrip?.isTransfer ?? false) {
         try {
-          activeTransferStop = repository.stops.firstWhere(
+          activeTransferStop = gtfsManager.repository.stops.firstWhere(
             (s) =>
-                s.getLocalizedNameByLangCode(languageCode) ==
-                activeRoute!.busTrip!.legs.first.destinationStop.getLocalizedNameByLangCode(languageCode),
+                s.name ==
+                activeRoute!.busTrip!.legs.first.destinationStop.name,
           );
         } catch (_) {}
       }
@@ -80,7 +82,7 @@ class CustomMap extends StatelessWidget {
     // We should listen to the repository's current region notifier, to update
     // the map's focus (center, zoom) when the region is changed
     return ValueListenableBuilder<Region?>(
-      valueListenable: repository.currentRegionNotifier,
+      valueListenable: gtfsManager.currentRegionNotifier,
       builder: (context, activeRegion, child) {
         return FlutterMap(
           mapController: mapController,
@@ -255,7 +257,7 @@ class CustomMap extends StatelessWidget {
               ),
 
             MarkerLayer(
-              markers: repository.stops.map((stop) {
+              markers: gtfsManager.repository.stops.map((stop) {
                 IconData iconData;
                 Color iconColor;
 

@@ -1,67 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/models/region.dart';
-import 'package:ktel_transit/repositories/gtfs_repository.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/services/settings_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final SettingsController settingsController;
 
-  const WelcomeScreen({
-    super.key,
-    required this.settingsController,
-  });
+  const WelcomeScreen({super.key, required this.settingsController});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  final GtfsRepository repository = GtfsRepository();
+  final GtfsManager gtfsManager = GtfsManager();
 
   Region? selectedRegion;
+  Region? loadedRegion;
+
   bool isChangingRegion = false;
+  RegionLoadResult? regionLoadResult;
 
   Future<void> _changeRegion() async {
     setState(() {
       isChangingRegion = true;
+      regionLoadResult = null; // clear old errors
     });
 
-    // Capture the Scaffold and Navigator states BEFORE opening the search sheet
-    final scaffold = Scaffold.maybeOf(context);
     final navigator = Navigator.of(context, rootNavigator: true);
 
-    await RegionUtils.promptRegionChange(context, repository, availableRegions, beforeAction: () {}, onSelectedAction: () {
-      scaffold?.closeDrawer();
+    final result = await RegionUtils.promptRegionChange(
+      context,
+      gtfsManager,
+      beforeAction: () {},
+      onSelectedAction: (Region region) {
+        setState(() {
+          selectedRegion = region;
+          loadedRegion = null;
+        });
+        navigator.popUntil((route) => route.isFirst);
+      },
+      afterAction: () {
+        setState(() {
+          isChangingRegion = false;
+        });
+      },
+    );
 
-      // Pop every open drawer, search sheet, and secondary screen
-      // until we hit the very first screen (Welcome screen here)
-      navigator.popUntil((route) => route.isFirst);
-    });
-
-    if (!mounted) return;
-
-    if (repository.currentRegion != null) {
-      setState(() {
-        selectedRegion = repository.currentRegion;
-      });
-    }
-
+    // After the loading finishes, update loadedRegion if successful
     setState(() {
-      isChangingRegion = false;
+      if (result != null &&
+          result.isSuccess &&
+          gtfsManager.currentRegion != null) {
+        loadedRegion = gtfsManager.currentRegion;
+      } else {
+        loadedRegion = null;
+      }
+      regionLoadResult = result;
     });
   }
 
   Future<void> _onGoPressed() async {
     final l10n = AppLocalizations.of(context)!;
 
-    if (selectedRegion == null) {
+    if (loadedRegion == null) {
       CustomSnackBar.show(
         context,
         message: l10n.regionRequiredError,
@@ -69,9 +77,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       );
       return;
     }
-
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(RegionUtils.savedRegionIdKey, selectedRegion!.id);
 
     if (!mounted) return;
 
@@ -82,9 +87,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => HomeScreen(
-          settingsController: widget.settingsController,
-        ),
+        builder: (context) =>
+            HomeScreen(settingsController: widget.settingsController),
       ),
     );
   }
@@ -92,9 +96,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final hasSelected = selectedRegion != null;
     final theme = Theme.of(context);
     final languageCode = widget.settingsController.locale.languageCode;
+
+    final isRegionReady = gtfsManager.stateNotifier.value == RegionState.ready;
 
     return Scaffold(
       appBar: AppBar(
@@ -120,14 +125,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               widget.settingsController.updateLocale(Locale(langCode));
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(
-                value: 'el',
-                child: Text('Ελληνικά (EL)'),
-              ),
-              const PopupMenuItem(
-                value: 'en',
-                child: Text('English (EN)'),
-              ),
+              const PopupMenuItem(value: 'el', child: Text('Ελληνικά (EL)')),
+              const PopupMenuItem(value: 'en', child: Text('English (EN)')),
             ],
           ),
           const SizedBox(width: 8),
@@ -148,9 +147,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 SizedBox(
                   width: 200,
                   height: 200,
-                  child: Image.asset(
-                    theme.appIconPath
-                  ),
+                  child: Image.asset(theme.appIconPath),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -160,13 +157,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: isChangingRegion
-                      ? const Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: CircularProgressIndicator(),
-                  )
-                      : RegionInfoBanner(
-                    regionName: selectedRegion?.getLocalizedName(languageCode) ?? l10n.notChosen,
+                  child: RegionInfoBanner(
+                    regionName:
+                        selectedRegion?.getLocalizedName(languageCode) ??
+                        l10n.notChosen,
                     onChangeTap: _changeRegion,
                   ),
                 ),
@@ -178,13 +172,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
+
                 Opacity(
-                  opacity: (!isChangingRegion && hasSelected) ? 1.0 : 0.5,
+                  opacity: (!isChangingRegion && isRegionReady) ? 1.0 : 0.4,
                   child: FilledButton.icon(
                     onPressed: _onGoPressed,
                     label: Text(
                       l10n.letGoButton,
-                      style: context.textTheme.headlineSmall?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+                      style: context.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                      ),
                     ),
                     icon: const Icon(Icons.arrow_forward, size: 26),
                     iconAlignment: IconAlignment.end,

@@ -538,4 +538,52 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get attachedFiles => 'Συνημμένα αρχεία';
+
+  @override
+  String get unknownRegion => 'Άγνωστη περιοχή';
+
+  @override
+  String downloadingFilesFor(String region) {
+    return 'Λήψη αρχείων για την $region';
+  }
+
+  @override
+  String extractingFilesFor(String region) {
+    return 'Εξαγωγή αρχείων για την $region';
+  }
+
+  @override
+  String loadingRegion(String region) {
+    return 'Φόρτωση περιοχής $region';
+  }
+
+  @override
+  String get regionErrorNetwork =>
+      'Σφάλμα δικτύου. Ελέγξτε τη σύνδεσή σας στο διαδίκτυο.';
+
+  @override
+  String get regionErrorDownloadFailed => 'Αποτυχία λήψης δεδομένων περιοχής.';
+
+  @override
+  String get regionErrorExtractionFailed =>
+      'Αποτυχία εξαγωγής αρχείων. Τα δεδομένα μπορεί να είναι κατεστραμμένα.';
+
+  @override
+  String get regionErrorMissingFiles => 'Λείπουν ορισμένα απαραίτητα αρχεία.';
+
+  @override
+  String get regionErrorParsingFailed => 'Αποτυχία ανάλυσης δεδομένων.';
+
+  @override
+  String get regionErrorStorageFull =>
+      'Δεν υπάρχει αρκετός αποθηκευτικός χώρος.';
+
+  @override
+  String get regionErrorUnknown => 'Παρουσιάστηκε άγνωστο σφάλμα.';
+
+  @override
+  String get changeRegion => 'Αλλαγή περιοχής';
+
+  @override
+  String get close => 'Κλείσιμο';
 }
