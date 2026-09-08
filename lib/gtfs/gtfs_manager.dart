@@ -68,6 +68,7 @@ class GtfsManager {
   Region? get currentRegion => currentRegionNotifier.value;
 
   GtfsRepository get repository => _repository;
+  GtfsStorage get storage => _storage;
 
   RegionLoadResult? get lastLoadResult => _lastLoadResult;
 
@@ -353,7 +354,6 @@ class GtfsManager {
           regionStatus.copyWith(
             isReady: result.isSuccess,
             errorCode: result.errorCode,
-            lastUpdated: DateTime.now(),
           ),
         );
 
@@ -457,9 +457,30 @@ class GtfsManager {
   Future<void> deleteRegion({String? regionId}) async {
     final String id = regionId ?? currentRegion?.id ?? "";
     if (id.isEmpty) return;
-    await _saveRegionStatus(id, RegionStatus(lastUpdated: DateTime.now()));
+
+    final isCurrentRegion = (id == currentRegion?.id);
+
+    // If deleting the active region, show the loading sheet
+    if (isCurrentRegion) {
+      stateNotifier.value = RegionState.deleting;
+    }
+
+    // Wipe the data
+    await _saveRegionStatus(id, const RegionStatus());
     await _storage.deleteRegion(id);
-    await RegionUtils.deleteSavedRegion();
-    print("Succesfully deleted region: $id");
+
+    if (isCurrentRegion) {
+      await RegionUtils.deleteSavedRegion();
+      repository.clear();
+
+      // Add a tiny delay so the user actually sees the "Deleting..." sheet
+      // before it instantly vanishes and throws them to the Welcome Screen.
+      await Future.delayed(const Duration(seconds: 1));
+
+      currentRegionNotifier.value = null;
+      stateNotifier.value = RegionState.idle;
+    }
+
+    debugPrint("Succesfully deleted region: $id");
   }
 }

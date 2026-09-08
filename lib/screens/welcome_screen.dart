@@ -40,6 +40,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       gtfsManager,
       beforeAction: () {},
       onSelectedAction: (Region region) {
+        if (!mounted) return;
         setState(() {
           selectedRegion = region;
           loadedRegion = null;
@@ -47,11 +48,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         navigator.popUntil((route) => route.isFirst);
       },
       afterAction: () {
+        if (!mounted) return;
         setState(() {
           isChangingRegion = false;
         });
       },
     );
+
+    if (!mounted) return;
 
     // After the loading finishes, update loadedRegion if successful
     setState(() {

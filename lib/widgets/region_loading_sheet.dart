@@ -68,6 +68,7 @@ class RegionLoadingBottomSheet extends StatelessWidget {
           // Downloading / Extracting / Loading
           IconData icon;
           String text;
+          Color color = colorScheme.primary;
           switch (state) {
             case RegionState.downloading:
               icon = Icons.file_download_outlined;
@@ -84,6 +85,7 @@ class RegionLoadingBottomSheet extends StatelessWidget {
             case RegionState.deleting:
               icon = Icons.delete_sweep_outlined;
               text = l10n.deletingRegion(regionName);
+              color = colorScheme.error;
               break;
             default:
               icon = Icons.hourglass_empty;
@@ -92,11 +94,11 @@ class RegionLoadingBottomSheet extends StatelessWidget {
           content = Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 48, color: colorScheme.primary),
+              Icon(icon, size: 48, color: color),
               const SizedBox(height: 12),
-              Text(text, style: context.textTheme.titleMedium),
+              Text(text, style: context.textTheme.titleMedium?.copyWith(color: color)),
               const SizedBox(height: 20),
-              LinearProgressIndicator(),
+              LinearProgressIndicator(color: color,),
             ],
           );
         }

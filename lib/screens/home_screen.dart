@@ -15,6 +15,7 @@ import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:ktel_transit/widgets/choose_on_map_bar.dart';
 import 'package:ktel_transit/widgets/compass_button.dart';
+import 'package:ktel_transit/widgets/custom_loading_indicator.dart';
 import 'package:ktel_transit/widgets/custom_map.dart';
 import 'package:ktel_transit/widgets/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/dropped_pin_sheet.dart';
@@ -103,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    gtfsManager.currentRegionNotifier.addListener(_onRegionChanged);
+    gtfsManager.currentRegionNotifier.addListener(_onCurrentRegionChanged);
     // Defer the data loading until AFTER the first frame is built.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -119,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _mapMovementService.dispose();
     _compassService.removeListener(_onCompassStateChanged);
     _compassService.dispose();
-    gtfsManager.currentRegionNotifier.removeListener(_onRegionChanged);
+    gtfsManager.currentRegionNotifier.removeListener(_onCurrentRegionChanged);
     _sheetManager.dispose();
     super.dispose();
   }
@@ -300,6 +301,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!;
     final languageCode = widget.settingsController.locale.languageCode;
 
+    // Guard against the (brief) window where the active region has just
+    // been deleted and this screen hasn't been replaced with
+    // WelcomeScreen yet.
+    final currentRegion = gtfsManager.currentRegion;
+    if (currentRegion == null) return;
+
     // Capture the Scaffold and Navigator states BEFORE opening the search sheet
     final scaffold = Scaffold.maybeOf(context);
     final navigator = Navigator.of(context, rootNavigator: true);
@@ -308,9 +315,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context: context,
       delegate: StopSearchDelegate(
         gtfsManager.repository.stops,
-        currentRegionName: gtfsManager.currentRegion!.getLocalizedName(
-          languageCode,
-        ),
+        currentRegionName: currentRegion.getLocalizedName(languageCode),
         searchFieldLabel: isStart
             ? l10n.searchStartHint
             : l10n.searchDestinationHint,
@@ -535,11 +540,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  /// This function will run each time the user changes the region of
-  /// GtfsRepository() in any way (through the drawer, delegates)
-  void _onRegionChanged() {
-    final Region region = gtfsManager.currentRegion!;
+  /// Single entry point for currentRegionNotifier changes. Both "switched
+  /// to a different region" and "the active region was just deleted" fire
+  /// through this same notifier — the only difference is whether the new
+  /// value is null — so this is the only place that's safe to read
+  /// gtfsManager.currentRegion without a null-check operator.
+  void _onCurrentRegionChanged() {
+    final Region? region = gtfsManager.currentRegion;
+    if (region == null) {
+      _onRegionDeleted();
+    } else {
+      _onRegionChanged(region);
+    }
+  }
 
+  /// Runs each time the user switches to a different (non-null) region,
+  /// through the drawer, delegates, etc.
+  void _onRegionChanged(Region region) {
     // Only animate if the map is ready
     if (isMapReady) {
       _mapMovementService.animatedMove(region.center, region.defaultZoom);
@@ -549,6 +566,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       startPoint = null;
       destinationPoint = null;
       activeRoute = null;
+    });
+  }
+
+  /// Runs when the user deletes the currently active region. This only
+  /// clears out local state that referenced it, so a stray rebuild in the
+  /// brief window before this screen gets replaced can't throw. The actual
+  /// navigation back to WelcomeScreen is handled app-wide in main.dart,
+  /// since deletion can be triggered from screens other than this one.
+  void _onRegionDeleted() {
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    if (!mounted) return;
+    setState(() {
+      startPoint = null;
+      destinationPoint = null;
+      activeRoute = null;
+      cachedTrips = null;
+      selectedTripIndex = null;
+      activeStop = null;
+      selectedMapPoint = null;
+      isSelectingMapPoint = false;
+      isSelectingMapPointStart = false;
+      isDepartureBoardOpen = false;
     });
   }
 
@@ -572,9 +612,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// it. On error accessing user's location it prompts them to either accept
   /// the permission or change it in settings, depending on their choice.
   Future<void> _onMyLocationPressed() async {
-    await gtfsManager.deleteRegion();
-    return;
-
     // First, check status and show dialogs if needed
     final status = await _locationService.getPermissionStatus();
 
@@ -1247,8 +1284,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // 2. We have selected both start/dest points
     // 3. We have selected a map point (long press, DroppedPinSheet is open)
     // 4. We have selected a stop (StopSheet is open)
-    return
-            isSelectingMapPoint ||
+    return isSelectingMapPoint ||
             (startPoint != null && destinationPoint != null) ||
             (selectedMapPoint != null) ||
             (activeStop != null)
@@ -1264,6 +1300,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    if (gtfsManager.currentRegion == null) {
+      return CustomLoadingIndicator();
+    }
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
