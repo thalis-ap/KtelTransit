@@ -49,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final LocationService _locationService = LocationService();
 
   // Loading variables
-  bool isLoading = true;
   bool isLoadingTrips = false;
   bool isLoadingRoute = false;
   bool isLoadingPreciseLocation = false;
@@ -158,11 +157,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       //  Should not happen because that would mean we don't have any region saved
       // (we should be on welcome screen then)
     } else {
+      // We came from WelcomeScreen, and data is ready, no need to re-load them
+      if (gtfsManager.stateNotifier.value == RegionState.ready) {
+        return;
+      }
+
       RegionLoadResult loadResult = await gtfsManager.loadRegion(regionId);
       if (loadResult.isSuccess) {
-        setState(() {
-          isLoading = false;
-        });
+
       } else {
         // TODO: Handle other cases (snackbars)
       }
