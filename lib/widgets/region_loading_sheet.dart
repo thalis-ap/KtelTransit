@@ -81,6 +81,10 @@ class RegionLoadingBottomSheet extends StatelessWidget {
               icon = Icons.memory_outlined;
               text = l10n.loadingRegion(regionName);
               break;
+            case RegionState.deleting:
+              icon = Icons.delete_sweep_outlined;
+              text = l10n.deletingRegion(regionName);
+              break;
             default:
               icon = Icons.hourglass_empty;
               text = l10n.loadingRegion(regionName);
