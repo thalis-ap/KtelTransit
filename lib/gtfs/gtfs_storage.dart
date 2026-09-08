@@ -29,6 +29,25 @@ class GtfsStorage {
     return '${base.path}/$regionId';
   }
 
+  /// Returns the total size of the region directory in bytes
+  Future<int> getRegionSize(String regionId) async {
+    final path = await getRegionPath(regionId);
+    final dir = Directory(path);
+    if (!await dir.exists()) return 0;
+
+    int totalSize = 0;
+    try {
+      await for (final entity in dir.list(recursive: true, followLinks: false)) {
+        if (entity is File) {
+          totalSize += await entity.length();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error calculating size for region $regionId: $e');
+    }
+    return totalSize;
+  }
+
   /// Checks if a region exists locally (directory exists)
   Future<bool> regionExists(String regionId) async {
     final path = await getRegionPath(regionId);
