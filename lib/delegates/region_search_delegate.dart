@@ -8,14 +8,9 @@ import '../utilities/language_format.dart';
 import 'base_search_delegate.dart';
 
 class RegionSearchDelegate extends BaseSearchDelegate<Region> {
-  final List<Region> regions;
   final GtfsManager gtfsManager;
 
-  RegionSearchDelegate({
-    required this.regions,
-    required this.gtfsManager,
-    super.searchFieldLabel,
-  });
+  RegionSearchDelegate({required this.gtfsManager, super.searchFieldLabel});
 
   @override
   Widget buildSuggestions(BuildContext context) {
@@ -31,16 +26,19 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
     // Rebuild whenever any region's status changes (e.g. a background
     // update finishes) so the trailing icons stay accurate without the
     // user needing to type or reopen the search.
-    return ValueListenableBuilder<int>(
-      valueListenable: gtfsManager.regionStatusVersion,
-      builder: (context, _, _) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        gtfsManager.regionStatusVersion,
+        gtfsManager.availableRegionsNotifier,
+      ]),
+      builder: (context, _) {
         final l10n = AppLocalizations.of(context)!;
         final colorScheme = Theme.of(context).colorScheme;
         final languageCode = Localizations.localeOf(context).languageCode;
         final clearQuery = LanguageFormat.clearText(query);
 
         // Filter suggestions based on query
-        final filtered = regions.where((region) {
+        final filtered = gtfsManager.availableRegions.where((region) {
           final clearName = LanguageFormat.clearText(
             region.getLocalizedName(languageCode),
           );
@@ -54,7 +52,8 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
           if (a.id == selectedRegion?.id) return -1;
           if (b.id == selectedRegion?.id) return 1;
           // Otherwise alphabetical (by localized name)
-          return a.getLocalizedName(languageCode)
+          return a
+              .getLocalizedName(languageCode)
               .compareTo(b.getLocalizedName(languageCode));
         });
 
@@ -95,7 +94,9 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
               trailingColor = colorScheme.error;
             } else {
               trailingIcon = Icons.cloud_download_outlined;
-              trailingColor = colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+              trailingColor = colorScheme.onSurfaceVariant.withValues(
+                alpha: 0.5,
+              );
             }
 
             // Title style – bold if selected
@@ -120,7 +121,9 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                   ),
                   leading: Icon(
                     Icons.map_outlined,
-                    color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
                   ),
                   title: Text(
                     region.getLocalizedName(languageCode),
@@ -148,7 +151,9 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                     String lastUpdatedStr = l10n.neverUpdated;
                     if (status.lastUpdated != null) {
                       final d = status.lastUpdated!.toLocal();
-                      lastUpdatedStr = TimeFormat.dateTimeToFormattedStringFull(d);
+                      lastUpdatedStr = TimeFormat.dateTimeToFormattedStringFull(
+                        d,
+                      );
                     }
 
                     showDialog(
@@ -157,7 +162,10 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                         return AlertDialog(
                           title: Row(
                             children: [
-                              Icon(Icons.info_outline, color: colorScheme.primary),
+                              Icon(
+                                Icons.info_outline,
+                                color: colorScheme.primary,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(child: Text(l10n.regionInfo)),
                             ],
@@ -170,16 +178,19 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                               children: [
                                 Text(
                                   region.getLocalizedName(languageCode),
-                                  style: context.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: context.textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 24),
 
                                 // Status Row
                                 Row(
                                   children: [
-                                    Icon(trailingIcon, color: trailingColor, size: 28),
+                                    Icon(
+                                      trailingIcon,
+                                      color: trailingColor,
+                                      size: 28,
+                                    ),
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Text(
@@ -193,21 +204,26 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
 
                                 // Size Row
                                 FutureBuilder<int>(
-                                  future: gtfsManager.storage.getRegionSize(region.id),
+                                  future: gtfsManager.storage.getRegionSize(
+                                    region.id,
+                                  ),
                                   builder: (context, snapshot) {
                                     String sizeText = l10n.sizeCalculating;
 
-                                    if (snapshot.connectionState == ConnectionState.done) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.done) {
                                       final bytes = snapshot.data ?? 0;
                                       if (bytes == 0) {
                                         sizeText = l10n.sizeKb('0');
                                       } else if (bytes < 1024 * 1024) {
                                         // Less than 1 MB, show as KB (1 decimal place)
-                                        final kb = (bytes / 1024).toStringAsFixed(1);
+                                        final kb = (bytes / 1024)
+                                            .toStringAsFixed(1);
                                         sizeText = l10n.sizeKb(kb);
                                       } else {
                                         // 1 MB or more, show as MB (2 decimal places)
-                                        final mb = (bytes / (1024 * 1024)).toStringAsFixed(2);
+                                        final mb = (bytes / (1024 * 1024))
+                                            .toStringAsFixed(2);
                                         sizeText = l10n.sizeMb(mb);
                                       }
                                     }
@@ -221,7 +237,10 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                                         ),
                                         const SizedBox(width: 16),
                                         Expanded(
-                                          child: Text(sizeText, style: context.textTheme.bodyLarge),
+                                          child: Text(
+                                            sizeText,
+                                            style: context.textTheme.bodyLarge,
+                                          ),
                                         ),
                                       ],
                                     );
@@ -254,7 +273,9 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                               onPressed: () => Navigator.pop(dialogContext),
                               child: Text(l10n.close),
                             ),
-                            if (status.isDownloaded || status.isReady || status.isExtracted)
+                            if (status.isDownloaded ||
+                                status.isReady ||
+                                status.isExtracted)
                               TextButton(
                                 style: TextButton.styleFrom(
                                   foregroundColor: colorScheme.error,
@@ -286,7 +307,9 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                                     close(delegateContext, null);
                                   }
 
-                                  await gtfsManager.deleteRegion(regionId: region.id);
+                                  await gtfsManager.deleteRegion(
+                                    regionId: region.id,
+                                  );
                                 },
                                 child: Text(l10n.delete),
                               ),
@@ -295,7 +318,7 @@ class RegionSearchDelegate extends BaseSearchDelegate<Region> {
                       },
                     );
                   },
-                  ),
+                ),
               ),
             );
           },
