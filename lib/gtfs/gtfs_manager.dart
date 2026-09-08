@@ -39,20 +39,26 @@ class GtfsManager {
 
   // ---- State Notifiers ----
   final CustomValueNotifier<Region?> currentRegionNotifier =
-  CustomValueNotifier(null);
+      CustomValueNotifier(null);
 
   final CustomValueNotifier<RegionState> stateNotifier =
-  CustomValueNotifier<RegionState>(RegionState.idle);
+      CustomValueNotifier<RegionState>(RegionState.idle);
 
   final CustomValueNotifier<double> progressNotifier =
-  CustomValueNotifier<double>(0.0);
+      CustomValueNotifier<double>(0.0);
 
   /// Bumped every time any region's status changes. UI that lists regions
   /// (e.g. RegionSearchDelegate) can listen to this to silently refresh
   /// itself when a background sync updates a region it isn't currently
   /// showing a dedicated loading state for.
-  final CustomValueNotifier<int> regionStatusVersion =
-  CustomValueNotifier<int>(0);
+  final CustomValueNotifier<int> regionStatusVersion = CustomValueNotifier<int>(
+    0,
+  );
+
+  final CustomValueNotifier<List<Region>> availableRegionsNotifier =
+      CustomValueNotifier(const []);
+
+  List<Region> get availableRegions => availableRegionsNotifier.value;
 
   /// Tracks in-progress download+extract operations per region so that a
   /// background sync and a foreground load/refresh for the same region
@@ -68,6 +74,7 @@ class GtfsManager {
   Region? get currentRegion => currentRegionNotifier.value;
 
   GtfsRepository get repository => _repository;
+
   GtfsStorage get storage => _storage;
 
   RegionLoadResult? get lastLoadResult => _lastLoadResult;
@@ -80,6 +87,9 @@ class GtfsManager {
     // Loads each region's status in memory
     await loadRegionStatuses();
 
+    // Always after loading regions into memory
+    await _loadManifest();
+
     // Get the last saved region
     final String? savedRegionId = await RegionUtils.getSavedRegion();
 
@@ -91,168 +101,51 @@ class GtfsManager {
       handleUpdates();
     }
 
-
     _isInitialized = true;
   }
 
-  // Updates
+  Future<void> _loadManifest() async {
+    // Try to load the cached manifest from disk
+    Map<String, dynamic>? manifest = await _remote.getCachedManifest();
 
-  /// Kicks off updates for every region whose remote hash has changed,
-  /// skipping regions that were never downloaded (they'll simply fetch the
-  /// latest zip the next time someone selects them via [loadRegion]).
-  ///
-  /// Non-current regions are synced silently in the background: only their
-  /// on-disk status changes, which is enough for anything listening to
-  /// [regionStatusVersion] (e.g. the region picker) to refresh its icons.
-  ///
-  /// The current region is also synced silently — we deliberately avoid
-  /// touching [stateNotifier] here so nothing visibly interrupts whatever
-  /// the user is doing. Once the new files are safely on disk we hot-swap
-  /// them into the live [repository], but only if the user is still on
-  /// that region by the time the sync finishes.
-  ///
-  /// This method intentionally doesn't await every sync before returning —
-  /// call it fire-and-forget, as [init] already does. Nothing here touches
-  /// the global loading state, so the app never blocks on it.
-  Future<void> handleUpdates() async {
-    final idsThatNeedUpdate = await _remote.getRegionsThatNeedUpdate();
-    if (idsThatNeedUpdate.isEmpty) return;
+    // If no cache exists (first launch ever), use the bundled fallback
+    manifest ??= await _remote.getFallbackManifest();
 
-    debugPrint('Regions needing update: $idsThatNeedUpdate');
-
-    for (final id in idsThatNeedUpdate) {
-      // Skip regions nobody has downloaded — nothing to refresh.
-      final status = _regionStatusCache[id];
-      final hasData = (status?.isDownloaded ?? false) || (status?.isReady ?? false);
-
-      // Skip regions nobody has downloaded or readied — nothing to refresh.
-      if (!hasData) {
-        debugPrint('Skipping update for $id: Region is neither downloaded nor ready.');
-        continue;
-      }
-
-      if (id == currentRegion?.id) {
-        unawaited(_refreshCurrentRegionInPlace(id));
-      } else {
-        unawaited(_updateRegionSilently(id));
-      }
-    }
-  }
-
-  /// Silently re-downloads and re-extracts [regionId] in the background.
-  /// Only updates the persisted/cached [RegionStatus] — never touches the
-  /// global [stateNotifier], since this region isn't the one currently
-  /// being shown to the user.
-  Future<void> _updateRegionSilently(String regionId) async {
-    final errorCode = await _syncRegion(regionId, foreground: false);
-    if (errorCode != RegionErrorCode.none) {
-      // Old data on disk is untouched and still perfectly usable — just
-      // log it and try again on the next update check.
-      debugPrint('Silent background update failed for $regionId: $errorCode');
-    }
-  }
-
-  /// Like [_updateRegionSilently], but for the region the user currently
-  /// has open. After a successful sync, reloads the fresh files into the
-  /// live [repository] so the change is picked up without a visible
-  /// reload — unless the user has since switched to a different region,
-  /// in which case we leave the in-memory data alone (the fresh files are
-  /// already safely on disk and will load normally next time that region
-  /// is selected).
-  Future<void> _refreshCurrentRegionInPlace(String regionId) async {
-    final errorCode = await _syncRegion(regionId, foreground: false);
-    if (errorCode != RegionErrorCode.none) {
-      debugPrint('Background refresh of current region $regionId failed: $errorCode');
-      return;
-    }
-
-    if (_settingsController == null || currentRegion?.id != regionId) return;
-
-    final languageCode = _settingsController!.locale.languageCode;
-    final regionPath = await _storage.getRegionPath(regionId);
-    final result = await _local.loadFromPath(
-      regionPath,
-      repository,
-      languageCode: languageCode,
-    );
-
-    if (result.isSuccess) {
-      _lastLoadResult = result;
-      debugPrint('Region $regionId data refreshed in place.');
-    } else {
-      debugPrint('Hot-swap reload failed for $regionId: ${result.errorCode}');
-    }
-  }
-
-  /// Downloads (unless [skipDownload]) and extracts [regionId], persisting
-  /// status/error info as it goes. Concurrent calls for the same region
-  /// share the same underlying operation instead of racing on disk — e.g.
-  /// a background sync and a manual reload of the same region will simply
-  /// await the same [Future] rather than both writing to the same files.
-  ///
-  /// When [foreground] is true, [stateNotifier] is updated so an active
-  /// screen can reflect progress; when false, this runs silently.
-  Future<RegionErrorCode> _syncRegion(
-      String regionId, {
-        bool foreground = false,
-        bool skipDownload = false,
-      }) {
-    final inFlight = _inFlightSyncs[regionId];
-    if (inFlight != null) return inFlight;
-
-    final future = _runSync(regionId, foreground: foreground, skipDownload: skipDownload);
-    _inFlightSyncs[regionId] = future;
-    future.whenComplete(() => _inFlightSyncs.remove(regionId));
-    return future;
-  }
-
-  Future<RegionErrorCode> _runSync(
-      String regionId, {
-        required bool foreground,
-        bool skipDownload = false,
-      }) async {
-    if (!skipDownload) {
-      if (foreground) stateNotifier.value = RegionState.downloading;
-
-      final downloadError = await _remote.downloadRegionZip(regionId);
-      if (downloadError != RegionErrorCode.none) {
-        if (foreground) stateNotifier.value = RegionState.error;
-        await _saveRegionStatus(
-          regionId,
-          getRegionStatus(regionId).copyWith(errorCode: downloadError),
-        );
-        return downloadError;
-      }
-
-      await _saveRegionStatus(
-        regionId,
-        getRegionStatus(regionId).copyWith(isDownloaded: true),
+    // Parse and populate the regions list so the UI has immediate data
+    if (manifest != null) {
+      availableRegionsNotifier.value = _remote.getAvailableRegionsFromManifest(
+        manifest,
       );
     }
 
-    if (foreground) stateNotifier.value = RegionState.extracting;
+    // Fire a background request to fetch the latest manifest from the server.
+    // If successful, it automatically updates the cache and the live notifier.
+    unawaited(_refreshManifestFromNetwork());
+  }
 
-    final extractError = await _remote.extractRegionZip(regionId);
-    if (extractError != RegionErrorCode.none) {
-      if (foreground) stateNotifier.value = RegionState.error;
-      await _saveRegionStatus(
-        regionId,
-        getRegionStatus(regionId).copyWith(errorCode: extractError),
+  Future<void> _refreshManifestFromNetwork() async {
+    final freshManifest = await _remote.getManifest();
+    if (freshManifest == null) return;
+
+    final remoteRegions = _remote.getAvailableRegionsFromManifest(
+      freshManifest,
+    );
+    final remoteRegionIds = remoteRegions.map((r) => r.id).toSet();
+
+    // Find any regions stored locally that no longer exist in the remote manifest
+    final localRegionIds = _regionStatusCache.keys.toSet();
+    final removedRegionIds = localRegionIds.difference(remoteRegionIds);
+
+    for (final removedId in removedRegionIds) {
+      debugPrint(
+        'Region $removedId was removed remotely. Cleaning up local data...',
       );
-      return extractError;
+      await deleteRegion(regionId: removedId);
+      _regionStatusCache.remove(removedId);
     }
 
-    await _saveRegionStatus(
-      regionId,
-      getRegionStatus(regionId).copyWith(
-        isExtracted: true,
-        isReady: true,
-        errorCode: RegionErrorCode.none,
-        lastUpdated: DateTime.now(),
-      ),
-    );
-
-    return RegionErrorCode.none;
+    // Update the live list of available regions
+    availableRegionsNotifier.value = remoteRegions;
   }
 
   // Region status
@@ -309,7 +202,10 @@ class GtfsManager {
   /// marked ready (e.g. a manual "check for updates" action). This always
   /// runs in the foreground (stateNotifier reflects progress) since the
   /// caller is explicitly asking to wait for it.
-  Future<RegionLoadResult> loadRegion(String regionId, {bool forceRefresh = false}) async {
+  Future<RegionLoadResult> loadRegion(
+    String regionId, {
+    bool forceRefresh = false,
+  }) async {
     // Ensure we have a settings controller (should be initialized)
     if (_settingsController == null) {
       stateNotifier.value = RegionState.error;
@@ -348,7 +244,9 @@ class GtfsManager {
         );
 
         // Update state based on result
-        stateNotifier.value = result.isSuccess ? RegionState.ready : RegionState.error;
+        stateNotifier.value = result.isSuccess
+            ? RegionState.ready
+            : RegionState.error;
         await _saveRegionStatus(
           regionId,
           regionStatus.copyWith(
@@ -356,6 +254,15 @@ class GtfsManager {
             errorCode: result.errorCode,
           ),
         );
+
+        // Only save the region as lastSavedRegion when the loading result
+        // was a success. When we get an error we should NEVER save the region
+        // because then on an app restart main.dart would think we have a valid
+        // saved region and would push us to home_screen instead of welcome screen
+        // with currentRegion being null.
+        if (result.isSuccess) {
+          await RegionUtils.saveRegion(regionId);
+        }
 
         _lastLoadResult = result;
 
@@ -373,7 +280,10 @@ class GtfsManager {
           // Repair failed
           final result = RegionLoadResult.failure(errorCode: repairError);
           stateNotifier.value = RegionState.error;
-          await _saveRegionStatus(regionId, regionStatus.copyWith(errorCode: repairError));
+          await _saveRegionStatus(
+            regionId,
+            regionStatus.copyWith(errorCode: repairError),
+          );
           _lastLoadResult = result;
           return result;
         }
@@ -402,7 +312,11 @@ class GtfsManager {
       if (!regionStatus.isExtracted) {
         print("Its downloaded but NOT extracted!");
 
-        final errorCode = await _syncRegion(regionId, foreground: true, skipDownload: true);
+        final errorCode = await _syncRegion(
+          regionId,
+          foreground: true,
+          skipDownload: true,
+        );
         if (errorCode != RegionErrorCode.none) {
           result = RegionLoadResult.failure(errorCode: errorCode);
           _lastLoadResult = result;
@@ -441,12 +355,189 @@ class GtfsManager {
   }
 
   /// Sets currentRegionNotifier's value to the region corresponsing to regionId
-  /// and saved the id as the last used region
+  /// This DOES NOT save the id in SharedPrefs
   Future<void> setCurrentRegion(String regionId) async {
-    currentRegionNotifier.value = availableRegions.firstWhere(
-          (reg) => reg.id == regionId,
+    // Find a matching region
+    final match = availableRegions
+        .where((reg) => reg.id == regionId)
+        .firstOrNull;
+    if (match != null) {
+      currentRegionNotifier.value = match;
+    } else {
+      // if for some reason our region was not found in the available regions
+      // then deleted, it must have been deleted from the remote manifest
+      currentRegionNotifier.value = null;
+      await RegionUtils.deleteSavedRegion();
+    }
+  }
+
+  // Updates
+
+  /// Kicks off updates for every region whose remote hash has changed,
+  /// skipping regions that were never downloaded (they'll simply fetch the
+  /// latest zip the next time someone selects them via [loadRegion]).
+  ///
+  /// Non-current regions are synced silently in the background: only their
+  /// on-disk status changes, which is enough for anything listening to
+  /// [regionStatusVersion] (e.g. the region picker) to refresh its icons.
+  ///
+  /// The current region is also synced silently — we deliberately avoid
+  /// touching [stateNotifier] here so nothing visibly interrupts whatever
+  /// the user is doing. Once the new files are safely on disk we hot-swap
+  /// them into the live [repository], but only if the user is still on
+  /// that region by the time the sync finishes.
+  ///
+  /// This method intentionally doesn't await every sync before returning —
+  /// call it fire-and-forget, as [init] already does. Nothing here touches
+  /// the global loading state, so the app never blocks on it.
+  Future<void> handleUpdates() async {
+    final idsThatNeedUpdate = await _remote.getRegionsThatNeedUpdate();
+    if (idsThatNeedUpdate.isEmpty) return;
+
+    debugPrint('Regions needing update: $idsThatNeedUpdate');
+
+    for (final id in idsThatNeedUpdate) {
+      // Skip regions nobody has downloaded — nothing to refresh.
+      final status = _regionStatusCache[id];
+      final hasData =
+          (status?.isDownloaded ?? false) || (status?.isReady ?? false);
+
+      // Skip regions nobody has downloaded or readied — nothing to refresh.
+      if (!hasData) {
+        debugPrint(
+          'Skipping update for $id: Region is neither downloaded nor ready.',
+        );
+        continue;
+      }
+
+      if (id == currentRegion?.id) {
+        unawaited(_refreshCurrentRegionInPlace(id));
+      } else {
+        unawaited(_updateRegionSilently(id));
+      }
+    }
+  }
+
+  /// Silently re-downloads and re-extracts [regionId] in the background.
+  /// Only updates the persisted/cached [RegionStatus] — never touches the
+  /// global [stateNotifier], since this region isn't the one currently
+  /// being shown to the user.
+  Future<void> _updateRegionSilently(String regionId) async {
+    final errorCode = await _syncRegion(regionId, foreground: false);
+    if (errorCode != RegionErrorCode.none) {
+      // Old data on disk is untouched and still perfectly usable — just
+      // log it and try again on the next update check.
+      debugPrint('Silent background update failed for $regionId: $errorCode');
+    }
+  }
+
+  /// Like [_updateRegionSilently], but for the region the user currently
+  /// has open. After a successful sync, reloads the fresh files into the
+  /// live [repository] so the change is picked up without a visible
+  /// reload — unless the user has since switched to a different region,
+  /// in which case we leave the in-memory data alone (the fresh files are
+  /// already safely on disk and will load normally next time that region
+  /// is selected).
+  Future<void> _refreshCurrentRegionInPlace(String regionId) async {
+    final errorCode = await _syncRegion(regionId, foreground: false);
+    if (errorCode != RegionErrorCode.none) {
+      debugPrint(
+        'Background refresh of current region $regionId failed: $errorCode',
+      );
+      return;
+    }
+
+    if (_settingsController == null || currentRegion?.id != regionId) return;
+
+    final languageCode = _settingsController!.locale.languageCode;
+    final regionPath = await _storage.getRegionPath(regionId);
+    final result = await _local.loadFromPath(
+      regionPath,
+      repository,
+      languageCode: languageCode,
     );
-    await RegionUtils.saveRegion(regionId);
+
+    if (result.isSuccess) {
+      _lastLoadResult = result;
+      debugPrint('Region $regionId data refreshed in place.');
+    } else {
+      debugPrint('Hot-swap reload failed for $regionId: ${result.errorCode}');
+    }
+  }
+
+  /// Downloads (unless [skipDownload]) and extracts [regionId], persisting
+  /// status/error info as it goes. Concurrent calls for the same region
+  /// share the same underlying operation instead of racing on disk — e.g.
+  /// a background sync and a manual reload of the same region will simply
+  /// await the same [Future] rather than both writing to the same files.
+  ///
+  /// When [foreground] is true, [stateNotifier] is updated so an active
+  /// screen can reflect progress; when false, this runs silently.
+  Future<RegionErrorCode> _syncRegion(
+    String regionId, {
+    bool foreground = false,
+    bool skipDownload = false,
+  }) {
+    final inFlight = _inFlightSyncs[regionId];
+    if (inFlight != null) return inFlight;
+
+    final future = _runSync(
+      regionId,
+      foreground: foreground,
+      skipDownload: skipDownload,
+    );
+    _inFlightSyncs[regionId] = future;
+    future.whenComplete(() => _inFlightSyncs.remove(regionId));
+    return future;
+  }
+
+  Future<RegionErrorCode> _runSync(
+    String regionId, {
+    required bool foreground,
+    bool skipDownload = false,
+  }) async {
+    if (!skipDownload) {
+      if (foreground) stateNotifier.value = RegionState.downloading;
+
+      final downloadError = await _remote.downloadRegionZip(regionId);
+      if (downloadError != RegionErrorCode.none) {
+        if (foreground) stateNotifier.value = RegionState.error;
+        await _saveRegionStatus(
+          regionId,
+          getRegionStatus(regionId).copyWith(errorCode: downloadError),
+        );
+        return downloadError;
+      }
+
+      await _saveRegionStatus(
+        regionId,
+        getRegionStatus(regionId).copyWith(isDownloaded: true),
+      );
+    }
+
+    if (foreground) stateNotifier.value = RegionState.extracting;
+
+    final extractError = await _remote.extractRegionZip(regionId);
+    if (extractError != RegionErrorCode.none) {
+      if (foreground) stateNotifier.value = RegionState.error;
+      await _saveRegionStatus(
+        regionId,
+        getRegionStatus(regionId).copyWith(errorCode: extractError),
+      );
+      return extractError;
+    }
+
+    await _saveRegionStatus(
+      regionId,
+      getRegionStatus(regionId).copyWith(
+        isExtracted: true,
+        isReady: true,
+        errorCode: RegionErrorCode.none,
+        lastUpdated: DateTime.now(),
+      ),
+    );
+
+    return RegionErrorCode.none;
   }
 
   // DRAFT DELAY FUNC FOR TESTING
