@@ -94,13 +94,8 @@ class GtfsRemote {
   /// Fetches the full manifest.json from the repository.
   Future<Map<String, dynamic>?> getManifest() async {
     try {
-      // final response = await http.get(Uri.parse(_manifestUrl));
+      final response = await http.get(Uri.parse(_manifestUrl));
 
-      // TODO replace with above in production
-      final response = await http.get(
-        Uri.parse('https://api.github.com/repos/thalis-ap/KtelTransitGtfs/contents/manifest.json'),
-        headers: {'Accept': 'application/vnd.github.v3.raw'},
-      );
       if (response.statusCode != 200) return null;
       return jsonDecode(response.body) as Map<String, dynamic>;
     } catch (e) {
@@ -113,16 +108,8 @@ class GtfsRemote {
   /// Does not extract, nor update preferences.
   Future<RegionErrorCode> downloadRegionZip(String regionId) async {
     try {
-      // final zipUrl = '$_regionBaseUrl$regionId/gtfs.zip';
-      // final zipResponse = await http.get(Uri.parse(zipUrl));
-
-      // TODO replace with the above in production
-      final zipResponse = await http.get(
-        Uri.parse('https://api.github.com/repos/thalis-ap/KtelTransitGtfs/contents/regions/$regionId/gtfs.zip'),
-        headers: {
-          'Accept': 'application/vnd.github.v3.raw',
-        },
-      );
+      final zipUrl = '$_regionBaseUrl$regionId/gtfs.zip';
+      final zipResponse = await http.get(Uri.parse(zipUrl));
 
       if (zipResponse.statusCode != 200) {
         debugPrint('Failed to download zip for $regionId: ${zipResponse.statusCode}');
