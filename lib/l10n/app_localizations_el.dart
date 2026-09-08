@@ -554,7 +554,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String loadingRegion(String region) {
-    return 'Φόρτωση περιοχής $region';
+    return 'Φόρτωση περιοχής: $region';
   }
 
   @override
@@ -586,4 +586,72 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get close => 'Κλείσιμο';
+
+  @override
+  String get delete => 'Διαγραφή';
+
+  @override
+  String deleteRegionConfirmation(String region) {
+    return 'Θέλετε σίγουρα να διαγράψετε τα δεδομένα για την περιοχή $region;';
+  }
+
+  @override
+  String get announcements_placeholder_title => 'Ανακοινώσεις Περιοχής';
+
+  @override
+  String get announcements_placeholder_desc =>
+      'Σημαντικές ανακοινώσεις σχετικά με δρομολόγια, απεργίες και καθυστερήσεις θα εμφανίζονται εδώ.';
+
+  @override
+  String get announcements_placeholder_note =>
+      'Η πλήρης ροή ανακοινώσεων θα ενσωματωθεί σε μελλοντική ενημέρωση.';
+
+  @override
+  String get comingSoon => 'Σύντομα κοντά σας';
+
+  @override
+  String get regionInfo => 'Πληροφορίες περιοχής';
+
+  @override
+  String statusLabel(String status) {
+    return 'Κατάσταση: $status';
+  }
+
+  @override
+  String get statusReady => 'Έτοιμο';
+
+  @override
+  String get statusDownloaded => 'Λήφθηκε';
+
+  @override
+  String get statusNotDownloaded => 'Δεν έχει γίνει λήψη';
+
+  @override
+  String get sizeCalculating => 'Μέγεθος: Υπολογισμός...';
+
+  @override
+  String sizeMb(String size) {
+    return 'Μέγεθος: $size MB';
+  }
+
+  @override
+  String sizeKb(String size) {
+    return 'Μέγεθος: $size KB';
+  }
+
+  @override
+  String get statusCorrupted => 'Κατεστραμμένο';
+
+  @override
+  String lastUpdatedLabel(String date) {
+    return 'Τελευταία ενημέρωση: $date';
+  }
+
+  @override
+  String get neverUpdated => 'Ποτέ';
+
+  @override
+  String deletingRegion(String region) {
+    return 'Διαγραφή περιοχής $region...';
+  }
 }

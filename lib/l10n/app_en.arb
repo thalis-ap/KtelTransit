@@ -186,7 +186,7 @@
       }
     }
   },
-  "loadingRegion": "Loading region {region}",
+  "loadingRegion": "Loading region: {region}",
   "@loadingRegion": {
     "placeholders": {
       "region": {
@@ -226,5 +226,66 @@
   "changeRegion": "Change Region",
 
   "@changeRegion": { "description": "Button label to change region on error" },
-  "close": "Close"
+  "close": "Close",
+  "delete": "Delete",
+  "deleteRegionConfirmation": "Are you sure you want to delete the data for {region}?",
+  "@deleteRegionConfirmation": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "announcements_placeholder_title": "Regional Announcements",
+  "announcements_placeholder_desc": "Important announcements regarding schedules, strikes, and delays will appear here.",
+  "announcements_placeholder_note": "A complete announcement feed will be integrated in a future update.",
+  "comingSoon": "Coming soon",
+  "regionInfo": "Region info",
+  "statusLabel": "Status: {status}",
+  "@statusLabel": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "statusReady": "Ready",
+  "statusDownloaded": "Downloaded",
+  "statusNotDownloaded": "Not downloaded",
+  "sizeCalculating": "Size: Calculating...",
+  "sizeMb": "Size: {size} MB",
+  "@sizeMb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "sizeKb": "Size: {size} KB",
+  "@sizeKb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "statusCorrupted": "Corrupted",
+  "lastUpdatedLabel": "Last updated: {date}",
+  "@lastUpdatedLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "neverUpdated": "Never",
+  "deletingRegion": "Deleting region {region}...",
+  "@deletingRegion": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  }
+
 }

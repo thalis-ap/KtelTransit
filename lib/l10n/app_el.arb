@@ -298,7 +298,7 @@
       }
     }
   },
-  "loadingRegion": "Φόρτωση περιοχής {region}",
+  "loadingRegion": "Φόρτωση περιοχής: {region}",
   "@loadingRegion": {
     "placeholders": {
       "region": {
@@ -337,6 +337,66 @@
   },
   "changeRegion": "Αλλαγή περιοχής",
   "@changeRegion": { "description": "Button label to change region on error" },
-  "close": "Κλείσιμο"
+  "close": "Κλείσιμο",
+  "delete": "Διαγραφή",
+  "deleteRegionConfirmation": "Θέλετε σίγουρα να διαγράψετε τα δεδομένα για την περιοχή {region};",
+  "@deleteRegionConfirmation": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "announcements_placeholder_title": "Ανακοινώσεις Περιοχής",
+  "announcements_placeholder_desc": "Σημαντικές ανακοινώσεις σχετικά με δρομολόγια, απεργίες και καθυστερήσεις θα εμφανίζονται εδώ.",
+  "announcements_placeholder_note": "Η πλήρης ροή ανακοινώσεων θα ενσωματωθεί σε μελλοντική ενημέρωση.",
+  "comingSoon": "Σύντομα κοντά σας",
+  "regionInfo": "Πληροφορίες περιοχής",
+  "statusLabel": "Κατάσταση: {status}",
+  "@statusLabel": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "statusReady": "Έτοιμο",
+  "statusDownloaded": "Λήφθηκε",
+  "statusNotDownloaded": "Δεν έχει γίνει λήψη",
+  "sizeCalculating": "Μέγεθος: Υπολογισμός...",
+  "sizeMb": "Μέγεθος: {size} MB",
+  "@sizeMb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "sizeKb": "Μέγεθος: {size} KB",
+  "@sizeKb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "statusCorrupted": "Κατεστραμμένο",
+  "lastUpdatedLabel": "Τελευταία ενημέρωση: {date}",
+  "@lastUpdatedLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "neverUpdated": "Ποτέ",
+  "deletingRegion": "Διαγραφή περιοχής {region}...",
+  "@deletingRegion": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  }
 
 }

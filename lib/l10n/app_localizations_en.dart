@@ -547,7 +547,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loadingRegion(String region) {
-    return 'Loading region $region';
+    return 'Loading region: $region';
   }
 
   @override
@@ -578,4 +578,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String deleteRegionConfirmation(String region) {
+    return 'Are you sure you want to delete the data for $region?';
+  }
+
+  @override
+  String get announcements_placeholder_title => 'Regional Announcements';
+
+  @override
+  String get announcements_placeholder_desc =>
+      'Important announcements regarding schedules, strikes, and delays will appear here.';
+
+  @override
+  String get announcements_placeholder_note =>
+      'A complete announcement feed will be integrated in a future update.';
+
+  @override
+  String get comingSoon => 'Coming soon';
+
+  @override
+  String get regionInfo => 'Region info';
+
+  @override
+  String statusLabel(String status) {
+    return 'Status: $status';
+  }
+
+  @override
+  String get statusReady => 'Ready';
+
+  @override
+  String get statusDownloaded => 'Downloaded';
+
+  @override
+  String get statusNotDownloaded => 'Not downloaded';
+
+  @override
+  String get sizeCalculating => 'Size: Calculating...';
+
+  @override
+  String sizeMb(String size) {
+    return 'Size: $size MB';
+  }
+
+  @override
+  String sizeKb(String size) {
+    return 'Size: $size KB';
+  }
+
+  @override
+  String get statusCorrupted => 'Corrupted';
+
+  @override
+  String lastUpdatedLabel(String date) {
+    return 'Last updated: $date';
+  }
+
+  @override
+  String get neverUpdated => 'Never';
+
+  @override
+  String deletingRegion(String region) {
+    return 'Deleting region $region...';
+  }
 }

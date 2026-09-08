@@ -1055,7 +1055,7 @@ abstract class AppLocalizations {
   /// No description provided for @loadingRegion.
   ///
   /// In el, this message translates to:
-  /// **'Φόρτωση περιοχής {region}'**
+  /// **'Φόρτωση περιοχής: {region}'**
   String loadingRegion(String region);
 
   /// Σφάλμα όταν δεν υπάρχει σύνδεση
@@ -1111,6 +1111,114 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Κλείσιμο'**
   String get close;
+
+  /// No description provided for @delete.
+  ///
+  /// In el, this message translates to:
+  /// **'Διαγραφή'**
+  String get delete;
+
+  /// No description provided for @deleteRegionConfirmation.
+  ///
+  /// In el, this message translates to:
+  /// **'Θέλετε σίγουρα να διαγράψετε τα δεδομένα για την περιοχή {region};'**
+  String deleteRegionConfirmation(String region);
+
+  /// No description provided for @announcements_placeholder_title.
+  ///
+  /// In el, this message translates to:
+  /// **'Ανακοινώσεις Περιοχής'**
+  String get announcements_placeholder_title;
+
+  /// No description provided for @announcements_placeholder_desc.
+  ///
+  /// In el, this message translates to:
+  /// **'Σημαντικές ανακοινώσεις σχετικά με δρομολόγια, απεργίες και καθυστερήσεις θα εμφανίζονται εδώ.'**
+  String get announcements_placeholder_desc;
+
+  /// No description provided for @announcements_placeholder_note.
+  ///
+  /// In el, this message translates to:
+  /// **'Η πλήρης ροή ανακοινώσεων θα ενσωματωθεί σε μελλοντική ενημέρωση.'**
+  String get announcements_placeholder_note;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In el, this message translates to:
+  /// **'Σύντομα κοντά σας'**
+  String get comingSoon;
+
+  /// No description provided for @regionInfo.
+  ///
+  /// In el, this message translates to:
+  /// **'Πληροφορίες περιοχής'**
+  String get regionInfo;
+
+  /// No description provided for @statusLabel.
+  ///
+  /// In el, this message translates to:
+  /// **'Κατάσταση: {status}'**
+  String statusLabel(String status);
+
+  /// No description provided for @statusReady.
+  ///
+  /// In el, this message translates to:
+  /// **'Έτοιμο'**
+  String get statusReady;
+
+  /// No description provided for @statusDownloaded.
+  ///
+  /// In el, this message translates to:
+  /// **'Λήφθηκε'**
+  String get statusDownloaded;
+
+  /// No description provided for @statusNotDownloaded.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν έχει γίνει λήψη'**
+  String get statusNotDownloaded;
+
+  /// No description provided for @sizeCalculating.
+  ///
+  /// In el, this message translates to:
+  /// **'Μέγεθος: Υπολογισμός...'**
+  String get sizeCalculating;
+
+  /// No description provided for @sizeMb.
+  ///
+  /// In el, this message translates to:
+  /// **'Μέγεθος: {size} MB'**
+  String sizeMb(String size);
+
+  /// No description provided for @sizeKb.
+  ///
+  /// In el, this message translates to:
+  /// **'Μέγεθος: {size} KB'**
+  String sizeKb(String size);
+
+  /// No description provided for @statusCorrupted.
+  ///
+  /// In el, this message translates to:
+  /// **'Κατεστραμμένο'**
+  String get statusCorrupted;
+
+  /// No description provided for @lastUpdatedLabel.
+  ///
+  /// In el, this message translates to:
+  /// **'Τελευταία ενημέρωση: {date}'**
+  String lastUpdatedLabel(String date);
+
+  /// No description provided for @neverUpdated.
+  ///
+  /// In el, this message translates to:
+  /// **'Ποτέ'**
+  String get neverUpdated;
+
+  /// No description provided for @deletingRegion.
+  ///
+  /// In el, this message translates to:
+  /// **'Διαγραφή περιοχής {region}...'**
+  String deletingRegion(String region);
 }
 
 class _AppLocalizationsDelegate
