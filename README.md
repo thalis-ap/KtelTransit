@@ -19,29 +19,18 @@
 
  ## 🗺️ Screenshots
 
-### Home
+  <p>
+    <img src="screenshots/home.jpg" width="200">
+    <img src="screenshots/trips.jpg" width="200">
+    <img src="screenshots/route_details.jpg" width="200">
+  </p>
 
-![Home screen](screenshots/home.jpg)
+  <p>
+    <img src="screenshots/routes.jpg" width="200">
+    <img src="screenshots/destination_search.jpg" width="200">
+    <img src="screenshots/settings.jpg" width="200">
+  </p>
 
-### Trips
-
-![Trip list](screenshots/trips.jpg)
-
-### Route Details
-
-![Route details](screenshots/route_details.jpg)
-
-### Routes
-
-![Routes](screenshots/routes.jpg)
-
-### Destination Search
-
-![Destination search](screenshots/destination_search.jpg)
-
-### Settings
-
-![Settings](screenshots/settings.jpg)
 
  ## 🛠️ Tech Stack
 
