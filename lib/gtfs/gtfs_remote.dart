@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:ktel_transit/gtfs/gtfs_storage.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
@@ -18,6 +19,7 @@ class GtfsRemote {
       'https://raw.githubusercontent.com/thalis-ap/KtelTransitGtfs/main/regions/';
 
   static const String _prefKeyRegionHashes = 'gtfs_region_hashes';
+  static const String _prefKeyManifestJson = 'gtfs_manifest_json';
   static const String _prefKeyManifestVersion = 'gtfs_manifest_version';
   static const String _prefKeyRegionExtracted = 'gtfs_region_extracted';
 
@@ -91,15 +93,42 @@ class GtfsRemote {
     return RegionMetadata(hash: data['hash'] as String, size: data['size'] as int);
   }
 
-  /// Fetches the full manifest.json from the repository.
+  /// Fetches the manifest from the network and caches it locally.
   Future<Map<String, dynamic>?> getManifest() async {
     try {
       final response = await http.get(Uri.parse(_manifestUrl));
-
       if (response.statusCode != 200) return null;
-      return jsonDecode(response.body) as Map<String, dynamic>;
+
+      final jsonStr = response.body;
+
+      // Cache the raw JSON string so it's available offline next time
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefKeyManifestJson, jsonStr);
+
+      return jsonDecode(jsonStr) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('Error fetching manifest: $e');
+      return null;
+    }
+  }
+
+  /// Loads the most recently cached manifest from local storage.
+  Future<Map<String, dynamic>?> getCachedManifest() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(_prefKeyManifestJson);
+    if (jsonStr != null) {
+      return jsonDecode(jsonStr) as Map<String, dynamic>;
+    }
+    return null;
+  }
+
+  /// Loads the emergency fallback manifest bundled with the app.
+  Future<Map<String, dynamic>?> getFallbackManifest() async {
+    try {
+      final jsonStr = await rootBundle.loadString('assets/gtfs/manifest_fallback.json');
+      return jsonDecode(jsonStr) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('No fallback manifest found: $e');
       return null;
     }
   }
