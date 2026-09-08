@@ -33,19 +33,19 @@ class CompassConePainter extends CustomPainter {
 
     final path = Path();
 
-    // 1. Start at the left "shoulder" of the inner dot
+    // Start at the left "shoulder" of the inner dot
     path.moveTo(
       center.dx + innerRadius * math.cos(facingDir - innerHalfAngle),
       center.dy + innerRadius * math.sin(facingDir - innerHalfAngle),
     );
 
-    // 2. Draw a straight line out to the left outer edge of the cone
+    // Draw a straight line out to the left outer edge of the cone
     path.lineTo(
       center.dx + outerRadius * math.cos(facingDir - outerHalfAngle),
       center.dy + outerRadius * math.sin(facingDir - outerHalfAngle),
     );
 
-    // 3. Draw a smooth rounded arc along the top to the right side
+    // Draw a smooth rounded arc along the top to the right side
     path.arcTo(
       Rect.fromCircle(center: center, radius: outerRadius),
       facingDir - outerHalfAngle,
