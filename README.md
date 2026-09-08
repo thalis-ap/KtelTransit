@@ -108,8 +108,8 @@ lib/
  #### 1\. Clone the repository
 
 ```
-git clone https://github.com/your-username/ktel_transit.git
-cd ktel_transit
+git clone https://github.com/thalis-ap/KtelTransit.git
+cd KtelTransit
 ```
 
  #### 2\. Get dependencies
