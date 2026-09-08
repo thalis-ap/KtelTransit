@@ -88,7 +88,7 @@ class TicketsScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Coming soon',
+                    l10n.comingSoon,
                     style: context.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
