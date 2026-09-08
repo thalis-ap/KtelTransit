@@ -4,7 +4,6 @@ import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
-import 'package:ktel_transit/widgets/custom_loading_indicator.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
@@ -22,10 +21,6 @@ class RoutesScreen extends StatefulWidget {
 
 class _RoutesScreenState extends State<RoutesScreen> {
   final GtfsManager gtfsManager = GtfsManager();
-
-  // Data is already loaded in the repository, only change this var when
-  // changing regions, which means that data must be reloaded
-  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -45,27 +40,18 @@ class _RoutesScreenState extends State<RoutesScreen> {
               gtfsManager,
               beforeAction: () {},
               onSelectedAction: (Region region) {
-                // Set isLoading to true while the gtfs loads the data
-                setState(() {
-                  isLoading = true;
-                });
+                // Do not do anything here. Lets the region_loading_sheet.dart
+                // show up while presenting the old data. When loading is done,
+                // the new data will show up immediately
               },
-              // Set isLoading to false immediately after gtfs repo changed region.
-              // No need to call _loadData() here as gtfs repo has already loaded
-              // its new region's data since changeRegion() was called on it.
               afterAction: () {
-                setState(() {
-                  isLoading = false;
-                });
+                // Call setState to update the routes - for the new region
+                setState(() {});
               },
             ),
           ),
           Expanded(
-            child: isLoading
-                ? Center(
-                    child: CustomLoadingIndicator(message: l10n.loadingRoutes),
-                  )
-                : ListView.builder(
+            child: ListView.builder(
                     padding: const EdgeInsets.all(8.0),
                     itemCount: gtfsManager.repository.routes.length,
                     itemBuilder: (context, index) {
