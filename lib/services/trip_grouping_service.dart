@@ -77,8 +77,8 @@ class TripGroupingService {
     final active = <RoutingTrip>[];
 
     for (final trip in trips) {
-      // A trip is past if:
-      // 1. It has a bus component (transitTrip != null)
+      // A trip is past if (both must be true):
+      // 1. It has a bus component (transitTrip != null) AND
       // 2. Its calculated departure time is BEFORE the current time (now)
       if (trip.busTrip != null &&
           trip.getDepartureDateTime(now).compareTo(now) < 0) {

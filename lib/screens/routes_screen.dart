@@ -39,8 +39,8 @@ class _RoutesScreenState extends State<RoutesScreen> {
               context,
               gtfsManager,
               beforeAction: () {},
-              onSelectedAction: (Region region) {
-                // Do not do anything here. Lets the region_loading_sheet.dart
+              onSelectedAction: (Region _) {
+                // Do not do anything here. Let the region_loading_sheet.dart
                 // show up while presenting the old data. When loading is done,
                 // the new data will show up immediately
               },
@@ -147,7 +147,7 @@ class _DirectionSectionState extends State<DirectionSection> {
     if (widget.trips.isEmpty) return const SizedBox.shrink();
     if (_selectedTrip == null) return const SizedBox.shrink();
 
-    // ----- 1. Get stops for the selected trip (ordered) -----
+    // ----- Get stops for the selected trip (ordered) -----
     final tripStops = widget.repository.stopTimes
         .where((st) => st.tripId == _selectedTrip!.tripId)
         .toList();
@@ -175,7 +175,7 @@ class _DirectionSectionState extends State<DirectionSection> {
         .whereType<Stop>()
         .toList();
 
-    // ----- 2. Build the list of departure times (chips) grouped by days -----
+    // ----- Build the list of departure times (chips) grouped by days -----
     // We'll create a list of objects: (trip, dayString, timeString)
     final List<MapEntry<Trip, String>> entries = [];
     for (final trip in widget.trips) {
@@ -267,7 +267,7 @@ class _DirectionSectionState extends State<DirectionSection> {
       );
     }
 
-    // ----- 3. Build the full section -----
+    // ----- Build the full section -----
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Column(

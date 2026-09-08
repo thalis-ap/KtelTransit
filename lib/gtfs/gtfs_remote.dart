@@ -12,9 +12,11 @@ import '../models/region.dart';
 class GtfsRemote {
   final GtfsStorage _storage = GtfsStorage();
 
+  /// The main manifest - source of truth, url
   static const String _manifestUrl =
       'https://raw.githubusercontent.com/thalis-ap/KtelTransitGtfs/main/manifest.json';
 
+  /// Base url for a region path
   static const String _regionBaseUrl =
       'https://raw.githubusercontent.com/thalis-ap/KtelTransitGtfs/main/regions/';
 
@@ -23,9 +25,12 @@ class GtfsRemote {
   static const String _prefKeyManifestVersion = 'gtfs_manifest_version';
   static const String _prefKeyRegionExtracted = 'gtfs_region_extracted';
 
+
   // ----- Public Methods -----
 
   /// Checks if the remote manifest has a newer version than the locally stored one.
+  /// This function does not initiate updates, but rather returns true/false
+  /// if there are/aren't new data.
   Future<bool> checkForUpdates() async {
     try {
       final manifest = await getManifest();
@@ -43,6 +48,9 @@ class GtfsRemote {
     }
   }
 
+  /// Returns a list of region ids which must be updated. This means that their
+  /// remote hash fetched from the manifest is different from the locally stored
+  /// one.
   Future<List<String>> getRegionsThatNeedUpdate() async {
     try {
       final manifest = await getManifest();
@@ -75,6 +83,7 @@ class GtfsRemote {
     }
   }
 
+  /// This function returns the region that a given manifest contains
   List<Region> getAvailableRegionsFromManifest(Map<String, dynamic> manifest) {
     final regions = manifest['regions'] as Map<String, dynamic>?;
     if (regions == null) return [];
@@ -294,11 +303,11 @@ class GtfsRemote {
   /// - If extraction fails or zip is missing, deletes the region and re‑downloads + extracts.
   /// Returns `RegionErrorCode.none` on success, or the first error encountered.
   Future<RegionErrorCode> repairRegion(String regionId) async {
-    // Step 1: Check if zip exists
+    // Check if zip exists
     final zipExists = await _storage.zipExists(regionId);
 
     if (zipExists) {
-      // Step 2: Try to extract the existing zip
+      // Try to extract the existing zip
       final extractError = await extractRegionZip(regionId);
       if (extractError == RegionErrorCode.none) {
         return RegionErrorCode.none; // Repair succeeded
@@ -307,7 +316,7 @@ class GtfsRemote {
       debugPrint('Extraction failed during repair for $regionId: $extractError');
     }
 
-    // Step 3: Full re-download and extract
+    // Full re-download and extract
     debugPrint('Re-downloading region $regionId for repair');
 
     // Delete existing region files to start fresh

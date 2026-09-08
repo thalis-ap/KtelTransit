@@ -51,30 +51,6 @@ class RegionLoadResult {
     );
   }
 
-  factory RegionLoadResult.network({String? errorMessage}) {
-    return RegionLoadResult(
-      success: false,
-      errorCode: RegionErrorCode.network,
-      errorMessage: errorMessage,
-    );
-  }
-
-  factory RegionLoadResult.downloadFailed({String? errorMessage}) {
-    return RegionLoadResult(
-      success: false,
-      errorCode: RegionErrorCode.downloadFailed,
-      errorMessage: errorMessage,
-    );
-  }
-
-  factory RegionLoadResult.extractionFailed({String? errorMessage}) {
-    return RegionLoadResult(
-      success: false,
-      errorCode: RegionErrorCode.extractionFailed,
-      errorMessage: errorMessage,
-    );
-  }
-
   factory RegionLoadResult.missingFiles({String? errorMessage}) {
     return RegionLoadResult(
       success: false,
@@ -91,15 +67,7 @@ class RegionLoadResult {
     );
   }
 
-  factory RegionLoadResult.storageFull({String? errorMessage}) {
-    return RegionLoadResult(
-      success: false,
-      errorCode: RegionErrorCode.storageFull,
-      errorMessage: errorMessage,
-    );
-  }
-
-  factory RegionLoadResult.unknown({String? errorMessage}) {
+  factory RegionLoadResult.unknownError({String? errorMessage}) {
     return RegionLoadResult(
       success: false,
       errorCode: RegionErrorCode.unknown,
@@ -252,7 +220,7 @@ class RegionUtils {
 
 
       // Change the region (which automatically commands the map to fly there)
-      res = await gtfsManager.changeRegion(selectedRegion);
+      res = await gtfsManager.changeRegion(selectedRegion.id);
     }
 
     afterAction?.call();

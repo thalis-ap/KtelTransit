@@ -1,5 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
+// TODO We should probably merge RegionMetadata with Region since we are loading regions from remote manifest (a manifest in general) that contains hash + size attr
 class RegionMetadata {
   final String hash;
   final int size;
