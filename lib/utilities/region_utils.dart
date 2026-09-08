@@ -12,6 +12,7 @@ enum RegionState {
   loading, // Loading GTFS files into repository
   ready, // Data loaded and ready
   error, // Something went wrong
+  deleting, // Region is being deleted
 }
 
 enum RegionErrorCode {
@@ -196,7 +197,7 @@ class RegionStatus {
       isExtracted: isExtracted ?? this.isExtracted,
       isCorrupted: isCorrupted ?? this.isCorrupted,
       isReady: isReady ?? this.isReady,
-      lastUpdated: lastUpdated ?? DateTime.now(),
+      lastUpdated: lastUpdated ?? this.lastUpdated,
       errorCode: errorCode ?? this.errorCode,
     );
   }
