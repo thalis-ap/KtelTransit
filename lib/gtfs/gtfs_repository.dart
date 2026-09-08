@@ -6,7 +6,6 @@ import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/models/route.dart';
 import 'package:ktel_transit/models/stop_time.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
-import '../models/region.dart';
 import '../services/fare_service.dart';
 
 /// Pure data container for GTFS data.
