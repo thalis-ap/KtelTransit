@@ -19,21 +19,29 @@
 
  ## 🗺️ Screenshots
 
- Place screenshots here, for example:
+### Home
 
- - Home / map screen
-- Trip list
-- Route details
-- Settings
-- Region picker
+![Home screen](screenshots/home.jpg)
 
-```
-screenshots/
-├── home.png
-├── trips.png
-├── route_details.png
-└── settings.png
-```
+### Trips
+
+![Trip list](screenshots/trips.jpg)
+
+### Route Details
+
+![Route details](screenshots/route_details.jpg)
+
+### Routes
+
+![Routes](screenshots/routes.jpg)
+
+### Destination Search
+
+![Destination search](screenshots/destination_search.jpg)
+
+### Settings
+
+![Settings](screenshots/settings.jpg)
 
  ## 🛠️ Tech Stack
 
