@@ -40,21 +40,3 @@ class Region {
     );
   }
 }
-
-// To add a new region, simply add it in the following list - id is unique
-const List<Region> availableRegions = [
-  Region(
-    id: 'lefkada',
-    name: 'Λευκάδα',
-    englishName: 'Lefkada',
-    center: LatLng(38.718520, 20.654077),
-    defaultZoom: 10.5,
-  ),
-  Region(
-    id: 'kefalonia',
-    name: 'Κεφαλονιά',
-    englishName: 'Kefalonia',
-    center: LatLng(38.254425, 20.566609),
-    defaultZoom: 10.0,
-  ),
-];
