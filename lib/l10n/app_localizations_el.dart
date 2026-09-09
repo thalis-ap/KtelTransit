@@ -654,4 +654,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String deletingRegion(String region) {
     return 'Διαγραφή περιοχής $region...';
   }
+
+  @override
+  String get changingLanguage => 'Αλλαγή γλώσσας...';
 }

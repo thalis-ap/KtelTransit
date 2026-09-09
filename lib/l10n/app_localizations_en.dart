@@ -646,4 +646,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String deletingRegion(String region) {
     return 'Deleting region $region...';
   }
+
+  @override
+  String get changingLanguage => 'Changing language...';
 }

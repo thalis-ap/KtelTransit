@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import '../l10n/app_localizations.dart';
 import '../services/settings_service.dart';
 
@@ -92,9 +93,10 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 child: RadioGroup<String>(
                   groupValue: settingsController.locale.languageCode,
-                  onChanged: (val) {
+                  onChanged: (val) async  {
                     if (val != null) {
-                      settingsController.updateLocale(Locale(val));
+                      await settingsController.updateLocale(Locale(val));
+                      await GtfsManager().changeRegionLocale(val);
                     }
                   },
                   child: Column(

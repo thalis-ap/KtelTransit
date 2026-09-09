@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 import 'package:ktel_transit/gtfs/gtfs_local.dart';
 import 'package:ktel_transit/gtfs/gtfs_remote.dart';
 import 'package:ktel_transit/gtfs/gtfs_repository.dart';
@@ -312,10 +310,11 @@ class GtfsManager {
       // region happens to already be in flight — we'll just await it
       // instead of racing a second download/extract on the same files.
       if (!regionStatus.isDownloaded || forceRefresh) {
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
             forceRefresh ? "Forcing a refresh!" : "Its NOT downloaded!",
           );
+        }
 
         // We are interested in syncing the current region so foreground must be true
         final errorCode = await _syncRegion(regionId, foreground: true);
@@ -333,7 +332,7 @@ class GtfsManager {
       // If region is downloaded but not extracted (e.g. a previous
       // extraction was interrupted), extract without re-downloading.
       if (!regionStatus.isExtracted) {
-        print("Its downloaded but NOT extracted!");
+        if (kDebugMode) debugPrint("Its downloaded but NOT extracted!");
 
         // We are interested in syncing the current region so foreground must be true
         final errorCode = await _syncRegion(
@@ -399,6 +398,28 @@ class GtfsManager {
       currentRegionNotifier.value = null;
       await RegionUtils.deleteSavedRegion();
     }
+  }
+
+  /// This function re-loads the current region (whose status is ready) so that
+  /// it can pickup the new locale chosen from the user in the settings menu
+  /// This is done so as not to make the user have to restart the app to get the
+  /// new locale.
+  Future<RegionLoadResult> changeRegionLocale(String newLanguageCode) async {
+    if (currentRegion == null) return RegionLoadResult.unknownError();
+    // Set state to 'changing locale'
+    stateNotifier.value = RegionState.changingLocale;
+    // Add a small delay to present the user the loading sheet
+    await Future.delayed(Duration(seconds: 1));
+    final regionPath = await _storage.getRegionPath(currentRegion!.id);
+    final res = await _local.loadFromPath(regionPath, repository, languageCode: newLanguageCode);
+
+    stateNotifier.value = res.isSuccess
+        ? RegionState.ready
+        : RegionState.error;
+
+    _lastLoadResult = res;
+
+    return res;
   }
 
   // Updates

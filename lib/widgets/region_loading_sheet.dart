@@ -87,6 +87,10 @@ class RegionLoadingBottomSheet extends StatelessWidget {
               text = l10n.deletingRegion(regionName);
               color = colorScheme.error;
               break;
+            case RegionState.changingLocale:
+              icon = Icons.language;
+              text = l10n.changingLanguage;
+              break;
             default:
               icon = Icons.hourglass_empty;
               text = l10n.loadingRegion(regionName);

@@ -1219,6 +1219,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Διαγραφή περιοχής {region}...'**
   String deletingRegion(String region);
+
+  /// No description provided for @changingLanguage.
+  ///
+  /// In el, this message translates to:
+  /// **'Αλλαγή γλώσσας...'**
+  String get changingLanguage;
 }
 
 class _AppLocalizationsDelegate

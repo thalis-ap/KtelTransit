@@ -13,6 +13,7 @@ enum RegionState {
   ready, // Data loaded and ready
   error, // Something went wrong
   deleting, // Region is being deleted
+  changingLocale, // Changing locale for the current region
 }
 
 enum RegionErrorCode {

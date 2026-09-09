@@ -286,6 +286,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "changingLanguage": "Changing language..."
+
 
 }
