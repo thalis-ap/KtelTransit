@@ -1,2 +1,0 @@
-agency_id,agency_name,agency_url,agency_timezone
-KTEL-KEF,KTEL Kefalonias,https://ktelkefalonias.gr,Europe/Athens

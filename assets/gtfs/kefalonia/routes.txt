@@ -1,3 +1,0 @@
-route_id,agency_id,route_short_name,route_long_name,route_type
-R-SAM,KTEL-KEF,ΚΕΦ-ΣΑΜ,Αργοστόλι - Σάμη,3
-R-ASS,KTEL-KEF,ΚΕΦ-ΑΣΣ,Αργοστόλι - Άσσος,3

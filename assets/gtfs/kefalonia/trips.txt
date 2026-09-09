@@ -1,5 +1,0 @@
-route_id,service_id,trip_id,trip_headsign,direction_id
-R-SAM,WEEKDAY,T-SAM-OUT-1,Σάμη,0
-R-SAM,WEEKDAY,T-SAM-IN-1,Αργοστόλι,1
-R-ASS,EVERYDAY,T-ASS-OUT-1,Άσσος,0
-R-ASS,EVERYDAY,T-ASS-IN-1,Αργοστόλι,1
