@@ -164,7 +164,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       RegionLoadResult loadResult = await gtfsManager.loadRegion(regionId);
       if (loadResult.isSuccess) {
-
       } else {
         // TODO: Handle other cases (snackbars)
       }
@@ -1184,6 +1183,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       _onSetDestinationPoint(selectedMapPoint!);
                     },
                     onClose: _closeDroppedPinSheet,
+                    onStopPressed: (s) {
+                      // If a stop is pressed make sure the dropped pin sheet has
+                      // animated to the middle and then open the stop sheet
+                      // This way the user can either select an option from the
+                      // stop sheet or close it and get back going with the
+                      // dropped pin sheet (where they left of)
+                      _sheetManager.animateTo(SheetKeys.droppedPin, SheetSizes.middle);
+                      _showStopSheet(s);
+                    },
                   )
                 : null,
             sheetName,

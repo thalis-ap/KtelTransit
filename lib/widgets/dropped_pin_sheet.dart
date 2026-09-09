@@ -35,6 +35,9 @@ class DroppedPinSheet extends StatefulWidget {
   final VoidCallback onClose;
   final DraggableScrollableController controller;
 
+  // Fired when a near stop shown is pressed
+  final Function(Stop s)? onStopPressed;
+
   const DroppedPinSheet({
     super.key,
     required this.mapPoint,
@@ -43,6 +46,7 @@ class DroppedPinSheet extends StatefulWidget {
     required this.onSetStart,
     required this.onSetDestination,
     required this.onClose,
+    this.onStopPressed,
   });
 
   @override
@@ -300,70 +304,73 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
               ? "${(distance / 1000).toStringAsFixed(1)} km"
               : "${distance.toInt()} m";
 
-          return Card(
-            margin: const EdgeInsets.only(bottom: 8.0),
-            elevation: 0,
-            color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 2.0,
+          return GestureDetector(
+            onTap: () => widget.onStopPressed?.call(stop),
+            child: Card(
+              margin: const EdgeInsets.only(bottom: 8.0),
+              elevation: 0,
+              color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              leading: CircleAvatar(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                child: const Icon(Icons.directions_bus, size: 20),
-              ),
-              title: Text(
-                stop.name,
-                style: context.textTheme.labelLarge,
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    isLoading || errored ? "~ $distanceText" : distanceText,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 2.0,
+                ),
+                leading: CircleAvatar(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  child: const Icon(Icons.directions_bus, size: 20),
+                ),
+                title: Text(
+                  stop.name,
+                  style: context.textTheme.labelLarge,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isLoading || errored ? "~ $distanceText" : distanceText,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
-                  ),
 
-                  if (errored)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.error_outline,
-                            color: Theme.of(context).colorScheme.error,
-                            size: 20,
+                    if (errored)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.error_outline,
+                              color: Theme.of(context).colorScheme.error,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              // Call the dialog and pass the stop name!
+                              _showErroredStopDialog(index);
+                            },
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            visualDensity: VisualDensity.compact,
                           ),
-                          onPressed: () {
-                            // Call the dialog and pass the stop name!
-                            _showErroredStopDialog(index);
-                          },
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          visualDensity: VisualDensity.compact,
+                        ),
+                      )
+                    else if (isLoading)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                    )
-                  else if (isLoading)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
