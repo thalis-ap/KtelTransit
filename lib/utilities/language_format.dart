@@ -30,6 +30,7 @@ class LanguageFormat {
 
   /// Converts a Greek string to Greeklish (Latin script).
   /// Handles digraphs (μπ, ντ, etc.) and the αυ/ευ voicing rule.
+  /// Preserves the case of each original letter (not just the first one).
   static String toGreeklish(String input) {
     if (input.isEmpty) return input;
 
@@ -37,83 +38,108 @@ class LanguageFormat {
     input = removeTonous(input);
 
     final buffer = StringBuffer();
-    final chars = input.toLowerCase().split('');
+    final chars = input.split('');            // original case, for output
+    final lower = input.toLowerCase().split(''); // lowercase, for lookups only
+    final length = chars.length;
     int i = 0;
 
-    // Helper to check if a letter is a voiceless consonant.
+    bool hasCase(String c) => c.toLowerCase() != c.toUpperCase();
+    bool isUpper(String c) => hasCase(c) && c == c.toUpperCase();
+
+    // Applies the case of a single source letter to a single mapped letter.
+    String applyCase(String source, String mappedChar) =>
+        isUpper(source) ? mappedChar.toUpperCase() : mappedChar;
+
+    // Helper to check if a (lowercase) letter is a voiceless consonant.
     bool isVoiceless(String c) => 'κπτσφχθξψ'.contains(c);
 
-    while (i < chars.length) {
-      // Check for two-letter combinations (digraphs) that should be handled first.
-      if (i + 1 < chars.length) {
-        final two = chars[i] + chars[i + 1];
+    while (i < length) {
+      final cOrig = chars[i];
+      final cLower = lower[i];
+
+      // Check for two-letter combinations (digraphs) first.
+      if (i + 1 < length) {
+        final c0 = chars[i];
+        final c1 = chars[i + 1];
+        final twoLower = cLower + lower[i + 1];
 
         // Special handling for αυ and ευ with context.
-        if (two == 'αυ' || two == 'ευ') {
-          // Look ahead to the next character after the digraph.
-          final next = (i + 2 < chars.length) ? chars[i + 2] : null;
-          // Determine if the following consonant is voiceless.
-          final isVoiced = (next != null && !isVoiceless(next)) || next == null || 'αειου'.contains(next);
-          // Choose v or f.
-          final v = isVoiced ? 'v' : 'f';
-          final prefix = (two == 'αυ') ? 'a' : 'e';
-          buffer.write('$prefix$v');
+        if (twoLower == 'αυ' || twoLower == 'ευ') {
+          final nextLower = (i + 2 < length) ? lower[i + 2] : null;
+          final isVoiced = (nextLower != null && !isVoiceless(nextLower)) ||
+              nextLower == null ||
+              'αειου'.contains(nextLower);
+          final voiceLetter = isVoiced ? 'v' : 'f';
+          final prefixLetter = (twoLower == 'αυ') ? 'a' : 'e';
+          buffer.write(applyCase(c0, prefixLetter));
+          buffer.write(applyCase(c1, voiceLetter));
           i += 2;
           continue;
         }
 
-        // Other digraphs (unchanged).
-        switch (two) {
+        // Other digraphs — case of each output letter follows its own source letter,
+        // matching real Greek convention (e.g. "Ντίνος" -> "Ntinos", "ΝΤΙΝΟΣ" -> "NTINOS").
+        String? mappedTwo;
+        switch (twoLower) {
           case 'μπ':
-          // At the start of a word, it's often just 'b', but we keep 'mp' for simplicity.
-          // (You can add a special case for word start if desired.)
-            buffer.write('mp');
-            i += 2;
-            continue;
+            mappedTwo = 'mp';
+            break;
           case 'ντ':
-            buffer.write('nt');
-            i += 2;
-            continue;
+            mappedTwo = 'nt';
+            break;
           case 'γκ':
-            buffer.write('gk');
-            i += 2;
-            continue;
+            mappedTwo = 'gk';
+            break;
           case 'γγ':
-            buffer.write('ng');
-            i += 2;
-            continue;
+            mappedTwo = 'ng';
+            break;
           case 'τζ':
-            buffer.write('tz');
-            i += 2;
-            continue;
+            mappedTwo = 'tz';
+            break;
           case 'τσ':
-            buffer.write('ts');
-            i += 2;
-            continue;
+            mappedTwo = 'ts';
+            break;
           case 'ου':
-            buffer.write('ou');
-            i += 2;
-            continue;
+            mappedTwo = 'ou';
+            break;
+        }
+        if (mappedTwo != null) {
+          buffer.write(applyCase(c0, mappedTwo[0]));
+          buffer.write(applyCase(c1, mappedTwo[1]));
+          i += 2;
+          continue;
         }
       }
 
       // Single character mapping.
-      final char = chars[i];
-      final mapped = _singleCharMap[char];
-      if (mapped != null) {
-        buffer.write(mapped);
+      final mapped = _singleCharMap[cLower];
+      if (mapped == null) {
+        buffer.write(cOrig); // Keep non-Greek characters, already in original case.
+      } else if (mapped.length == 1) {
+        buffer.write(applyCase(cOrig, mapped));
       } else {
-        buffer.write(char); // Keep non-Greek characters.
+        // θ/χ/ψ: one Greek letter -> two Latin letters, so there's no second
+        // source letter to borrow case from. Decide "Th" vs "TH" by looking at
+        // the neighboring letters: if we're clearly inside an ALL-CAPS run,
+        // uppercase both letters; otherwise treat it as a lone capital (title
+        // case) and only capitalize the first one.
+        if (!isUpper(cOrig)) {
+          buffer.write(mapped);
+        } else {
+          final nextOrig = (i + 1 < length) ? chars[i + 1] : null;
+          final prevOrig = (i - 1 >= 0) ? chars[i - 1] : null;
+          final bool fullyUpper = (nextOrig != null && hasCase(nextOrig))
+              ? isUpper(nextOrig)
+              : (prevOrig != null && isUpper(prevOrig));
+          buffer.write(fullyUpper
+              ? mapped.toUpperCase()
+              : mapped[0].toUpperCase() + mapped.substring(1));
+        }
       }
       i++;
     }
 
-    String result = buffer.toString();
-    // Preserve case of the first letter.
-    if (input.isNotEmpty && input[0] == input[0].toUpperCase()) {
-      result = result[0].toUpperCase() + result.substring(1);
-    }
-    return result;
+    return buffer.toString();
   }
 
   /// Removes tonous from greek text
