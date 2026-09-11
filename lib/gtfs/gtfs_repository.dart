@@ -6,6 +6,7 @@ import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/models/route.dart';
 import 'package:ktel_transit/models/stop_time.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
+import '../models/calendar_date.dart';
 import '../services/fare_service.dart';
 
 /// Pure data container for GTFS data.
@@ -24,6 +25,7 @@ class GtfsRepository {
   List<Trip> trips = [];
   List<StopTime> stopTimes = [];
   List<Calendar> calendars = [];
+  List<CalendarDate> calendarDates = [];
 
   // ---- Indexes ----
   Map<String, List<StopTime>> _stopTimesByStopId = {};
@@ -31,6 +33,7 @@ class GtfsRepository {
   Map<String, Trip> _tripsById = {};
   Map<String, Route> _routesById = {};
   Map<String, Stop> _stopsById = {};
+  Map<int, List<CalendarDate>> _calendarDatesByDate = {};
 
   /// Clears all data and indexes.
   void clear() {
@@ -39,18 +42,23 @@ class GtfsRepository {
     trips.clear();
     stopTimes.clear();
     calendars.clear();
+    calendarDates.clear();
     _stopTimesByStopId = {};
     _stopTimesByTripId = {};
     _tripsById = {};
     _routesById = {};
     _stopsById = {};
+    _calendarDatesByDate = {};
   }
 
   /// Builds indexes from current data.
   /// Must be called after data is loaded.
   void buildIndexes() {
+    // Empty the maps before populating them with new data
     _stopTimesByStopId = {};
     _stopTimesByTripId = {};
+    _calendarDatesByDate = {};
+
     for (final st in stopTimes) {
       _stopTimesByStopId.putIfAbsent(st.stopId, () => []).add(st);
       _stopTimesByTripId.putIfAbsent(st.tripId, () => []).add(st);
@@ -58,6 +66,13 @@ class GtfsRepository {
     _tripsById = {for (final t in trips) t.tripId: t};
     _routesById = {for (final r in routes) r.routeId: r};
     _stopsById = {for (final s in stops) s.stopId: s};
+
+    for (final cd in calendarDates) {
+      final int dateInt = int.tryParse(cd.date) ?? 0;
+      if (dateInt > 0) {
+        _calendarDatesByDate.putIfAbsent(dateInt, () => []).add(cd);
+      }
+    }
   }
 
   // ---- Query Methods ----
@@ -379,15 +394,16 @@ class GtfsRepository {
   }
 
 
-
   List<String> _getServiceIds(DateTime targetDateTime) {
-    final List<String> activeServiceIds = [];
+    // Changed to a Set to naturally handle duplicates
+    final Set<String> activeServiceIds = {};
 
     final int targetDateInt =
         targetDateTime.year * 10000 +
             targetDateTime.month * 100 +
             targetDateTime.day;
 
+    // Process regular calendar schedules (if any)
     for (final calendar in calendars) {
       try {
         final int startDate = int.parse(calendar.startDate);
@@ -430,6 +446,18 @@ class GtfsRepository {
       }
     }
 
-    return activeServiceIds;
+    // Process exceptions for this specific date
+    final List<CalendarDate> exceptions = _calendarDatesByDate[targetDateInt] ?? [];
+    for (final exception in exceptions) {
+      if (exception.exceptionType == 1) {
+        // Service has been added for this specific date
+        activeServiceIds.add(exception.serviceId);
+      } else if (exception.exceptionType == 2) {
+        // Service has been removed for this specific date
+        activeServiceIds.remove(exception.serviceId);
+      }
+    }
+
+    return activeServiceIds.toList();
   }
 }

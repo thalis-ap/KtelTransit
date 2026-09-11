@@ -6,6 +6,7 @@ import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/calendar.dart';
+import '../models/calendar_date.dart';
 import '../models/stop.dart';
 import '../models/route.dart';
 import '../models/stop_time.dart';
@@ -32,6 +33,7 @@ class GtfsLocal {
       final List<Trip> tempTrips = [];
       final List<StopTime> tempStopTimes = [];
       final List<Calendar> tempCalendars = [];
+      final List<CalendarDate> tempCalendarDates = [];
 
       // Load translations (if exists)
       final translations = await _loadTranslations(regionPath, languageCode);
@@ -43,6 +45,7 @@ class GtfsLocal {
         _loadTrips(regionPath, tempTrips),
         _loadStopTimes(regionPath, tempStopTimes),
         _loadCalendar(regionPath, tempCalendars),
+        _loadCalendarDates(regionPath, tempCalendarDates),
       ]);
 
       if (results.every((res) => res.isSuccess)) {
@@ -53,6 +56,7 @@ class GtfsLocal {
         repository.trips = tempTrips;
         repository.stopTimes = tempStopTimes;
         repository.calendars = tempCalendars;
+        repository.calendarDates = tempCalendarDates;
 
         // Build indexes - this is required for performance
         repository.buildIndexes();
@@ -406,6 +410,53 @@ class GtfsLocal {
           sunday: sunday,
           startDate: startDate,
           endDate: endDate,
+        ),
+      );
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadCalendarDates(
+      String regionPath,
+      List<CalendarDate> outCalendarDates,
+      ) async {
+    final filePath = '$regionPath/calendar_dates.txt';
+    final file = File(filePath);
+
+    // This file is optional according to GTFS specs.
+    // If it doesn't exist, we just return success and leave the list empty.
+    if (!await file.exists()) return RegionLoadResult.success();
+
+    final content = await file.readAsString();
+    final rows = csv.decode(content);
+    if (rows.isEmpty) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    final serviceIdIdx = headers['service_id'];
+    final dateIdx = headers['date'];
+    final exceptionTypeIdx = headers['exception_type'];
+
+    if (serviceIdIdx == null || dateIdx == null || exceptionTypeIdx == null) {
+      debugPrint('calendar_dates.txt missing required columns');
+      return RegionLoadResult.parsingFailed();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (row.isEmpty || row.length < 3) continue;
+
+      final serviceId = row[serviceIdIdx].toString();
+      final date = row[dateIdx].toString();
+      final exceptionType = int.tryParse(row[exceptionTypeIdx].toString()) ?? 1;
+
+      outCalendarDates.add(
+        CalendarDate(
+          serviceId: serviceId,
+          date: date,
+          exceptionType: exceptionType,
         ),
       );
     }
