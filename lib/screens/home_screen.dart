@@ -558,6 +558,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Runs each time the user switches to a different (non-null) region,
   /// through the drawer, delegates, etc.
   void _onRegionChanged(Region region) {
+    // Close all sheets first
+    _closeStopSheet();
+    _closeDroppedPinSheet();
+    _closeTripInfoSheet();
+
     // Only animate if the map is ready
     if (isMapReady) {
       _mapMovementService.animatedMove(region.center, region.defaultZoom);
