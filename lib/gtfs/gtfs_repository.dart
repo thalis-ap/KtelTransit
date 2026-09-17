@@ -1,3 +1,4 @@
+import 'package:ktel_transit/models/agency.dart';
 import 'package:ktel_transit/models/calendar.dart';
 import 'package:ktel_transit/models/departure.dart';
 import 'package:ktel_transit/models/bus_trip.dart';
@@ -20,6 +21,7 @@ class GtfsRepository {
   GtfsRepository._internal();
 
   // ---- Data Lists (already translated) ----
+  List<Agency> agencies = [];
   List<Stop> stops = [];
   List<Route> routes = [];
   List<Trip> trips = [];
@@ -37,6 +39,7 @@ class GtfsRepository {
 
   /// Clears all data and indexes.
   void clear() {
+    agencies.clear();
     stops.clear();
     routes.clear();
     trips.clear();
@@ -54,10 +57,11 @@ class GtfsRepository {
   /// Builds indexes from current data.
   /// Must be called after data is loaded.
   void buildIndexes() {
-    // Empty the maps before populating them with new data
+    // Empty the maps before populating them with new data)
     _stopTimesByStopId = {};
     _stopTimesByTripId = {};
     _calendarDatesByDate = {};
+
 
     for (final st in stopTimes) {
       _stopTimesByStopId.putIfAbsent(st.stopId, () => []).add(st);

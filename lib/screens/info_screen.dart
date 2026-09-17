@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:ktel_transit/utilities/launcher_utils.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/services/version_service.dart';
 
 class InfoScreen extends StatelessWidget {
   const InfoScreen({super.key});
-
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +182,7 @@ class InfoScreen extends StatelessWidget {
 
                   // GitHub Link
                   InkWell(
-                    onTap: () => _launchUrl('https://github.com/thalis-ap/KtelTransit'),
+                    onTap: () => LauncherUtils.launchWebSite('https://github.com/thalis-ap/KtelTransit'),
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
