@@ -649,4 +649,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changingLanguage => 'Changing language...';
+
+  @override
+  String get agency_info_title => 'Agency Information';
+
+  @override
+  String get agency_contact_title => 'Contact Details';
+
+  @override
+  String get agency_links_title => 'Websites & Fares';
+
+  @override
+  String get agency_phone => 'Phone Number';
+
+  @override
+  String get agency_email => 'Email Address';
+
+  @override
+  String get agency_website => 'Official Website';
+
+  @override
+  String get agency_fare_website => 'Tickets & Fares';
+
+  @override
+  String get agency_no_contact_info =>
+      'No contact information provided by the agency.';
 }

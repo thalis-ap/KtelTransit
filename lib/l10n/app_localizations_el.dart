@@ -657,4 +657,29 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get changingLanguage => 'Αλλαγή γλώσσας...';
+
+  @override
+  String get agency_info_title => 'Πληροφορίες Πρακτορείου';
+
+  @override
+  String get agency_contact_title => 'Στοιχεία Επικοινωνίας';
+
+  @override
+  String get agency_links_title => 'Ιστοσελίδες & Εισιτήρια';
+
+  @override
+  String get agency_phone => 'Τηλέφωνο';
+
+  @override
+  String get agency_email => 'Email';
+
+  @override
+  String get agency_website => 'Επίσημη Ιστοσελίδα';
+
+  @override
+  String get agency_fare_website => 'Εισιτήρια & Τιμές';
+
+  @override
+  String get agency_no_contact_info =>
+      'Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.';
 }

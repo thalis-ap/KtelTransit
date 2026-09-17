@@ -287,7 +287,15 @@
       }
     }
   },
-  "changingLanguage": "Changing language..."
+  "changingLanguage": "Changing language...",
+  "agency_info_title": "Agency Information",
+  "agency_contact_title": "Contact Details",
+  "agency_links_title": "Websites & Fares",
+  "agency_phone": "Phone Number",
+  "agency_email": "Email Address",
+  "agency_website": "Official Website",
+  "agency_fare_website": "Tickets & Fares",
+  "agency_no_contact_info": "No contact information provided by the agency."
 
 
 }

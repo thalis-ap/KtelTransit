@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
+import 'package:ktel_transit/screens/agency_info_screen.dart';
 import 'package:ktel_transit/screens/announcements_screen.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -66,6 +67,17 @@ class SideDrawer extends StatelessWidget {
                     navigator.popUntil((route) => route.isFirst);
                   }
                 ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.mail_outline),
+            title: Text(l10n.info_contact),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AgencyInfoScreen()),
               );
             },
           ),

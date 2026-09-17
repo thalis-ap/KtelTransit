@@ -1225,6 +1225,54 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Αλλαγή γλώσσας...'**
   String get changingLanguage;
+
+  /// No description provided for @agency_info_title.
+  ///
+  /// In el, this message translates to:
+  /// **'Πληροφορίες Πρακτορείου'**
+  String get agency_info_title;
+
+  /// No description provided for @agency_contact_title.
+  ///
+  /// In el, this message translates to:
+  /// **'Στοιχεία Επικοινωνίας'**
+  String get agency_contact_title;
+
+  /// No description provided for @agency_links_title.
+  ///
+  /// In el, this message translates to:
+  /// **'Ιστοσελίδες & Εισιτήρια'**
+  String get agency_links_title;
+
+  /// No description provided for @agency_phone.
+  ///
+  /// In el, this message translates to:
+  /// **'Τηλέφωνο'**
+  String get agency_phone;
+
+  /// No description provided for @agency_email.
+  ///
+  /// In el, this message translates to:
+  /// **'Email'**
+  String get agency_email;
+
+  /// No description provided for @agency_website.
+  ///
+  /// In el, this message translates to:
+  /// **'Επίσημη Ιστοσελίδα'**
+  String get agency_website;
+
+  /// No description provided for @agency_fare_website.
+  ///
+  /// In el, this message translates to:
+  /// **'Εισιτήρια & Τιμές'**
+  String get agency_fare_website;
+
+  /// No description provided for @agency_no_contact_info.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.'**
+  String get agency_no_contact_info;
 }
 
 class _AppLocalizationsDelegate
