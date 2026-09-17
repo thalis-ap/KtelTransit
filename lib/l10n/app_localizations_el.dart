@@ -682,4 +682,10 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get agency_no_contact_info =>
       'Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.';
+
+  @override
+  String get wheelchairAccessible => 'Προσβάσιμη με αμαξίδιο';
+
+  @override
+  String get wheelchairNotAccessible => 'Μη προσβάσιμη με αμαξίδιο';
 }

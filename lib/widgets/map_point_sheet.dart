@@ -19,6 +19,10 @@ class MapPointSheet extends StatelessWidget {
   final VoidCallback onClose;
   final DraggableScrollableController controller;
 
+  // This will be used for cases, such as when showing extra info for stops
+  final List<Widget> rightTitleWidgets; // right of the title
+  final List<Widget> underTitleWidgets; // below title
+
   // This will be used for special cases, such as when showing the name of a
   // map point, to show extra widgets, e.g. loading indicator
   final List<Widget> followUpWidgets;
@@ -31,8 +35,18 @@ class MapPointSheet extends StatelessWidget {
     required this.onSetStart,
     required this.onSetDestination,
     required this.onClose,
+    this.rightTitleWidgets = const [],
+    this.underTitleWidgets = const [],
     this.followUpWidgets = const [],
   });
+
+  List<Widget> buildRightTitleWidgets(BuildContext context) {
+    return [];
+  }
+
+  List<Widget> buildUnderTitleWidgets(BuildContext context) {
+    return [];
+  }
 
   /// This function will draw the follow up widgets after the base ones (the
   /// base ones are: title, onSetStart/Dest buttons, grey handle).
@@ -70,7 +84,9 @@ class MapPointSheet extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
               boxShadow: const [BoxShadow(blurRadius: 16, spreadRadius: 2)],
             ),
             child: SingleChildScrollView(
@@ -97,11 +113,19 @@ class MapPointSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: Text(
-                          mapPoint.name,
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Row(
+                          children: [
+                            Text(
+                              mapPoint.name,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (rightTitleWidgets.isEmpty)
+                              ...buildRightTitleWidgets(context)
+                            else
+                              ...rightTitleWidgets,
+                          ],
                         ),
                       ),
                       Container(
@@ -120,12 +144,17 @@ class MapPointSheet extends StatelessWidget {
                           ),
                           onPressed: onClose,
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(), // Keeps it compact
+                          constraints:
+                              const BoxConstraints(), // Keeps it compact
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  if (underTitleWidgets.isEmpty)
+                    ...buildUnderTitleWidgets(context)
+                  else
+                    ...underTitleWidgets,
+                  const SizedBox(height: 8),
 
                   Row(
                     children: [
@@ -137,7 +166,9 @@ class MapPointSheet extends StatelessWidget {
                           icon: const Icon(Icons.my_location, size: 20),
                           label: Text(l10n.startLabel),
                           style: FilledButton.styleFrom(
-                            backgroundColor: colorScheme.secondary.withAlpha(50),
+                            backgroundColor: colorScheme.secondary.withAlpha(
+                              50,
+                            ),
                             foregroundColor: colorScheme.secondary,
                           ),
                         ),

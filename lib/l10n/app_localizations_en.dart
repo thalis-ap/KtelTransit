@@ -674,4 +674,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get agency_no_contact_info =>
       'No contact information provided by the agency.';
+
+  @override
+  String get wheelchairAccessible => 'Wheelchair accessible';
+
+  @override
+  String get wheelchairNotAccessible => 'Not wheelchair accessible';
 }

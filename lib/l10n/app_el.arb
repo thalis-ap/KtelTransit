@@ -406,6 +406,8 @@
   "agency_email": "Email",
   "agency_website": "Επίσημη Ιστοσελίδα",
   "agency_fare_website": "Εισιτήρια & Τιμές",
-  "agency_no_contact_info": "Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο."
+  "agency_no_contact_info": "Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.",
+  "wheelchairAccessible": "Προσβάσιμη με αμαξίδιο",
+  "wheelchairNotAccessible": "Μη προσβάσιμη με αμαξίδιο"
 
 }

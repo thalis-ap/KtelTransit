@@ -1273,6 +1273,18 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.'**
   String get agency_no_contact_info;
+
+  /// No description provided for @wheelchairAccessible.
+  ///
+  /// In el, this message translates to:
+  /// **'Προσβάσιμη με αμαξίδιο'**
+  String get wheelchairAccessible;
+
+  /// No description provided for @wheelchairNotAccessible.
+  ///
+  /// In el, this message translates to:
+  /// **'Μη προσβάσιμη με αμαξίδιο'**
+  String get wheelchairNotAccessible;
 }
 
 class _AppLocalizationsDelegate

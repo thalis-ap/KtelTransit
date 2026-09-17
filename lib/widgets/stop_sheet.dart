@@ -26,13 +26,17 @@ class StopSheet extends MapPointSheet {
 
     if (dep.originStop.stopId == dep.departureStop.stopId) {
       final stopName = dep.originStop.name;
-      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.originDepartureTime);
+      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(
+        dep.originDepartureTime,
+      );
 
       // Using your existing localization and appending the time
       return "${l10n.departureFrom(stopName)} - $time";
     } else {
       final stopName = dep.departureStop.name;
-      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(dep.departureTime);
+      final time = TimeFormat.dateTimeToFormattedStringHoursMinutes(
+        dep.departureTime,
+      );
 
       // Using your existing localization and appending the time
       return "${l10n.estimatedArrivalAt(stopName)} $time";
@@ -50,9 +54,10 @@ class StopSheet extends MapPointSheet {
       separatorBuilder: (context, index) => Divider(thickness: 2),
       itemBuilder: (context, index) {
         final Departure dep = deps[index];
-        final String mainTime = TimeFormat.dateTimeToFormattedStringHoursMinutes(
-          dep.originDepartureTime,
-        );
+        final String mainTime =
+            TimeFormat.dateTimeToFormattedStringHoursMinutes(
+              dep.originDepartureTime,
+            );
         final String route = dep.routeName;
         final String subtitle = getSubtitle(context, dep);
 
@@ -72,32 +77,54 @@ class StopSheet extends MapPointSheet {
                       color: colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      mainTime,
-                      style: context.textTheme.titleSmall,
-                    ),
+                    child: Text(mainTime, style: context.textTheme.titleSmall),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Text(
-                      route,
-                      style: theme.textTheme.titleSmall,
-                    ),
+                    child: Text(route, style: theme.textTheme.titleSmall),
                   ),
                 ],
               ),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: context.textTheme.bodyMedium,
-                ),
+                Text(subtitle, style: context.textTheme.bodyMedium),
               ],
             ],
           ),
         );
       },
     );
+  }
+
+  @override
+  List<Widget> buildRightTitleWidgets(BuildContext context) {
+    if (stop.wheelchairBoarding == null) return [];
+
+    final l10n = AppLocalizations.of(context)!;
+
+    return [
+      const SizedBox(width: 8),
+      Tooltip(
+        message: stop.wheelchairBoarding!
+            ? l10n.wheelchairAccessible
+            : l10n.wheelchairNotAccessible,
+        triggerMode: TooltipTriggerMode.tap,
+        child: Icon(
+          stop.wheelchairBoarding!
+              ? Icons.accessible_outlined
+              : Icons.not_accessible_outlined,
+        ),
+      ),
+    ];
+  }
+
+  @override
+  List<Widget> buildUnderTitleWidgets(BuildContext context) {
+    if (stop.stopDesc.isEmpty) return [];
+
+    return [
+      ExpandableDescription(description: stop.stopDesc),
+    ];
   }
 
   @override
@@ -184,5 +211,58 @@ class StopSheet extends MapPointSheet {
               icon: Icons.warning_rounded,
             ),
     ];
+  }
+}
+
+
+class ExpandableDescription extends StatefulWidget {
+  final String description;
+
+  const ExpandableDescription({super.key, required this.description});
+
+  @override
+  State<ExpandableDescription> createState() => _ExpandableDescriptionState();
+}
+
+class _ExpandableDescriptionState extends State<ExpandableDescription> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _isExpanded = !_isExpanded;
+        });
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                widget.description,
+                // Show only 1 line when collapsed, unlimited when expanded
+                maxLines: _isExpanded ? null : 1,
+                overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              _isExpanded ? Icons.expand_less : Icons.expand_more,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

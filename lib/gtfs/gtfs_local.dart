@@ -120,7 +120,7 @@ class GtfsLocal {
 
       if (tableName == 'stops' &&
           (fieldName == 'stop_name' || fieldName == 'stop_desc')) {
-        translations['stop_$recordId'] = translation;
+        translations['${fieldName}_$recordId'] = translation;
       } else if (tableName == 'routes') {
         if (fieldName == 'route_short_name') {
           translations['route_short_$recordId'] = translation;
@@ -194,12 +194,14 @@ class GtfsLocal {
       if (!Stop.isValidRow(row, headers)) continue;
 
       final stopId = row[headers['stop_id']!].toString().trim();
-      final translatedName = translations['stop_$stopId'];
+      final translatedName = translations['stop_name_$stopId'];
+      final translatedDesc = translations['stop_desc_$stopId'];
 
       outStops.add(Stop.fromCsv(
         row,
         headers,
         translatedName: translatedName,
+        translatedDesc: translatedDesc,
       ));
     }
 
