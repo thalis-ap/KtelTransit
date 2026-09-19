@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
+import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 
@@ -38,9 +39,7 @@ class TripDetailsCard extends StatelessWidget {
         const SizedBox(height: 10),
         _buildArrivalRow(
           context,
-          l10n.estimatedArrivalAt(
-            routingTrip.destinationPoint.name,
-          ),
+          l10n.estimatedArrivalAt(routingTrip.destinationPoint.name),
           TimeFormat.dateTimeToFormattedStringHoursMinutes(
             routingTrip.getArrivalDateTime(selectedTime),
           ),
@@ -74,18 +73,12 @@ class TripDetailsCard extends StatelessWidget {
             style: context.textTheme.bodyMedium,
           ),
         ),
-        Text(
-          departureTimeText,
-          style: context.textTheme.titleSmall,
-        ),
+        Text(departureTimeText, style: context.textTheme.titleSmall),
       ],
     );
   }
 
-  Widget _buildHeader(
-    BuildContext context, {
-    required AppLocalizations l10n,
-  }) {
+  Widget _buildHeader(BuildContext context, {required AppLocalizations l10n}) {
     final colorScheme = Theme.of(context).colorScheme;
 
     String routeText;
@@ -131,11 +124,33 @@ class TripDetailsCard extends StatelessWidget {
                       "(${DistanceFormat.metersToFormattedString(routingTrip.accessTrip!.distance, l10n)})",
                       style: context.textTheme.titleSmall,
                     ),
-                  ] else if (routingTrip.busTrip != null && routingTrip.busTrip!.isTransfer) ...[
+                  ] else if (routingTrip.busTrip != null &&
+                      routingTrip.busTrip!.isTransfer) ...[
                     const SizedBox(width: 10),
                     Text(
                       "(${TimeFormat.secondsToFormattedString(routingTrip.totalWaitTime, l10n)})",
-                      style: context.textTheme.titleSmall?.copyWith(color: colorScheme.tertiary),
+                      style: context.textTheme.titleSmall?.copyWith(
+                        color: colorScheme.tertiary,
+                      ),
+                    ),
+                  ],
+                  if (routingTrip.busTrip != null &&
+                      routingTrip.busTrip!.isWheelchairAccessible !=
+                          WheelchairBoarding.unknown) ...[
+                    SizedBox(width: 10),
+                    Tooltip(
+                      message:
+                          routingTrip.busTrip!.isWheelchairAccessible ==
+                              WheelchairBoarding.accessible
+                          ? l10n.wheelchairAccessible
+                          : l10n.wheelchairNotAccessible,
+                      child: Icon(
+                        routingTrip.busTrip!.isWheelchairAccessible ==
+                                WheelchairBoarding.accessible
+                            ? Icons.accessible_outlined
+                            : Icons.not_accessible_outlined,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ],
@@ -152,7 +167,9 @@ class TripDetailsCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     routingTrip.fareAsString,
-                    style: context.textTheme.titleSmall?.copyWith(color: colorScheme.secondary),
+                    style: context.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.secondary,
+                    ),
                   ),
                 ],
               ],
@@ -166,7 +183,9 @@ class TripDetailsCard extends StatelessWidget {
             Expanded(
               child: Text(
                 routeText,
-                style: context.textTheme.titleSmall?.copyWith(color: colorScheme.primary),
+                style: context.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.primary,
+                ),
               ),
             ),
           ],
@@ -201,16 +220,10 @@ class TripDetailsCard extends StatelessWidget {
         Icon(Icons.circle, size: 10, color: colorScheme.secondary),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            departureFromText,
-            style: context.textTheme.bodyMedium,
-          ),
+          child: Text(departureFromText, style: context.textTheme.bodyMedium),
         ),
         const SizedBox(width: 10),
-        Text(
-          departureTimeText,
-          style: context.textTheme.titleSmall,
-        ),
+        Text(departureTimeText, style: context.textTheme.titleSmall),
       ],
     );
   }
@@ -227,15 +240,9 @@ class TripDetailsCard extends StatelessWidget {
         Icon(Icons.circle_outlined, size: 10, color: colorScheme.tertiary),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            arrivalAtText,
-            style: context.textTheme.bodyMedium,
-          ),
+          child: Text(arrivalAtText, style: context.textTheme.bodyMedium),
         ),
-        Text(
-          arrivalAtTime,
-          style: context.textTheme.labelLarge,
-        ),
+        Text(arrivalAtTime, style: context.textTheme.labelLarge),
       ],
     );
   }
@@ -245,11 +252,13 @@ class TripDetailsCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
       child: Row(
         children: [
-          Icon(Icons.access_time_rounded, size: 14,),
+          Icon(Icons.access_time_rounded, size: 14),
           const SizedBox(width: 8),
           Text(
             waitText,
-            style: context.textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+            style: context.textTheme.bodySmall?.copyWith(
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),
@@ -268,16 +277,9 @@ class TripDetailsCard extends StatelessWidget {
         Icon(Icons.circle_outlined, size: 10, color: colorScheme.tertiary),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            departureFromText,
-            style: context.textTheme.bodyMedium,
-          ),
+          child: Text(departureFromText, style: context.textTheme.bodyMedium),
         ),
-        Text(
-          departureFromTime,
-          style: context.textTheme.labelLarge,
-
-        ),
+        Text(departureFromTime, style: context.textTheme.labelLarge),
       ],
     );
   }
@@ -299,16 +301,10 @@ class TripDetailsCard extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            arrivalAtText,
-            style: context.textTheme.bodyMedium,
-          ),
+          child: Text(arrivalAtText, style: context.textTheme.bodyMedium),
         ),
         const SizedBox(width: 10),
-        Text(
-          arrivalTimeText,
-          style: context.textTheme.titleSmall,
-        ),
+        Text(arrivalTimeText, style: context.textTheme.titleSmall),
       ],
     );
   }

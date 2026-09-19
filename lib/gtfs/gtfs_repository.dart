@@ -256,6 +256,7 @@ class GtfsRepository {
           stopNames: stopNames,
           originStop: startStop,
           destinationStop: destStop,
+          wheelchairBoarding: trip.wheelchairBoarding
         );
 
         dailyTrips.add(BusTrip(
@@ -352,6 +353,7 @@ class GtfsRepository {
                 stopNames: stopNamesA,
                 originStop: startStop,
                 destinationStop: transferStop,
+                wheelchairBoarding: tripA.wheelchairBoarding
               );
 
 
@@ -364,6 +366,7 @@ class GtfsRepository {
                 stopNames: stopNamesB,
                 originStop: transferStop,
                 destinationStop: destStop,
+                wheelchairBoarding: tripB.wheelchairBoarding
               );
 
               dailyTrips.add(BusTrip(

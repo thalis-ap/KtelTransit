@@ -1,14 +1,26 @@
 import 'package:latlong2/latlong.dart';
 import 'map_point.dart';
 
+enum WheelchairBoarding {
+  unknown,
+  accessible,
+  notAccessible;
+
+  WheelchairBoarding operator &(WheelchairBoarding other) {
+    if (this == unknown || other == unknown) return unknown;
+    if (this == notAccessible || other == notAccessible) return notAccessible;
+    return accessible;
+  }
+}
+
 class Stop extends MapPoint {
   final String stopId;
 
   // Contains info about the stop (e.g. the surroundings, labels, ...)
   final String stopDesc;
 
-  // Indicates if a point is accessible via a wheelchair. Null means unsure
-  final bool? wheelchairBoarding;
+  // Indicates if a point is accessible via a wheelchair.
+  final WheelchairBoarding wheelchairBoarding;
 
   static const stopIdKey = 'stop_id';
   static const stopNameKey = 'stop_name';
@@ -29,7 +41,7 @@ class Stop extends MapPoint {
     required super.name,
     required super.coordinates,
     this.stopDesc = "",
-    this.wheelchairBoarding,
+    this.wheelchairBoarding = WheelchairBoarding.unknown,
   });
 
   factory Stop.fromCsv(
@@ -52,20 +64,20 @@ class Stop extends MapPoint {
         double.parse(getValue(stopLonKey)),
       ),
       stopDesc: translatedDesc ?? getValue(stopDescKey),
-      wheelchairBoarding: _getWheelchairBoardingValue(getValue(wheelchairBoardingKey))
+      wheelchairBoarding: getWheelchairBoardingValue(getValue(wheelchairBoardingKey))
     );
   }
 
-  /// Transforms gtfs values of 0,1,2 to null, true, false respectively
-  static bool? _getWheelchairBoardingValue(String gtfsValue) {
+  /// Transforms gtfs values of 0,1,2 to WheelchairBoarding enum respectively
+  static WheelchairBoarding getWheelchairBoardingValue(String gtfsValue) {
     switch (gtfsValue) {
       case '2':
-        return false;
+        return WheelchairBoarding.notAccessible;
       case '1':
-        return true;
+        return WheelchairBoarding.accessible;
       case '0':
       default:
-        return null;
+        return WheelchairBoarding.unknown;
     }
   }
 

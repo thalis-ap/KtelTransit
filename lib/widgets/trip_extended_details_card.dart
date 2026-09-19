@@ -8,6 +8,7 @@ import 'package:ktel_transit/widgets/timeline_node.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/bus_trip.dart';
+import '../models/stop.dart';
 import '../utilities/distance_format.dart';
 
 class ExtendedDetailsCard extends StatefulWidget {
@@ -79,6 +80,25 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                       "(${TimeFormat.secondsToFormattedString(trip.totalWaitTime, l10n)})",
                       style: context.textTheme.titleSmall?.copyWith(
                         color: colorScheme.tertiary,
+                      ),
+                    ),
+                  ],
+                  if (bus != null &&
+                      bus.isWheelchairAccessible !=
+                          WheelchairBoarding.unknown) ...[
+                    SizedBox(width: 10),
+                    Tooltip(
+                      message:
+                      bus.isWheelchairAccessible ==
+                          WheelchairBoarding.accessible
+                          ? l10n.wheelchairAccessible
+                          : l10n.wheelchairNotAccessible,
+                      child: Icon(
+                        bus.isWheelchairAccessible ==
+                            WheelchairBoarding.accessible
+                            ? Icons.accessible_outlined
+                            : Icons.not_accessible_outlined,
+                        size: 20,
                       ),
                     ),
                   ],

@@ -98,21 +98,22 @@ class StopSheet extends MapPointSheet {
 
   @override
   List<Widget> buildRightTitleWidgets(BuildContext context) {
-    if (stop.wheelchairBoarding == null) return [];
+    if (stop.wheelchairBoarding == WheelchairBoarding.unknown) return [];
 
     final l10n = AppLocalizations.of(context)!;
 
     return [
       const SizedBox(width: 8),
       Tooltip(
-        message: stop.wheelchairBoarding!
+        message: stop.wheelchairBoarding == WheelchairBoarding.accessible
             ? l10n.wheelchairAccessible
             : l10n.wheelchairNotAccessible,
         triggerMode: TooltipTriggerMode.tap,
         child: Icon(
-          stop.wheelchairBoarding!
+          stop.wheelchairBoarding == WheelchairBoarding.accessible
               ? Icons.accessible_outlined
               : Icons.not_accessible_outlined,
+          size: 20,
         ),
       ),
     ];

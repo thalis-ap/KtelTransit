@@ -17,11 +17,23 @@ class BusLeg {
   final Stop originStop;
   final Stop destinationStop;
 
+  /// This only refers to the trip itself being accessible regardless of the stops
+  final WheelchairBoarding wheelchairBoarding;
+
   // Ordered stop names for this leg, INCLUDING origin and destination.
   // stopNames.length - 1 == number of stops passed.
   final List<String> stopNames;
 
   String get estimatedFareAsString => FareService.fareAsString(fare);
+
+  /// This indicates if the leg as a whole is accessible. This means that
+  /// both origin stop and destination stop must be accessible while the trip
+  /// is accessible as well. The latter means that the particular trip/bus is
+  /// accessible as per trips.txt
+  WheelchairBoarding get isWheelchairAccessible =>
+      wheelchairBoarding &
+      (originStop.wheelchairBoarding &
+      destinationStop.wheelchairBoarding);
 
   /// We don't use the originStop.name here because we don't know the preffered
   /// language of the user.
@@ -47,6 +59,7 @@ class BusLeg {
     required this.fare,
     this.points,
     this.safeDuration,
+    this.wheelchairBoarding = WheelchairBoarding.unknown
   });
 
   BusLeg copyWith({
@@ -60,6 +73,7 @@ class BusLeg {
     Stop? destinationStop,
     List<LatLng>? points,
     int? safeDuration,
+    WheelchairBoarding? wheelchairBoarding,
   }) {
     return BusLeg(
       routeName: routeName ?? this.routeName,
@@ -72,6 +86,7 @@ class BusLeg {
       destinationStop: destinationStop ?? this.destinationStop,
       points: points ?? this.points,
       safeDuration: safeDuration ?? this.safeDuration,
+      wheelchairBoarding: wheelchairBoarding ?? this.wheelchairBoarding
     );
   }
 }
@@ -126,6 +141,13 @@ class BusTrip {
   ).fold(0, (sum, legIndex) => sum + waitTimeAfterLeg(legIndex).inSeconds);
 
   String get estimatedFareAsString => FareService.fareAsString(totalFare);
+
+  /// This indicates if the whole trip is wheelchair accessible, meaning all legs
+  /// are wheelchair accessible. (See BusLeg.isWheelchairAccessible for more)
+  WheelchairBoarding get isWheelchairAccessible => legs.fold(
+    WheelchairBoarding.accessible,
+    (sum, leg) => sum & leg.isWheelchairAccessible,
+  );
 
   /// Wait time between leg[i] and leg[i+1], keyed by transfer index (0-based).
   Duration waitTimeAfterLeg(int legIndex) {
