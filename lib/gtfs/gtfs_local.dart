@@ -7,6 +7,7 @@ import 'package:ktel_transit/utilities/region_utils.dart';
 
 import '../models/calendar.dart';
 import '../models/calendar_date.dart';
+import '../models/shape.dart';
 import '../models/stop.dart';
 import '../models/route.dart';
 import '../models/stop_time.dart';
@@ -33,6 +34,7 @@ class GtfsLocal {
       final List<Route> tempRoutes = [];
       final List<Trip> tempTrips = [];
       final List<StopTime> tempStopTimes = [];
+      final List<Shape> tempShapes = [];
       final List<Calendar> tempCalendars = [];
       final List<CalendarDate> tempCalendarDates = [];
 
@@ -46,6 +48,7 @@ class GtfsLocal {
         _loadRoutes(regionPath, tempRoutes, translations),
         _loadTrips(regionPath, tempTrips),
         _loadStopTimes(regionPath, tempStopTimes),
+        _loadShapes(regionPath, tempShapes),
         _loadCalendar(regionPath, tempCalendars),
         _loadCalendarDates(regionPath, tempCalendarDates),
       ]);
@@ -58,6 +61,7 @@ class GtfsLocal {
         repository.routes = tempRoutes;
         repository.trips = tempTrips;
         repository.stopTimes = tempStopTimes;
+        repository.shapes = tempShapes;
         repository.calendars = tempCalendars;
         repository.calendarDates = tempCalendarDates;
 
@@ -126,20 +130,6 @@ class GtfsLocal {
       // We need all the 3 keys so that we are sure there are no collisions
       // between 2 different translation entries
       translations["${tableName}_${fieldName}_$recordId"] = translation;
-      // if (tableName == 'stops' &&
-      //     (fieldName == 'stop_name' || fieldName == 'stop_desc')) {
-      //   translations['${fieldName}_$recordId'] = translation;
-      // } else if (tableName == 'routes') {
-      //   if (fieldName == 'route_short_name') {
-      //     translations['route_short_$recordId'] = translation;
-      //   } else if (fieldName == 'route_long_name') {
-      //     translations['route_long_$recordId'] = translation;
-      //   } else if (fieldName == 'route_desc') {
-      //     translations['route_desc_$recordId'] = translation;
-      //   }
-      // } else {
-      //   translations[recordId] = translation;
-      // }
     }
     return translations;
   }
@@ -317,6 +307,37 @@ class GtfsLocal {
     for (final row in rows.skip(1)) {
       if (!StopTime.isValidRow(row, headers)) continue;
       outStopTimes.add(StopTime.fromCsv(row, headers));
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadShapes(
+      String regionPath,
+      List<Shape> outShapes,
+      ) async {
+    final filePath = '$regionPath/shapes.txt';
+    final file = File(filePath);
+
+    // If no shapes file is found let it be, it's optional
+    if (!await file.exists()) return RegionLoadResult.success();
+
+    final content = await file.readAsString();
+    final rows = csv.decode(content);
+    if (rows.isEmpty) return RegionLoadResult.parsingFailed();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    if (!Shape.hasRequiredHeaders(headers)) {
+      debugPrint('shapes.txt missing required columns');
+      return RegionLoadResult.parsingFailed();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (!Shape.isValidRow(row, headers)) continue;
+      outShapes.add(Shape.fromCsv(row, headers));
     }
 
     return RegionLoadResult.success();

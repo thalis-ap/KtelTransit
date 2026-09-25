@@ -38,12 +38,13 @@ class BusService {
       return leg.copyWith(points: cachedData.points, safeDuration: cachedData.safeDuration);
     }
     
-    // OSRM expects coordinates in Longitude,Latitude order
-    final String url =
-        'http://router.project-osrm.org/route/v1/driving/'
-        '${start.longitude},${start.latitude};'
-        '${destination.longitude},${destination.latitude}'
-        '?geometries=geojson&overview=full';
+    // Build up the url with all the passing points
+    String url = 'http://router.project-osrm.org/route/v1/driving/';
+    for (LatLng point in leg.passingPoints) {
+      // OSRM expects coordinates in Longitude,Latitude order
+      url += '${point.longitude},${point.latitude};';
+    }
+    url = '${url.substring(0, url.length-1)}?geometries=geojson&overview=full';
 
     try {
       final response = await http.get(Uri.parse(url));

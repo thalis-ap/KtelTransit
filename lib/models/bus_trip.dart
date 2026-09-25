@@ -31,6 +31,11 @@ class BusLeg {
   /// Refers to gtfs' route_color, but we need it for each individual leg
   final Color legColor;
 
+  /// This is acquired from shapes.txt file and contains points for this trip
+  /// that must be crossed. They should be given to OSRM to compute the route
+  /// that satisfies passing from all of them
+  final List<LatLng> passingPoints;
+
   String get estimatedFareAsString => FareService.fareAsString(fare);
 
   /// This indicates if the leg as a whole is accessible. This means that
@@ -63,6 +68,7 @@ class BusLeg {
     required this.originStop,
     required this.destinationStop,
     required this.fare,
+    required this.passingPoints,
     this.points,
     this.safeDuration,
     this.wheelchairBoarding = WheelchairBoarding.unknown,
@@ -78,6 +84,7 @@ class BusLeg {
     List<String>? stopNames,
     Stop? originStop,
     Stop? destinationStop,
+    List<LatLng>? passingPoints,
     List<LatLng>? points,
     int? safeDuration,
     WheelchairBoarding? wheelchairBoarding,
@@ -92,6 +99,7 @@ class BusLeg {
       stopNames: stopNames ?? this.stopNames,
       originStop: originStop ?? this.originStop,
       destinationStop: destinationStop ?? this.destinationStop,
+      passingPoints: passingPoints ?? this.passingPoints,
       points: points ?? this.points,
       safeDuration: safeDuration ?? this.safeDuration,
       wheelchairBoarding: wheelchairBoarding ?? this.wheelchairBoarding,

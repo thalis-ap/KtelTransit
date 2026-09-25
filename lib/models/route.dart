@@ -53,7 +53,6 @@ class Route {
     final rawLongName = getValue(longNameKey);
     final color = getValue(routeColorKey);
 
-    print(getValue(routeDescKey));
     return Route(
       routeId: getValue(routeIdKey),
       agencyId: getValue(agencyIdKey), // Optional, won't crash if missing

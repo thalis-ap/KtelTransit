@@ -9,7 +9,9 @@ import 'package:ktel_transit/models/stop_time.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/color_utils.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
+import 'package:latlong2/latlong.dart';
 import '../models/calendar_date.dart';
+import '../models/shape.dart';
 import '../services/fare_service.dart';
 
 /// Pure data container for GTFS data.
@@ -28,6 +30,7 @@ class GtfsRepository {
   List<Route> routes = [];
   List<Trip> trips = [];
   List<StopTime> stopTimes = [];
+  List<Shape> shapes = [];
   List<Calendar> calendars = [];
   List<CalendarDate> calendarDates = [];
 
@@ -37,6 +40,7 @@ class GtfsRepository {
   Map<String, Trip> _tripsById = {};
   Map<String, Route> _routesById = {};
   Map<String, Stop> _stopsById = {};
+  Map<String, List<Shape>> _shapesById = {};
   Map<int, List<CalendarDate>> _calendarDatesByDate = {};
 
   /// Clears all data and indexes.
@@ -50,6 +54,7 @@ class GtfsRepository {
     calendarDates.clear();
     _stopTimesByStopId = {};
     _stopTimesByTripId = {};
+    _shapesById = {};
     _tripsById = {};
     _routesById = {};
     _stopsById = {};
@@ -64,7 +69,6 @@ class GtfsRepository {
     _stopTimesByTripId = {};
     _calendarDatesByDate = {};
 
-
     for (final st in stopTimes) {
       _stopTimesByStopId.putIfAbsent(st.stopId, () => []).add(st);
       _stopTimesByTripId.putIfAbsent(st.tripId, () => []).add(st);
@@ -72,6 +76,10 @@ class GtfsRepository {
     _tripsById = {for (final t in trips) t.tripId: t};
     _routesById = {for (final r in routes) r.routeId: r};
     _stopsById = {for (final s in stops) s.stopId: s};
+
+    for (final s in shapes) {
+      _shapesById.putIfAbsent(s.shapeId, () => []).add(s);
+    }
 
     for (final cd in calendarDates) {
       final int dateInt = int.tryParse(cd.date) ?? 0;
@@ -161,8 +169,7 @@ class GtfsRepository {
     return results;
   }
 
-  List<BusTrip> findAllTripsBetween(
-      String startStopId,
+  List<BusTrip> findAllTripsBetween(String startStopId,
       String destStopId, {
         DateTime? selectedTime,
         int maxDaysToSearch = 7,
@@ -173,9 +180,11 @@ class GtfsRepository {
     for (int dayOffset = 0; dayOffset <= maxDaysToSearch; dayOffset++) {
       final DateTime date = dayOffset == 0
           ? startDate
-          : DateTime(startDate.year, startDate.month, startDate.day + dayOffset, 4, 0);
+          : DateTime(
+          startDate.year, startDate.month, startDate.day + dayOffset, 4, 0);
 
-      final List<BusTrip> dailyTrips = _findTripsForDate(startStopId, destStopId, date);
+      final List<BusTrip> dailyTrips = _findTripsForDate(
+          startStopId, destStopId, date);
       allTrips.addAll(dailyTrips);
     }
 
@@ -185,11 +194,9 @@ class GtfsRepository {
 
   /// Searches for trips between two stops on a specific date.
   /// Returns an empty list if no trips are found.
-  List<BusTrip> _findTripsForDate(
-      String startStopId,
+  List<BusTrip> _findTripsForDate(String startStopId,
       String destStopId,
-      DateTime date,
-      ) {
+      DateTime date,) {
     // Get service IDs valid on this date
     List<String> validServiceIds = _getServiceIds(date);
 
@@ -223,6 +230,17 @@ class GtfsRepository {
         if (trip == null) continue;
         if (!validServiceIds.contains(trip.serviceId)) continue;
 
+        // If we can't find a shape to give us the passing points just default
+        // to 2 points: start and dest. Not being able to find a shape means
+        // that there is no shape provided for this route, thus we will guess
+        // the map route using the starting and destination points only.
+        // See BusServide.getCompleteLeg() for more.
+        final List<LatLng> passingPoints = _shapesById[trip.shapeId]?.map((s) =>
+            LatLng(s.latitude, s.longitude)).toList() ?? [
+          LatLng(startStop.latitude, startStop.longitude),
+          LatLng(destStop.latitude, destStop.longitude)
+        ];
+
         final List<StopTime> destTimes = (_stopTimesByTripId[trip.tripId] ?? [])
             .where((st) => st.stopId == destStopId)
             .toList();
@@ -251,13 +269,16 @@ class GtfsRepository {
 
         final leg = BusLeg(
           routeName: displayName,
-          departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
-          arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
+          departureDateTime: TimeFormat.gtfsTimeToDateTime(
+              date, stStart.departureTime),
+          arrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+              date, stDest.arrivalTime),
           estimatedDuration: durationSecs,
           fare: fare,
           stopNames: stopNames,
           originStop: startStop,
           destinationStop: destStop,
+          passingPoints: passingPoints,
           wheelchairBoarding: trip.wheelchairBoarding,
           legColor: ColorUtils.fromHex(route.routeColor) ?? AppTheme.blueish,
         );
@@ -278,6 +299,12 @@ class GtfsRepository {
           final Trip? tripA = _tripsById[stStart.tripId];
           if (tripA == null) continue;
           if (!validServiceIds.contains(tripA.serviceId)) continue;
+
+          final List<LatLng> passingPointsA = _shapesById[tripA.shapeId]?.map((s) =>
+              LatLng(s.latitude, s.longitude)).toList() ?? [
+            LatLng(startStop.latitude, startStop.longitude),
+            LatLng(destStop.latitude, destStop.longitude)
+          ];
 
           final List<StopTime> tripAStops =
           (_stopTimesByTripId[tripA.tripId] ?? [])
@@ -304,6 +331,12 @@ class GtfsRepository {
               if (tripB == null) continue;
               if (!validServiceIds.contains(tripB.serviceId)) continue;
               if (tripA.tripId == tripB.tripId) continue;
+
+              final List<LatLng> passingPointsB = _shapesById[tripB.shapeId]?.map((s) =>
+                  LatLng(s.latitude, s.longitude)).toList() ?? [
+                LatLng(startStop.latitude, startStop.longitude),
+                LatLng(destStop.latitude, destStop.longitude)
+              ];
 
               final List<StopTime> destTimes =
               (_stopTimesByTripId[tripB.tripId] ?? [])
@@ -344,34 +377,44 @@ class GtfsRepository {
               final stopNamesA = _getStopNamesForTrip(tripA.tripId);
               final stopNamesB = _getStopNamesForTrip(tripB.tripId);
 
-              final double fare1 = FareService.calculateFare(startStop, transferStop);
-              final double fare2 = FareService.calculateFare(transferStop, destStop);
+              final double fare1 = FareService.calculateFare(
+                  startStop, transferStop);
+              final double fare2 = FareService.calculateFare(
+                  transferStop, destStop);
 
               final leg1 = BusLeg(
                 routeName: rAName,
-                departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stStart.departureTime),
-                arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, transferA.arrivalTime),
+                departureDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date, stStart.departureTime),
+                arrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date, transferA.arrivalTime),
                 estimatedDuration: durationLeg1,
                 fare: fare1,
                 stopNames: stopNamesA,
                 originStop: startStop,
                 destinationStop: transferStop,
+                passingPoints: passingPointsA,
                 wheelchairBoarding: tripA.wheelchairBoarding,
-                legColor: ColorUtils.fromHex(routeA.routeColor) ?? AppTheme.blueish,
+                legColor: ColorUtils.fromHex(routeA.routeColor) ??
+                    AppTheme.blueish,
               );
 
 
               final leg2 = BusLeg(
                 routeName: rBName,
-                departureDateTime: TimeFormat.gtfsTimeToDateTime(date, stTransB.departureTime),
-                arrivalDateTime: TimeFormat.gtfsTimeToDateTime(date, stDest.arrivalTime),
+                departureDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date, stTransB.departureTime),
+                arrivalDateTime: TimeFormat.gtfsTimeToDateTime(
+                    date, stDest.arrivalTime),
                 estimatedDuration: durationLeg2,
                 fare: fare2,
                 stopNames: stopNamesB,
                 originStop: transferStop,
                 destinationStop: destStop,
+                passingPoints: passingPointsB,
                 wheelchairBoarding: tripB.wheelchairBoarding,
-                legColor: ColorUtils.fromHex(routeB.routeColor) ?? AppTheme.blueish,
+                legColor: ColorUtils.fromHex(routeB.routeColor) ??
+                    AppTheme.blueish,
               );
 
               dailyTrips.add(BusTrip(
@@ -459,7 +502,8 @@ class GtfsRepository {
     }
 
     // Process exceptions for this specific date
-    final List<CalendarDate> exceptions = _calendarDatesByDate[targetDateInt] ?? [];
+    final List<CalendarDate> exceptions = _calendarDatesByDate[targetDateInt] ??
+        [];
     for (final exception in exceptions) {
       if (exception.exceptionType == 1) {
         // Service has been added for this specific date

@@ -10,12 +10,14 @@ class Trip {
   static const headsignKey = 'trip_headsign';
   static const directionIdKey = 'direction_id';
   static const wheelchairBoardingKey = 'wheelchair_accessible';
+  static const shapeIdKey = 'shape_id';
 
   static const List<String> requiredFields = [
     tripIdKey,
     routeIdKey,
     serviceIdKey,
     directionIdKey,
+    // shapeIdKey,
   ];
 
   final String tripId;
@@ -23,6 +25,7 @@ class Trip {
   final String serviceId;
   final String headsign;
   final int directionId;
+  final String shapeId;
 
   // Indicates if a specific trip can host wheelchair passengers, regardless
   // of the stop they are boarding on. For example if a trip does not have
@@ -36,6 +39,7 @@ class Trip {
     required this.serviceId,
     required this.headsign,
     required this.directionId,
+    required this.shapeId,
     this.wheelchairBoarding = WheelchairBoarding.unknown,
   });
 
@@ -55,6 +59,7 @@ class Trip {
       wheelchairBoarding: Stop.getWheelchairBoardingValue(
         getValue(wheelchairBoardingKey),
       ),
+      shapeId: getValue(shapeIdKey),
     );
   }
 
