@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/services/fare_service.dart';
 import 'package:latlong2/latlong.dart';
+
+import '../theme/app_theme.dart';
 
 /// A single bus ride on one route, from one stop to another, with no
 /// transfers in between. A BusTrip with a transfer is just 2+ of these.
@@ -24,6 +28,9 @@ class BusLeg {
   // stopNames.length - 1 == number of stops passed.
   final List<String> stopNames;
 
+  /// Refers to gtfs' route_color, but we need it for each individual leg
+  final Color legColor;
+
   String get estimatedFareAsString => FareService.fareAsString(fare);
 
   /// This indicates if the leg as a whole is accessible. This means that
@@ -32,8 +39,7 @@ class BusLeg {
   /// accessible as per trips.txt
   WheelchairBoarding get isWheelchairAccessible =>
       wheelchairBoarding &
-      (originStop.wheelchairBoarding &
-      destinationStop.wheelchairBoarding);
+      (originStop.wheelchairBoarding & destinationStop.wheelchairBoarding);
 
   /// We don't use the originStop.name here because we don't know the preffered
   /// language of the user.
@@ -59,7 +65,8 @@ class BusLeg {
     required this.fare,
     this.points,
     this.safeDuration,
-    this.wheelchairBoarding = WheelchairBoarding.unknown
+    this.wheelchairBoarding = WheelchairBoarding.unknown,
+    this.legColor = AppTheme.blueish,
   });
 
   BusLeg copyWith({
@@ -74,6 +81,7 @@ class BusLeg {
     List<LatLng>? points,
     int? safeDuration,
     WheelchairBoarding? wheelchairBoarding,
+    Color? legColor,
   }) {
     return BusLeg(
       routeName: routeName ?? this.routeName,
@@ -86,7 +94,8 @@ class BusLeg {
       destinationStop: destinationStop ?? this.destinationStop,
       points: points ?? this.points,
       safeDuration: safeDuration ?? this.safeDuration,
-      wheelchairBoarding: wheelchairBoarding ?? this.wheelchairBoarding
+      wheelchairBoarding: wheelchairBoarding ?? this.wheelchairBoarding,
+      legColor: legColor ?? this.legColor,
     );
   }
 }
@@ -94,9 +103,6 @@ class BusLeg {
 /// This class is used for the actual bus trip and must not be
 /// confused with the Trip class, which is a generic class to hold basic info
 class BusTrip {
-  List<LatLng>? points;
-  int? safeDuration; // seconds, from OSRM
-
   final bool isStartAlsoOrigin;
 
   // Ordered legs of the journey. length == 1 for a direct trip,
@@ -106,20 +112,14 @@ class BusTrip {
   // Holds the total of all the legs' fares
   double totalFare = -1;
 
+  // Get the safeDuration by combining all the legs again
+  int get safeDuration =>
+      legs.fold(0, (sum, leg) => sum + (leg.safeDuration ?? 0));
+
   BusTrip({required this.isStartAlsoOrigin, required this.legs})
     : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
     // Will remain -1 if there are no legs (pure walking trip)
     totalFare = legs.fold(0, (sum, leg) => sum + leg.fare);
-    // Create the points by combining all the legs
-    points = legs.fold(
-      <LatLng>[],
-      (list, leg) => list ?? <LatLng>[] + (leg.points ?? []),
-    );
-    // Create the safeDuration combining all the legs again
-    safeDuration = legs.fold(
-      0,
-      (sum, leg) => sum ?? 0 + (leg.safeDuration ?? 0),
-    );
   }
 
   // ---- Convenience getters ----
@@ -158,16 +158,14 @@ class BusTrip {
   }
 
   BusTrip copyWith({
-    List<LatLng>? points,
+    List<List<LatLng>>? points,
     int? safeDuration,
     bool? isStartAlsoOrigin,
     List<BusLeg>? legs,
   }) {
     return BusTrip(
-        isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
-        legs: legs ?? this.legs,
-      )
-      ..points = points ?? this.points
-      ..safeDuration = safeDuration ?? this.safeDuration;
+      isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
+      legs: legs ?? this.legs,
+    );
   }
 }

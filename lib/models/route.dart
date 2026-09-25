@@ -1,12 +1,17 @@
+import 'dart:ui';
+
 class Route {
   final String routeId, agencyId, shortName, longName;
   final int routeType;
+
+  final String? routeColor;
 
   static const routeIdKey = 'route_id';
   static const agencyIdKey = 'agency_id';
   static const shortNameKey = 'route_short_name';
   static const longNameKey = 'route_long_name';
   static const routeTypeKey = 'route_type';
+  static const routeColorKey = 'route_color';
 
   static const List<String> requiredFields = [
     routeIdKey,
@@ -22,6 +27,7 @@ class Route {
     required this.shortName,
     required this.longName,
     required this.routeType,
+    this.routeColor,
   });
 
   factory Route.fromCsv(
@@ -38,6 +44,7 @@ class Route {
 
     final rawShortName = getValue(shortNameKey);
     final rawLongName = getValue(longNameKey);
+    final color = getValue(routeColorKey);
 
     return Route(
       routeId: getValue(routeIdKey),
@@ -45,6 +52,7 @@ class Route {
       shortName: translatedShortName ?? rawShortName,
       longName: translatedLongName ?? rawLongName,
       routeType: int.parse(getValue(routeTypeKey)),
+      routeColor: color.isEmpty ? null : color, // leave empty if no color was found
     );
   }
 

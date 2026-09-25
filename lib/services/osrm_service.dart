@@ -89,13 +89,15 @@ class BusService {
   /// Note: Caching is implemented in the getCompleteLeg() function
   static Future<BusTrip> getCompleteTrip(BusTrip busTrip) async {
     // Get all the leg routes
-    List<LatLng> busTripPoints = [];
+    List<List<LatLng>> busTripPoints = [];
     int busTripSafeDuration = 0;
     for (int i=0; i<busTrip.legs.length; i++) {
-      BusLeg currLeg = busTrip.legs[i];
-      currLeg = await getCompleteLeg(currLeg);
-      busTripPoints.addAll(currLeg.points ?? []);
+      BusLeg currLeg = await getCompleteLeg(busTrip.legs[i]);
+      busTripPoints.add(currLeg.points ?? []);
       busTripSafeDuration += currLeg.safeDuration ?? 0;
+
+      // Update the actual leg with the new data
+      busTrip.legs[i] = busTrip.legs[i].copyWith(points: currLeg.points, safeDuration: currLeg.safeDuration);
     }
 
     // Combine the points of all legs into the bus trip object

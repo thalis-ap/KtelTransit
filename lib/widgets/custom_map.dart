@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
+import 'package:ktel_transit/utilities/color_utils.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../models/bus_trip.dart';
 import '../models/map_point.dart';
 import '../models/region.dart';
 import '../models/routing_trip.dart';
@@ -72,8 +74,7 @@ class CustomMap extends StatelessWidget {
         try {
           activeTransferStop = gtfsManager.repository.stops.firstWhere(
             (s) =>
-                s.name ==
-                activeRoute!.busTrip!.legs.first.destinationStop.name,
+                s.name == activeRoute!.busTrip!.legs.first.destinationStop.name,
           );
         } catch (_) {}
       }
@@ -95,7 +96,8 @@ class CustomMap extends StatelessWidget {
             maxZoom: 20.0,
             onLongPress: (position, latlng) => onLongPress(latlng),
             onMapReady: onMapReady,
-            onPositionChanged: (position, hasGesture) => onPositionChanged(position),
+            onPositionChanged: (position, hasGesture) =>
+                onPositionChanged(position),
             interactionOptions: const InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.flingAnimation,
               enableMultiFingerGestureRace: true,
@@ -110,7 +112,8 @@ class CustomMap extends StatelessWidget {
               userAgentPackageName: 'com.symplyapps.ktel_transit',
               tileProvider: FMTCTileProvider(
                 stores: const {
-                  'osmcache': BrowseStoreStrategy.readUpdateCreate, // auto-cache tiles as user browses
+                  'osmcache': BrowseStoreStrategy.readUpdateCreate,
+                  // auto-cache tiles as user browses
                 },
               ),
               tileBuilder: Theme.of(context).brightness == Brightness.dark
@@ -131,12 +134,16 @@ class CustomMap extends StatelessWidget {
                       pattern: StrokePattern.dashed(segments: [1, 18]),
                     ),
                   // Transit Ride (The Bus)
-                  if (activeRoute!.busTrip?.points != null)
-                    Polyline(
-                      points: activeRoute!.busTrip!.points!,
-                      color: AppTheme.blueish,
-                      strokeWidth: 4.0,
-                    ),
+                  if (activeRoute!.busTrip?.legs != null)
+                    // Loop through all the legs and give each one their own
+                    // color in the Polyline mark.
+                    for (BusLeg leg in activeRoute!.busTrip!.legs)
+                      if (leg.points != null)
+                        Polyline(
+                          points: leg.points!,
+                          color: ColorUtils.adaptToTheme(leg.legColor, Theme.of(context).brightness),
+                          strokeWidth: 4.0,
+                        ),
                   // Egress Walk (End Stop to Pin)
                   if (activeRoute!.egressTrip?.points != null)
                     Polyline(
@@ -158,8 +165,7 @@ class CustomMap extends StatelessWidget {
                     height: 40,
                     rotate: true,
                     child: GestureDetector(
-                      onTap: () =>
-                          onMapPointPressed(startPoint!.coordinates),
+                      onTap: () => onMapPointPressed(startPoint!.coordinates),
                       child: Icon(
                         Icons.my_location,
                         color: colorScheme.secondary,

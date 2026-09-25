@@ -6,6 +6,8 @@ import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/models/route.dart';
 import 'package:ktel_transit/models/stop_time.dart';
+import 'package:ktel_transit/theme/app_theme.dart';
+import 'package:ktel_transit/utilities/color_utils.dart';
 import 'package:ktel_transit/utilities/time_format.dart';
 import '../models/calendar_date.dart';
 import '../services/fare_service.dart';
@@ -256,7 +258,8 @@ class GtfsRepository {
           stopNames: stopNames,
           originStop: startStop,
           destinationStop: destStop,
-          wheelchairBoarding: trip.wheelchairBoarding
+          wheelchairBoarding: trip.wheelchairBoarding,
+          legColor: ColorUtils.fromHex(route.routeColor) ?? AppTheme.blueish,
         );
 
         dailyTrips.add(BusTrip(
@@ -353,7 +356,8 @@ class GtfsRepository {
                 stopNames: stopNamesA,
                 originStop: startStop,
                 destinationStop: transferStop,
-                wheelchairBoarding: tripA.wheelchairBoarding
+                wheelchairBoarding: tripA.wheelchairBoarding,
+                legColor: ColorUtils.fromHex(routeA.routeColor) ?? AppTheme.blueish,
               );
 
 
@@ -366,7 +370,8 @@ class GtfsRepository {
                 stopNames: stopNamesB,
                 originStop: transferStop,
                 destinationStop: destStop,
-                wheelchairBoarding: tripB.wheelchairBoarding
+                wheelchairBoarding: tripB.wheelchairBoarding,
+                legColor: ColorUtils.fromHex(routeB.routeColor) ?? AppTheme.blueish,
               );
 
               dailyTrips.add(BusTrip(
