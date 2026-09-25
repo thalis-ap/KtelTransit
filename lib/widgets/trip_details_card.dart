@@ -3,10 +3,10 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 
 import '../models/bus_trip.dart';
-import '../utilities/distance_format.dart';
+import '../utilities/distance_utils.dart';
 
 /// A pure UI widget that transforms any routing trip into a nice looking
 /// detailed card for the trip. Departed trips and callbacks on tap are handled

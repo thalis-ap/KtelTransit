@@ -3,13 +3,13 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 import 'package:ktel_transit/widgets/timeline_node.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/bus_trip.dart';
 import '../models/stop.dart';
-import '../utilities/distance_format.dart';
+import '../utilities/distance_utils.dart';
 
 class ExtendedDetailsCard extends StatefulWidget {
   final RoutingTrip routingTrip;

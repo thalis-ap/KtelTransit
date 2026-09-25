@@ -8,7 +8,7 @@ import 'package:ktel_transit/models/route.dart';
 import 'package:ktel_transit/models/stop_time.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/color_utils.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 import '../models/calendar_date.dart';
 import '../services/fare_service.dart';
 

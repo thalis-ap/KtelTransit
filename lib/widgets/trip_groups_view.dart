@@ -3,7 +3,7 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/services/trip_grouping_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 import 'package:ktel_transit/widgets/trip_card.dart';
 import 'package:ktel_transit/widgets/trips_loading_skeleton.dart';
 import 'package:ktel_transit/widgets/trips_warning_banner.dart';

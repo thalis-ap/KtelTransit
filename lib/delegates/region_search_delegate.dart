@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
-import '../utilities/language_format.dart';
+import '../utilities/language_utils.dart';
 import 'base_search_delegate.dart';
 
 class RegionSearchDelegate extends BaseSearchDelegate<Region> {

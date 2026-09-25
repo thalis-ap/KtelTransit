@@ -6,7 +6,7 @@ import 'package:ktel_transit/widgets/map_point_sheet.dart';
 import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
-import '../utilities/time_format.dart';
+import '../utilities/time_utils.dart';
 
 class StopSheet extends MapPointSheet {
   final Stop stop;

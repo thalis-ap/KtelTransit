@@ -1,5 +1,5 @@
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 
 /// Holds trips grouped by their departure status.
 class TripGroups {

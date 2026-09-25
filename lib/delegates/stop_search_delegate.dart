@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/utilities/language_format.dart';
+import 'package:ktel_transit/utilities/language_utils.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';

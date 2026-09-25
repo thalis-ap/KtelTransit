@@ -1,7 +1,7 @@
 import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
 import 'package:ktel_transit/services/fare_service.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 
 import 'map_point.dart';
 

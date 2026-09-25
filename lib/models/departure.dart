@@ -1,5 +1,5 @@
 import 'package:ktel_transit/models/stop.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart'; // Make sure this path is correct for your app
 
 class Departure {

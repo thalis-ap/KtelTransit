@@ -4,7 +4,7 @@ import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
 import 'package:ktel_transit/services/osrm_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/utilities/language_format.dart';
+import 'package:ktel_transit/utilities/language_utils.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:ktel_transit/gtfs/gtfs_repository.dart';
 import '../models/stop.dart';
