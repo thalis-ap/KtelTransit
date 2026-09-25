@@ -1,8 +1,9 @@
-import 'dart:ui';
+import '../utilities/number_utils.dart';
 
 class Route {
   final String routeId, agencyId, shortName, longName;
   final int routeType;
+  final int routeSortOrder;
 
   final String? routeColor;
 
@@ -12,6 +13,7 @@ class Route {
   static const longNameKey = 'route_long_name';
   static const routeTypeKey = 'route_type';
   static const routeColorKey = 'route_color';
+  static const routeSortOrderKey = 'route_sort_order';
 
   static const List<String> requiredFields = [
     routeIdKey,
@@ -28,6 +30,7 @@ class Route {
     required this.longName,
     required this.routeType,
     this.routeColor,
+    this.routeSortOrder = NumberUtils.maxInt,
   });
 
   factory Route.fromCsv(
@@ -53,6 +56,7 @@ class Route {
       longName: translatedLongName ?? rawLongName,
       routeType: int.parse(getValue(routeTypeKey)),
       routeColor: color.isEmpty ? null : color, // leave empty if no color was found
+      routeSortOrder: int.tryParse(getValue(routeSortOrderKey)) ?? NumberUtils.maxInt,
     );
   }
 

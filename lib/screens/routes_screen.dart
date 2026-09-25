@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/utilities/time_format.dart';
+import 'package:ktel_transit/utilities/time_utils.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
@@ -55,6 +55,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                     padding: const EdgeInsets.all(8.0),
                     itemCount: gtfsManager.repository.routes.length,
                     itemBuilder: (context, index) {
+                      // Here the routes are already sorted by route_sort_order
                       final Route route = gtfsManager.repository.routes[index];
                       final List<Trip> trips = gtfsManager.repository.trips
                           .where((t) => t.routeId == route.routeId)
