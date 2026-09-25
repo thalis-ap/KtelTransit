@@ -4,6 +4,7 @@ import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
+import 'package:ktel_transit/widgets/expandable_description.dart';
 import 'package:ktel_transit/widgets/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
 import '../models/region.dart';
@@ -79,6 +80,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
                           leading: const Icon(Icons.directions_bus),
                           title: Text(route.longName),
                           children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                              child: ExpandableDescription(description: route.routeDesc),
+                            ),
                             if (going.isNotEmpty)
                               DirectionSection(
                                 title:
@@ -95,7 +100,6 @@ class _RoutesScreenState extends State<RoutesScreen> {
                                 trips: returning,
                                 repository: gtfsManager.repository,
                               ),
-                            const SizedBox(height: 8),
                           ],
                         ),
                       );

@@ -6,6 +6,7 @@ class Route {
   final int routeSortOrder;
 
   final String? routeColor;
+  final String routeDesc;
 
   static const routeIdKey = 'route_id';
   static const agencyIdKey = 'agency_id';
@@ -14,6 +15,7 @@ class Route {
   static const routeTypeKey = 'route_type';
   static const routeColorKey = 'route_color';
   static const routeSortOrderKey = 'route_sort_order';
+  static const routeDescKey = 'route_desc';
 
   static const List<String> requiredFields = [
     routeIdKey,
@@ -31,6 +33,7 @@ class Route {
     required this.routeType,
     this.routeColor,
     this.routeSortOrder = NumberUtils.maxInt,
+    this.routeDesc = "",
   });
 
   factory Route.fromCsv(
@@ -38,6 +41,7 @@ class Route {
       Map<String, int> headerIndices, {
         String? translatedShortName,
         String? translatedLongName,
+        String? translatedDesc,
       }) {
     String getValue(String key) {
       final idx = headerIndices[key];
@@ -49,6 +53,7 @@ class Route {
     final rawLongName = getValue(longNameKey);
     final color = getValue(routeColorKey);
 
+    print(getValue(routeDescKey));
     return Route(
       routeId: getValue(routeIdKey),
       agencyId: getValue(agencyIdKey), // Optional, won't crash if missing
@@ -57,6 +62,7 @@ class Route {
       routeType: int.parse(getValue(routeTypeKey)),
       routeColor: color.isEmpty ? null : color, // leave empty if no color was found
       routeSortOrder: int.tryParse(getValue(routeSortOrderKey)) ?? NumberUtils.maxInt,
+      routeDesc: translatedDesc ?? getValue(routeDescKey),
     );
   }
 

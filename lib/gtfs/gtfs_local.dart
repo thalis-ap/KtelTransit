@@ -118,18 +118,28 @@ class GtfsLocal {
       final recordId = row[recordIdIdx].toString();
       final translation = row[translationIdx].toString();
 
-      if (tableName == 'stops' &&
-          (fieldName == 'stop_name' || fieldName == 'stop_desc')) {
-        translations['${fieldName}_$recordId'] = translation;
-      } else if (tableName == 'routes') {
-        if (fieldName == 'route_short_name') {
-          translations['route_short_$recordId'] = translation;
-        } else if (fieldName == 'route_long_name') {
-          translations['route_long_$recordId'] = translation;
-        }
-      } else {
-        translations[recordId] = translation;
-      }
+      // Create a unique id for each translation. Examples below:
+      // stops_stop_name_STOP-1
+      // agency_agency_name_KTEL-LEF
+      // routes_route_long_name_R-KAR
+      // routes_route_desc_R-ATH
+      // We need all the 3 keys so that we are sure there are no collisions
+      // between 2 different translation entries
+      translations["${tableName}_${fieldName}_$recordId"] = translation;
+      // if (tableName == 'stops' &&
+      //     (fieldName == 'stop_name' || fieldName == 'stop_desc')) {
+      //   translations['${fieldName}_$recordId'] = translation;
+      // } else if (tableName == 'routes') {
+      //   if (fieldName == 'route_short_name') {
+      //     translations['route_short_$recordId'] = translation;
+      //   } else if (fieldName == 'route_long_name') {
+      //     translations['route_long_$recordId'] = translation;
+      //   } else if (fieldName == 'route_desc') {
+      //     translations['route_desc_$recordId'] = translation;
+      //   }
+      // } else {
+      //   translations[recordId] = translation;
+      // }
     }
     return translations;
   }
@@ -160,7 +170,7 @@ class GtfsLocal {
       if (!Agency.isValidRow(row, headers)) continue;
 
       final agencyId = row[headers[Agency.agencyIdKey]!].toString().trim();
-      final translatedName = translations[agencyId];
+      final translatedName = translations["agency_$agencyId"];
 
       outAgencies.add(Agency.fromCsv(row, headers, translatedName: translatedName));
     }
@@ -194,8 +204,8 @@ class GtfsLocal {
       if (!Stop.isValidRow(row, headers)) continue;
 
       final stopId = row[headers['stop_id']!].toString().trim();
-      final translatedName = translations['stop_name_$stopId'];
-      final translatedDesc = translations['stop_desc_$stopId'];
+      final translatedName = translations['stops_stop_name_$stopId'];
+      final translatedDesc = translations['stops_stop_desc_$stopId'];
 
       outStops.add(Stop.fromCsv(
         row,
@@ -234,14 +244,16 @@ class GtfsLocal {
       if (!Route.isValidRow(row, headers)) continue;
 
       final routeId = row[headers['route_id']!].toString().trim();
-      final translatedShort = translations['route_short_$routeId'];
-      final translatedLong = translations['route_long_$routeId'];
+      final translatedShort = translations['routes_route_short_name_$routeId'];
+      final translatedLong = translations['routes_route_long_name_$routeId'];
+      final translatedDesc = translations['routes_route_desc_$routeId'];
 
       outRoutes.add(Route.fromCsv(
         row,
         headers,
         translatedShortName: translatedShort,
         translatedLongName: translatedLong,
+        translatedDesc: translatedDesc,
       ));
 
       // Sort based on route_sort_order in order to present them in the
