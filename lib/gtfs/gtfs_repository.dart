@@ -68,6 +68,7 @@ class GtfsRepository {
     _stopTimesByStopId = {};
     _stopTimesByTripId = {};
     _calendarDatesByDate = {};
+    _shapesById = {};
 
     for (final st in stopTimes) {
       _stopTimesByStopId.putIfAbsent(st.stopId, () => []).add(st);
@@ -300,12 +301,6 @@ class GtfsRepository {
           if (tripA == null) continue;
           if (!validServiceIds.contains(tripA.serviceId)) continue;
 
-          final List<LatLng> passingPointsA = _shapesById[tripA.shapeId]?.map((s) =>
-              LatLng(s.latitude, s.longitude)).toList() ?? [
-            LatLng(startStop.latitude, startStop.longitude),
-            LatLng(destStop.latitude, destStop.longitude)
-          ];
-
           final List<StopTime> tripAStops =
           (_stopTimesByTripId[tripA.tripId] ?? [])
               .where((st) => st.stopSequence > stStart.stopSequence)
@@ -332,12 +327,6 @@ class GtfsRepository {
               if (!validServiceIds.contains(tripB.serviceId)) continue;
               if (tripA.tripId == tripB.tripId) continue;
 
-              final List<LatLng> passingPointsB = _shapesById[tripB.shapeId]?.map((s) =>
-                  LatLng(s.latitude, s.longitude)).toList() ?? [
-                LatLng(startStop.latitude, startStop.longitude),
-                LatLng(destStop.latitude, destStop.longitude)
-              ];
-
               final List<StopTime> destTimes =
               (_stopTimesByTripId[tripB.tripId] ?? [])
                   .where(
@@ -363,6 +352,18 @@ class GtfsRepository {
               String rBName = tripB.getDisplayName(
                 routeB.longName,
               );
+
+              final List<LatLng> passingPointsA = _shapesById[tripA.shapeId]?.map((s) =>
+                  LatLng(s.latitude, s.longitude)).toList() ?? [
+                LatLng(startStop.latitude, startStop.longitude),
+                LatLng(transferStop.latitude, transferStop.longitude)
+              ];
+
+              final List<LatLng> passingPointsB = _shapesById[tripB.shapeId]?.map((s) =>
+                  LatLng(s.latitude, s.longitude)).toList() ?? [
+                LatLng(transferStop.latitude, transferStop.longitude),
+                LatLng(destStop.latitude, destStop.longitude)
+              ];
 
               final int durationLeg1 = TimeFormat.gtfsTimesToDiffSeconds(
                 transferA.arrivalTime,
