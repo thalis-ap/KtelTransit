@@ -297,7 +297,9 @@
   "agency_fare_website": "Tickets & Fares",
   "agency_no_contact_info": "No contact information provided by the agency.",
   "wheelchairAccessible": "Wheelchair accessible",
-  "wheelchairNotAccessible": "Not wheelchair accessible"
+  "wheelchairNotAccessible": "Not wheelchair accessible",
+  "noPlacesFoundFor": "No places found for"
+
 
 
 }

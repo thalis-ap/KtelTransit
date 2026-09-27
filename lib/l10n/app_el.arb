@@ -408,6 +408,7 @@
   "agency_fare_website": "Εισιτήρια & Τιμές",
   "agency_no_contact_info": "Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.",
   "wheelchairAccessible": "Προσβάσιμη με αμαξίδιο",
-  "wheelchairNotAccessible": "Μη προσβάσιμη με αμαξίδιο"
+  "wheelchairNotAccessible": "Μη προσβάσιμη με αμαξίδιο",
+  "noPlacesFoundFor": "Δε βρέθηκαν αποτελέσματα για"
 
 }

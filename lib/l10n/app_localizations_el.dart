@@ -688,4 +688,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get wheelchairNotAccessible => 'Μη προσβάσιμη με αμαξίδιο';
+
+  @override
+  String get noPlacesFoundFor => 'Δε βρέθηκαν αποτελέσματα για';
 }

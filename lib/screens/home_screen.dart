@@ -300,7 +300,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Opens the search stop delegate to allow user to select a stop
   Future<void> _searchAndSetStop({required bool isStart}) async {
     final l10n = AppLocalizations.of(context)!;
-    final languageCode = widget.settingsController.locale.languageCode;
 
     // Guard against the (brief) window where the active region has just
     // been deleted and this screen hasn't been replaced with
@@ -316,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context: context,
       delegate: StopSearchDelegate(
         gtfsManager.repository.stops,
-        currentRegionName: currentRegion.getLocalizedName(languageCode),
+        currentRegion: currentRegion,
         searchFieldLabel: isStart
             ? l10n.searchStartHint
             : l10n.searchDestinationHint,

@@ -159,7 +159,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
           });
         }
       } else {
-        // If user is not using the greek language translate to Greeklish
+        // If user is not using the greek language transliterate to Greeklish
         if (languageCode != "el") {
           name = LanguageFormat.toGreeklish(name);
         }

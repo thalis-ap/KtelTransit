@@ -1285,6 +1285,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Μη προσβάσιμη με αμαξίδιο'**
   String get wheelchairNotAccessible;
+
+  /// No description provided for @noPlacesFoundFor.
+  ///
+  /// In el, this message translates to:
+  /// **'Δε βρέθηκαν αποτελέσματα για'**
+  String get noPlacesFoundFor;
 }
 
 class _AppLocalizationsDelegate

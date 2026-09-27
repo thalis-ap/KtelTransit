@@ -680,4 +680,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wheelchairNotAccessible => 'Not wheelchair accessible';
+
+  @override
+  String get noPlacesFoundFor => 'No places found for';
 }
