@@ -83,15 +83,10 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
     final hasContactInfo = agency.phone.isNotEmpty || agency.email.isNotEmpty;
     final hasLinks = agency.url.isNotEmpty || agency.fareUrl.isNotEmpty;
 
-    // Format Name and ID
-    final displayName = agency.agencyId.isNotEmpty
-        ? '${agency.name} (${agency.agencyId})'
-        : agency.name;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header Card (Agency Name & ID)
+        // Header Card (Agency Name)
         Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -108,7 +103,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  displayName,
+                  agency.name,
                   style: context.textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
