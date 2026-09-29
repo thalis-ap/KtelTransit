@@ -155,32 +155,36 @@ class _PlaceSearchContentState extends State<_PlaceSearchContent> {
   Future<void> _fetchPhotonPlaces(String query) async {
     if (query.isEmpty) return;
     try {
-        final List<MapPoint>? places = await _getPlaces(query);
+      final List<MapPoint>? places = await _getPlaces(query);
 
-        if (places == null) {
-          throw Exception("Error retrieving places from photon api");
-        }
+      if (places == null) {
+        throw Exception("Error retrieving places from photon api");
+      }
 
-        // Quickly set the first available results, so as not to make the user
-        // wait for a second request
+      // Quickly set the first available results, so as not to make the user
+      // wait for a second request
+      setState(() {
+        _remotePlaces = places;
+        _isLoadingRemote = false;
+      });
+
+      // If the text was entered in greek then try and get some results using
+      // the greeklish transliterated version of the query
+      final String greeklishQuery = LanguageFormat.toGreeklish(query);
+      if (query != greeklishQuery) {
+        final List<MapPoint>? places2 = await _getPlaces(greeklishQuery);
+
+        // This request is optional, don't throw an error because it failed
+        if (places2 == null) return;
+
         setState(() {
-          _remotePlaces = places;
-          _isLoadingRemote = false;
+          _remotePlaces.addAll(
+            places2.where(
+              (p2) => !places.any((p) => p.coordinates == p2.coordinates),
+            ),
+          );
         });
-
-        // If the text was entered in greek then try and get some results using
-        // the greeklish transliterated version of the query
-        final String greeklishQuery = LanguageFormat.toGreeklish(query);
-        if (query != greeklishQuery) {
-          final List<MapPoint>? places2 = await _getPlaces(greeklishQuery);
-
-          // This request is optional, don't throw an error because it failed
-          if (places2 == null) return;
-
-          setState(() {
-            _remotePlaces.addAll(places2.where((p2) => !places.any((p) => p.coordinates == p2.coordinates)));
-          });
-        }
+      }
     } catch (e) {
       if (kDebugMode) debugPrint("Photon api error: $e");
       if (mounted) setState(() => _isLoadingRemote = false);
@@ -197,7 +201,16 @@ class _PlaceSearchContentState extends State<_PlaceSearchContent> {
     final clearQuery = LanguageFormat.clearText(widget.query);
     final localSuggestions = widget.stops.where((stop) {
       final clearStopName = LanguageFormat.clearText(stop.name);
-      return clearStopName.contains(clearQuery);
+
+      // Transliterate both the stop name and the query to greeklish.
+      // This way we can achieve correct matching in the following cases:
+      // 1. User's query is in greeklish while they have the Greek language
+      // selected in the app settings.
+      // 2. User's query is in Greek while they have a different language
+      // selected in the app settings
+      return LanguageFormat.toGreeklish(
+        clearStopName,
+      ).contains(LanguageFormat.toGreeklish(clearQuery));
     }).toList();
 
     // Build the unified scrollable list
