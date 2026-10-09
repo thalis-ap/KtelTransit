@@ -504,6 +504,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedSearchTime = DateTime.now();
     });
     _refreshTripInfo();
+
+    CustomSnackBar.show(context, message: AppLocalizations.of(context)!.resetToNow, color: Theme.of(context).colorScheme.secondary);
   }
 
   void _onConfirmChooseOnMap() {
@@ -515,7 +517,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final point = MapPoint(
       coordinates: center,
       name:
-          l10n.chosenPoint, // "Chosen Point" or you can use "Selected location"
+          l10n.chosenPoint,
     );
 
     // Set it as start or destination based on isSelectingMapPointStart
