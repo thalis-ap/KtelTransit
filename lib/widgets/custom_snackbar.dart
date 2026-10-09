@@ -54,7 +54,7 @@ class CustomSnackBar {
                   child: Text(
                     message,
                     textAlign: TextAlign.center,
-                    style: context.textTheme.headlineSmall?.copyWith(
+                    style: context.textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                     ),
                     // only exception with colors (not using colorScheme)
