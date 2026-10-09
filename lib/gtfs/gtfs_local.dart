@@ -160,7 +160,7 @@ class GtfsLocal {
       if (!Agency.isValidRow(row, headers)) continue;
 
       final agencyId = row[headers[Agency.agencyIdKey]!].toString().trim();
-      final translatedName = translations["agency_$agencyId"];
+      final translatedName = translations["agency_agency_name_$agencyId"];
 
       outAgencies.add(Agency.fromCsv(row, headers, translatedName: translatedName));
     }
