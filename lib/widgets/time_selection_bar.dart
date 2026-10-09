@@ -1,5 +1,3 @@
-// lib/widgets/time_selection_bar.dart
-
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
@@ -24,47 +22,56 @@ class TimeSelectionBar extends StatelessWidget {
     final formattedTime =
         "${selectedSearchTime.day.toString().padLeft(2, '0')}/${selectedSearchTime.month.toString().padLeft(2, '0')} - ${selectedSearchTime.hour.toString().padLeft(2, '0')}:${selectedSearchTime.minute.toString().padLeft(2, '0')}";
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.schedule, color: colorScheme.onSurfaceVariant, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.departureLabel(formattedTime),
-                    style: context.textTheme.bodyMedium,
-                  ),
+    final now = DateTime.now();
+    final isDifferentFromNow = selectedSearchTime.year != now.year ||
+        selectedSearchTime.month != now.month ||
+        selectedSearchTime.day != now.day ||
+        selectedSearchTime.hour != now.hour ||
+        selectedSearchTime.minute != now.minute;
+
+    return Row(
+      children: [
+
+        Expanded(
+          child: Material(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onChangeTime,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.departureLabel(formattedTime),
+                        style: context.textTheme.bodyMedium,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.edit,
+                      size: 22,
+                    ),
+
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-          // Reset button
-          IconButton(
-            icon: Icon(Icons.refresh, color: colorScheme.onSurfaceVariant),
+        ),
+        // Only show the reset button if the time is different from "now"
+        if (isDifferentFromNow) ...[
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            icon: const Icon(Icons.restore),
+            color: colorScheme.primary,
             onPressed: onResetTime,
             tooltip: l10n.resetToNow,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          ),
-          const SizedBox(width: 4),
-          // Change button
-          IconButton(
-            icon: Icon(Icons.edit, color: colorScheme.primary),
-            onPressed: onChangeTime,
-            tooltip: l10n.changeButton,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           ),
         ],
-      ),
+      ],
     );
   }
 }
