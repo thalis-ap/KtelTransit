@@ -1307,8 +1307,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? null
         : FloatingActionButton(
             onPressed: _onMyLocationPressed,
-            // slight lighter color to avoid same color with the map
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh
+            // Translucent surface, matching the other on-map widgets
+            // (compass, search bar, choose-on-map bar)
+            backgroundColor: Theme.of(context).colorScheme.surface
                 .withAlpha(AppTheme.alphaOnMapWidget),
             child: Icon(Icons.my_location, color: AppTheme.blueish),
           );
