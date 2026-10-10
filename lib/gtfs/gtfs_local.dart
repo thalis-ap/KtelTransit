@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:flutter/cupertino.dart' hide Route;
 import 'package:ktel_transit/models/agency.dart';
+import 'package:ktel_transit/models/fare_media.dart';
+import 'package:ktel_transit/models/fare_product.dart';
+import 'package:ktel_transit/models/rider_category.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
 
 import '../models/calendar.dart';
@@ -37,6 +40,9 @@ class GtfsLocal {
       final List<Shape> tempShapes = [];
       final List<Calendar> tempCalendars = [];
       final List<CalendarDate> tempCalendarDates = [];
+      final List<FareMedia> tempFareMedia = [];
+      final List<RiderCategory> tempRiderCategories = [];
+      final List<FareProduct> tempFareProducts = [];
 
       // Load translations (if exists)
       final translations = await _loadTranslations(regionPath, languageCode);
@@ -51,6 +57,9 @@ class GtfsLocal {
         _loadShapes(regionPath, tempShapes),
         _loadCalendar(regionPath, tempCalendars),
         _loadCalendarDates(regionPath, tempCalendarDates),
+        _loadFareMedia(regionPath, tempFareMedia, translations),
+        _loadRiderCategories(regionPath, tempRiderCategories, translations),
+        _loadFareProducts(regionPath, tempFareProducts, translations),
       ]);
 
       if (results.every((res) => res.isSuccess)) {
@@ -64,6 +73,9 @@ class GtfsLocal {
         repository.shapes = tempShapes;
         repository.calendars = tempCalendars;
         repository.calendarDates = tempCalendarDates;
+        repository.fareMedia = tempFareMedia;
+        repository.riderCategories = tempRiderCategories;
+        repository.fareProducts = tempFareProducts;
 
         // Build indexes - this is required for performance
         repository.buildIndexes();
@@ -399,6 +411,126 @@ class GtfsLocal {
     for (final row in rows.skip(1)) {
       if (!CalendarDate.isValidRow(row, headers)) continue;
       outCalendarDates.add(CalendarDate.fromCsv(row, headers));
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  /// Reads an optional fares file. Returns null when the file is missing or
+  /// empty, so callers can simply leave their list empty.
+  Future<List<List<dynamic>>?> _readOptionalRows(
+      String regionPath,
+      String fileName,
+      ) async {
+    final file = File('$regionPath/$fileName');
+    if (!await file.exists()) return null;
+
+    final rows = csv.decode(await file.readAsString());
+    return rows.isEmpty ? null : rows;
+  }
+
+  /// All fare-related loads below are optional
+  Future<RegionLoadResult> _loadFareMedia(
+      String regionPath,
+      List<FareMedia> outFareMedia,
+      Map<String, String> translations,
+      ) async {
+    final rows = await _readOptionalRows(regionPath, 'fare_media.txt');
+    if (rows == null) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    // Fares must never break the schedules: a malformed fares file is
+    // skipped (no data is better than invalid data) instead of failing the
+    // whole region load.
+    if (!FareMedia.hasRequiredHeaders(headers)) {
+      debugPrint('fare_media.txt missing required columns, skipping');
+      return RegionLoadResult.success();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (!FareMedia.isValidRow(row, headers)) continue;
+
+      final id = row[headers[FareMedia.fareMediaIdKey]!].toString().trim();
+      outFareMedia.add(FareMedia.fromCsv(
+        row,
+        headers,
+        translatedName: translations['fare_media_fare_media_name_$id'],
+      ));
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadRiderCategories(
+      String regionPath,
+      List<RiderCategory> outRiderCategories,
+      Map<String, String> translations,
+      ) async {
+    final rows = await _readOptionalRows(regionPath, 'rider_categories.txt');
+    if (rows == null) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    if (!RiderCategory.hasRequiredHeaders(headers)) {
+      debugPrint('rider_categories.txt missing required columns, skipping');
+      return RegionLoadResult.success();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (!RiderCategory.isValidRow(row, headers)) continue;
+
+      final id =
+      row[headers[RiderCategory.riderCategoryIdKey]!].toString().trim();
+      outRiderCategories.add(RiderCategory.fromCsv(
+        row,
+        headers,
+        translatedName:
+        translations['rider_categories_rider_category_name_$id'],
+      ));
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadFareProducts(
+      String regionPath,
+      List<FareProduct> outFareProducts,
+      Map<String, String> translations,
+      ) async {
+    final rows = await _readOptionalRows(regionPath, 'fare_products.txt');
+    if (rows == null) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    if (!FareProduct.hasRequiredHeaders(headers)) {
+      debugPrint('fare_products.txt missing required columns, skipping');
+      return RegionLoadResult.success();
+    }
+
+    // The file order is kept on purpose: the region author decides the order
+    // the products are presented in (the spec has no sort field).
+    final Set<String> seenKeys = {};
+    for (final row in rows.skip(1)) {
+      if (!FareProduct.isValidRow(row, headers)) continue;
+
+      final id =
+      row[headers[FareProduct.fareProductIdKey]!].toString().trim();
+      final product = FareProduct.fromCsv(
+        row,
+        headers,
+        translatedName: translations['fare_products_fare_product_name_$id'],
+      );
+
+      // Ignore duplicates of the same (product, category, media) row
+      if (!seenKeys.add(product.key)) continue;
+      outFareProducts.add(product);
     }
 
     return RegionLoadResult.success();

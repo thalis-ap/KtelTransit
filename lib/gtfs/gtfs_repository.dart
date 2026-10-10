@@ -2,6 +2,9 @@ import 'package:ktel_transit/models/agency.dart';
 import 'package:ktel_transit/models/calendar.dart';
 import 'package:ktel_transit/models/departure.dart';
 import 'package:ktel_transit/models/bus_trip.dart';
+import 'package:ktel_transit/models/fare_media.dart';
+import 'package:ktel_transit/models/fare_product.dart';
+import 'package:ktel_transit/models/rider_category.dart';
 import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/models/trip.dart';
 import 'package:ktel_transit/models/route.dart';
@@ -33,6 +36,9 @@ class GtfsRepository {
   List<Shape> shapes = [];
   List<Calendar> calendars = [];
   List<CalendarDate> calendarDates = [];
+  List<FareMedia> fareMedia = [];
+  List<RiderCategory> riderCategories = [];
+  List<FareProduct> fareProducts = [];
 
   // ---- Indexes ----
   Map<String, List<StopTime>> _stopTimesByStopId = {};
@@ -42,6 +48,8 @@ class GtfsRepository {
   Map<String, Stop> _stopsById = {};
   Map<String, List<Shape>> _shapesById = {};
   Map<int, List<CalendarDate>> _calendarDatesByDate = {};
+  Map<String, FareMedia> _fareMediaById = {};
+  Map<String, RiderCategory> _riderCategoriesById = {};
 
   /// Clears all data and indexes.
   void clear() {
@@ -52,13 +60,20 @@ class GtfsRepository {
     stopTimes.clear();
     calendars.clear();
     calendarDates.clear();
+    shapes.clear();
+    fareMedia.clear();
+    riderCategories.clear();
+    fareProducts.clear();
+
     _stopTimesByStopId = {};
     _stopTimesByTripId = {};
-    _shapesById = {};
     _tripsById = {};
     _routesById = {};
     _stopsById = {};
     _calendarDatesByDate = {};
+    _shapesById = {};
+    _fareMediaById = {};
+    _riderCategoriesById = {};
   }
 
   /// Builds indexes from current data.
@@ -88,6 +103,11 @@ class GtfsRepository {
         _calendarDatesByDate.putIfAbsent(dateInt, () => []).add(cd);
       }
     }
+
+    _fareMediaById = {for (final m in fareMedia) m.fareMediaId: m};
+    _riderCategoriesById = {
+      for (final c in riderCategories) c.riderCategoryId: c,
+    };
   }
 
   // ---- Query Methods ----
@@ -436,6 +456,20 @@ class GtfsRepository {
 
     return dailyTrips;
   }
+
+  /// True when the current region provides any fare products at all
+  bool get hasFareProducts => fareProducts.isNotEmpty;
+
+  FareMedia? getFareMedia(String fareMediaId) => _fareMediaById[fareMediaId];
+
+  RiderCategory? getRiderCategory(String riderCategoryId) =>
+      _riderCategoriesById[riderCategoryId];
+
+  /// The category that should be preselected in the UI: the one marked as
+  /// default, otherwise the first one, otherwise null.
+  RiderCategory? get defaultRiderCategory =>
+      riderCategories.where((c) => c.isDefault).firstOrNull ??
+          riderCategories.firstOrNull;
 
   // ---- Internal Helpers ----
   List<String> _getStopNamesForTrip(String tripId) {
