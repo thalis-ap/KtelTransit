@@ -1,9 +1,10 @@
 /// Something a passenger can buy (single ticket, day pass, monthly card, ...).
 /// See fare_products.txt in the GTFS-Fares v2 spec.
 ///
-/// The primary key in the spec is (fare_product_id, fare_media_id), so the
-/// same [fareProductId] can appear several times with different media and
-/// different prices. Never index by [fareProductId] alone, use [key].
+/// The same [fareProductId] can appear several times with different rider
+/// categories (e.g. standard / student) and different media (e.g. driver /
+/// card), each with its own price. Never index by [fareProductId] alone,
+/// use [key].
 class FareProduct {
   final String fareProductId;
 
@@ -15,6 +16,10 @@ class FareProduct {
   /// is valid on any media (empty fare_media_id in the file).
   final String? fareMediaId;
 
+  /// The rider category this price applies to (e.g. standard, student).
+  /// Null means the product is eligible for any rider category.
+  final String? riderCategoryId;
+
   /// Can be negative (the spec uses this for transfer discounts).
   final double amount;
 
@@ -24,6 +29,7 @@ class FareProduct {
   static const fareProductIdKey = 'fare_product_id';
   static const fareProductNameKey = 'fare_product_name';
   static const fareMediaIdKey = 'fare_media_id';
+  static const riderCategoryIdKey = 'rider_category_id';
   static const amountKey = 'amount';
   static const currencyKey = 'currency';
 
@@ -39,13 +45,19 @@ class FareProduct {
     required this.amount,
     required this.currency,
     this.fareMediaId,
+    this.riderCategoryId,
   });
 
-  /// Unique key of the product row: fare_product_id + fare_media_id
-  String get key => '$fareProductId|${fareMediaId ?? ''}';
+  /// Unique key of the product row:
+  /// fare_product_id + rider_category_id + fare_media_id
+  String get key =>
+      '$fareProductId|${riderCategoryId ?? ''}|${fareMediaId ?? ''}';
 
   /// True when the product is not tied to a specific media
   bool get isValidOnAnyMedia => fareMediaId == null;
+
+  /// True when the product is not tied to a specific rider category
+  bool get isValidForAnyRiderCategory => riderCategoryId == null;
 
   /// Negative amounts are legal but are discounts, not something to buy.
   /// The catalog UI should probably hide these.
@@ -66,11 +78,13 @@ class FareProduct {
     final rawName = getValue(fareProductNameKey);
     final resolvedName = translatedName ?? rawName;
     final mediaId = getValue(fareMediaIdKey);
+    final categoryId = getValue(riderCategoryIdKey);
 
     return FareProduct(
       fareProductId: id,
       name: resolvedName.isEmpty ? id : resolvedName,
       fareMediaId: mediaId.isEmpty ? null : mediaId,
+      riderCategoryId: categoryId.isEmpty ? null : categoryId,
       amount: double.parse(getValue(amountKey)),
       currency: getValue(currencyKey).toUpperCase(),
     );
