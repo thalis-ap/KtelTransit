@@ -70,22 +70,11 @@ class SideDrawer extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.mail_outline),
-            title: Text(l10n.info_contact),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AgencyInfoScreen()),
-              );
-            },
-          ),
+          const Divider(height: 10),
           ListTile(
             leading: const Icon(Icons.directions_bus),
             title: Text(l10n.routes),
             onTap: () {
-              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const RoutesScreen()),
@@ -96,7 +85,6 @@ class SideDrawer extends StatelessWidget {
             leading: const Icon(Icons.notifications_none_outlined),
             title: Text(l10n.announcements),
             onTap: () {
-              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const AnnouncementsScreen()),
@@ -107,7 +95,6 @@ class SideDrawer extends StatelessWidget {
             leading: const Icon(Icons.confirmation_number_outlined),
             title: Text(l10n.tickets),
             onTap: () {
-              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const TicketsScreen()),
@@ -115,10 +102,20 @@ class SideDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.mail_outline),
+            title: Text(l10n.info_contact),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AgencyInfoScreen()),
+              );
+            },
+          ),
+          const Divider(height: 10,),
+          ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(l10n.settingsTitle),
             onTap: () {
-              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -132,7 +129,6 @@ class SideDrawer extends StatelessWidget {
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.info),
             onTap: () {
-              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const InfoScreen()),
