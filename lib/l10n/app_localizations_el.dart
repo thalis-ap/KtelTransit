@@ -511,13 +511,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get info_developer_name => 'Θαλής Αποστολάτος';
 
   @override
-  String get tickets_placeholder_title => 'Πληροφορίες ανά Περιοχή';
-
-  @override
-  String get tickets_placeholder_desc =>
-      'Οι τιμές και οι πολιτικές των εισιτηρίων διαφέρουν ανάλογα με την επιλεγμένη περιοχή. Επικοινωνήστε με το τοπικό σας ΚΤΕΛ για ακριβείς τιμές.';
-
-  @override
   String get tickets_placeholder_note =>
       'Αναλυτικές πληροφορίες κομίστρου θα προστεθούν για κάθε περιοχή σε μελλοντική ενημέρωση.';
 
@@ -691,4 +684,43 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get noPlacesFoundFor => 'Δε βρέθηκαν αποτελέσματα για';
+
+  @override
+  String get tickets_any_media => 'Οποιοσδήποτε τρόπος πληρωμής';
+
+  @override
+  String get tickets_eligibility_link => 'Ποιοι δικαιούνται;';
+
+  @override
+  String get tickets_price_note =>
+      'Οι τιμές ενδέχεται να διαφέρουν ανάλογα με την απόσταση της διαδρομής. Επιβεβαιώστε την ακριβή τιμή με τον οδηγό ή το τοπικό σας ΚΤΕΛ.';
+
+  @override
+  String get tickets_no_products_for_category =>
+      'Δεν υπάρχουν διαθέσιμες επιλογές εισιτηρίων για αυτή την κατηγορία.';
+
+  @override
+  String get tickets_placeholder_title => 'Δεν υπάρχουν πληροφορίες εισιτηρίων';
+
+  @override
+  String get tickets_placeholder_desc =>
+      'Το πρακτορείο δεν έχει παράσχει πληροφορίες για τα εισιτήρια αυτής της περιοχής. Επικοινωνήστε μαζί του για περισσότερες πληροφορίες.';
+
+  @override
+  String get tickets_contact_agency => 'Επικοινωνία με το πρακτορείο';
+
+  @override
+  String get tickets_media_none => 'Πληρωμή στο λεωφορείο';
+
+  @override
+  String get tickets_media_paper => 'Χάρτινο εισιτήριο';
+
+  @override
+  String get tickets_media_card => 'Κάρτα';
+
+  @override
+  String get tickets_media_contactless => 'Ανέπαφη κάρτα';
+
+  @override
+  String get tickets_media_app => 'Εφαρμογή κινητού';
 }

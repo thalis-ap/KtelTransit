@@ -980,18 +980,6 @@ abstract class AppLocalizations {
   /// **'Θαλής Αποστολάτος'**
   String get info_developer_name;
 
-  /// No description provided for @tickets_placeholder_title.
-  ///
-  /// In el, this message translates to:
-  /// **'Πληροφορίες ανά Περιοχή'**
-  String get tickets_placeholder_title;
-
-  /// No description provided for @tickets_placeholder_desc.
-  ///
-  /// In el, this message translates to:
-  /// **'Οι τιμές και οι πολιτικές των εισιτηρίων διαφέρουν ανάλογα με την επιλεγμένη περιοχή. Επικοινωνήστε με το τοπικό σας ΚΤΕΛ για ακριβείς τιμές.'**
-  String get tickets_placeholder_desc;
-
   /// No description provided for @tickets_placeholder_note.
   ///
   /// In el, this message translates to:
@@ -1291,6 +1279,78 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Δε βρέθηκαν αποτελέσματα για'**
   String get noPlacesFoundFor;
+
+  /// No description provided for @tickets_any_media.
+  ///
+  /// In el, this message translates to:
+  /// **'Οποιοσδήποτε τρόπος πληρωμής'**
+  String get tickets_any_media;
+
+  /// No description provided for @tickets_eligibility_link.
+  ///
+  /// In el, this message translates to:
+  /// **'Ποιοι δικαιούνται;'**
+  String get tickets_eligibility_link;
+
+  /// No description provided for @tickets_price_note.
+  ///
+  /// In el, this message translates to:
+  /// **'Οι τιμές ενδέχεται να διαφέρουν ανάλογα με την απόσταση της διαδρομής. Επιβεβαιώστε την ακριβή τιμή με τον οδηγό ή το τοπικό σας ΚΤΕΛ.'**
+  String get tickets_price_note;
+
+  /// No description provided for @tickets_no_products_for_category.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν υπάρχουν διαθέσιμες επιλογές εισιτηρίων για αυτή την κατηγορία.'**
+  String get tickets_no_products_for_category;
+
+  /// No description provided for @tickets_placeholder_title.
+  ///
+  /// In el, this message translates to:
+  /// **'Δεν υπάρχουν πληροφορίες εισιτηρίων'**
+  String get tickets_placeholder_title;
+
+  /// No description provided for @tickets_placeholder_desc.
+  ///
+  /// In el, this message translates to:
+  /// **'Το πρακτορείο δεν έχει παράσχει πληροφορίες για τα εισιτήρια αυτής της περιοχής. Επικοινωνήστε μαζί του για περισσότερες πληροφορίες.'**
+  String get tickets_placeholder_desc;
+
+  /// No description provided for @tickets_contact_agency.
+  ///
+  /// In el, this message translates to:
+  /// **'Επικοινωνία με το πρακτορείο'**
+  String get tickets_contact_agency;
+
+  /// No description provided for @tickets_media_none.
+  ///
+  /// In el, this message translates to:
+  /// **'Πληρωμή στο λεωφορείο'**
+  String get tickets_media_none;
+
+  /// No description provided for @tickets_media_paper.
+  ///
+  /// In el, this message translates to:
+  /// **'Χάρτινο εισιτήριο'**
+  String get tickets_media_paper;
+
+  /// No description provided for @tickets_media_card.
+  ///
+  /// In el, this message translates to:
+  /// **'Κάρτα'**
+  String get tickets_media_card;
+
+  /// No description provided for @tickets_media_contactless.
+  ///
+  /// In el, this message translates to:
+  /// **'Ανέπαφη κάρτα'**
+  String get tickets_media_contactless;
+
+  /// No description provided for @tickets_media_app.
+  ///
+  /// In el, this message translates to:
+  /// **'Εφαρμογή κινητού'**
+  String get tickets_media_app;
 }
 
 class _AppLocalizationsDelegate

@@ -504,13 +504,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get info_developer_name => 'Thalis Apostolatos';
 
   @override
-  String get tickets_placeholder_title => 'Region-Specific Information';
-
-  @override
-  String get tickets_placeholder_desc =>
-      'Ticket prices and policies vary depending on the selected region. Please check with your local KTEL office for accurate fares.';
-
-  @override
   String get tickets_placeholder_note =>
       'Detailed fare information will be added for each region in a future update.';
 
@@ -683,4 +676,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noPlacesFoundFor => 'No places found for';
+
+  @override
+  String get tickets_any_media => 'Any payment method';
+
+  @override
+  String get tickets_eligibility_link => 'Who is eligible?';
+
+  @override
+  String get tickets_price_note =>
+      'Prices may vary depending on the distance travelled. Please confirm the exact fare with the driver or your local KTEL office.';
+
+  @override
+  String get tickets_no_products_for_category =>
+      'No ticket options are available for this category.';
+
+  @override
+  String get tickets_placeholder_title => 'No ticket information';
+
+  @override
+  String get tickets_placeholder_desc =>
+      'This agency has not provided ticket information for this region. Please contact them for more details.';
+
+  @override
+  String get tickets_contact_agency => 'Contact the agency';
+
+  @override
+  String get tickets_media_none => 'Payment on the bus';
+
+  @override
+  String get tickets_media_paper => 'Paper ticket';
+
+  @override
+  String get tickets_media_card => 'Transit card';
+
+  @override
+  String get tickets_media_contactless => 'Contactless card';
+
+  @override
+  String get tickets_media_app => 'Mobile app';
 }

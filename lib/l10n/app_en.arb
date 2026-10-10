@@ -160,8 +160,6 @@
   "info_source_code": "View source code",
   "info_github_link": "GitHub repository",
   "info_developer_name": "Thalis Apostolatos",
-  "tickets_placeholder_title": "Region-Specific Information",
-  "tickets_placeholder_desc": "Ticket prices and policies vary depending on the selected region. Please check with your local KTEL office for accurate fares.",
   "tickets_placeholder_note": "Detailed fare information will be added for each region in a future update.",
   "announcements": "Announcements",
   "loadingAnnouncements": "Loading announcements...",
@@ -298,8 +296,17 @@
   "agency_no_contact_info": "No contact information provided by the agency.",
   "wheelchairAccessible": "Wheelchair accessible",
   "wheelchairNotAccessible": "Not wheelchair accessible",
-  "noPlacesFoundFor": "No places found for"
-
-
-
+  "noPlacesFoundFor": "No places found for",
+  "tickets_any_media": "Any payment method",
+  "tickets_eligibility_link": "Who is eligible?",
+  "tickets_price_note": "Prices may vary depending on the distance travelled. Please confirm the exact fare with the driver or your local KTEL office.",
+  "tickets_no_products_for_category": "No ticket options are available for this category.",
+  "tickets_placeholder_title": "No ticket information",
+  "tickets_placeholder_desc": "This agency has not provided ticket information for this region. Please contact them for more details.",
+  "tickets_contact_agency": "Contact the agency",
+  "tickets_media_none": "Payment on the bus",
+  "tickets_media_paper": "Paper ticket",
+  "tickets_media_card": "Transit card",
+  "tickets_media_contactless": "Contactless card",
+  "tickets_media_app": "Mobile app"
 }
