@@ -54,6 +54,10 @@ class FareMedia {
     required this.type,
   });
 
+  /// False when the region gave no name, so [name] is just the raw id.
+  /// The UI can then show a generic label for the [type] instead.
+  bool get hasName => name != fareMediaId;
+
   factory FareMedia.fromCsv(
       List<dynamic> row,
       Map<String, int> headerIndices, {
