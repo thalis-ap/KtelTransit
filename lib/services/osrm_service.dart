@@ -39,7 +39,7 @@ class BusService {
     }
     
     // Build up the url with all the passing points
-    String url = 'http://router.project-osrm.org/route/v1/driving/';
+    String url = 'https://router.project-osrm.org/route/v1/driving/';
     for (LatLng point in leg.passingPoints) {
       // OSRM expects coordinates in Longitude,Latitude order
       url += '${point.longitude},${point.latitude};';
