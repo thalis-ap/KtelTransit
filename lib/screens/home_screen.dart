@@ -1311,7 +1311,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             // (compass, search bar, choose-on-map bar)
             backgroundColor: Theme.of(context).colorScheme.surface
                 .withAlpha(AppTheme.alphaOnMapWidget),
-            child: Icon(Icons.my_location, color: AppTheme.blueish),
+            child: Icon(Icons.my_location, color: Theme.of(context).colorScheme.primary),
           );
   }
 
