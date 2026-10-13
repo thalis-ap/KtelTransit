@@ -16,7 +16,7 @@ class RoutingTrip {
   // The bus trip from start stop to destination stop (not point!)
   final BusTrip? busTrip;
 
-  // The walk trip that takes you from the desintation bus stop to the destination point
+  // The walk trip that takes you from the destination bus stop to the destination point
   final WalkingTrip? egressTrip;
 
   double get duration =>

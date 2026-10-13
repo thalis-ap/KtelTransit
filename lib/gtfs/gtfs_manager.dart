@@ -114,7 +114,7 @@ class GtfsManager {
     Map<String, dynamic>? manifest = await _remote.getCachedManifest();
 
     // If no cache exists (first launch ever), use the bundled fallback
-    // The fallback manifest conatins ALL regions giving the user the ability
+    // The fallback manifest contains ALL regions giving the user the ability
     // to chose any of them. However, if they are shown the fallback manifest
     // then they probably (both are true):
     // 1. Have never opened the app before (no cached manifest) AND
@@ -138,7 +138,7 @@ class GtfsManager {
     unawaited(_refreshManifestFromNetwork());
   }
 
-  /// Tries to retreive a brand new, fresh manifest from the public repo.
+  /// Tries to retrieve a brand new, fresh manifest from the public repo.
   /// If it finds out that any regions were gone in the new manifest, while
   /// the user still sees them, it deletes them right away from the user's
   /// storage so that they don't see invalid data. Remember:
@@ -553,7 +553,7 @@ class GtfsManager {
     return future;
   }
 
-  /// This function essentialy downloads and extracts a region while checking
+  /// This function essentially downloads and extracts a region while checking
   /// for errors in the process.
   /// [foreground] flag is used to control whether to update the state variable
   /// or not.
@@ -601,7 +601,7 @@ class GtfsManager {
         isExtracted: true,
         isReady: true,
         errorCode: RegionErrorCode.none,
-        // Save the updated time after a succesful sync
+        // Save the updated time after a successful sync
         lastUpdated: DateTime.now(),
       ),
     );
@@ -641,6 +641,6 @@ class GtfsManager {
       stateNotifier.value = RegionState.idle;
     }
 
-    debugPrint("Succesfully deleted region: $id");
+    debugPrint("Successfully deleted region: $id");
   }
 }

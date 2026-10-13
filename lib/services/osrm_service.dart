@@ -311,7 +311,7 @@ class RoutingService {
         ),
       );
 
-      // Only add bus results (ones with buses invloved) whose access time
+      // Only add bus results (ones with buses involved) whose access time
       // to the start stop is less than the pure walk time. We don't use
       // (accessDuration + busDuration < pureWalkDuration) because the user
       // might prefer to walk less

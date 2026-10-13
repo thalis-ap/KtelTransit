@@ -155,7 +155,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _loadData() async {
     final regionId = gtfsManager.currentRegion?.id;
     if (regionId == null) {
-      // TODO: Add a snackbar maybe or go to wlecome screen immediately
       //  Should not happen because that would mean we don't have any region saved
       // (we should be on welcome screen then)
     } else {
@@ -692,7 +691,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _mapMovementService.animatedMove(lastKnown, 15.0);
       }
       // we don't set isLoadingPreciseLocation back to false in this else case
-      // since we are not mounted here and its insafe to do so
+      // since we are not mounted here and its unsafe to do so
     }
   }
 

@@ -38,7 +38,7 @@ class TripSortingService {
     TripSortFilter filter,
     DateTime selectedDateTime,
   ) {
-    // Always sort ascending and then reverse if filter.sortDirection is desceding
+    // Always sort ascending and then reverse if filter.sortDirection is descending
     switch (filter.sortBy) {
       case SortCriterion.totalDuration:
         trips.sort((a, b) => a.durationFull.compareTo(b.durationFull));

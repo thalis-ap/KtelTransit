@@ -46,7 +46,7 @@ class BusLeg {
       wheelchairBoarding &
       (originStop.wheelchairBoarding & destinationStop.wheelchairBoarding);
 
-  /// We don't use the originStop.name here because we don't know the preffered
+  /// We don't use the originStop.name here because we don't know the preferred
   /// language of the user.
   List<String> stopNamesFromTo(String startName, String destName) {
     // Throw out all stops before the start one
