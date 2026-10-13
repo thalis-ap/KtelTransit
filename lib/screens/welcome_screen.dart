@@ -125,8 +125,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 const SizedBox(width: 4),
               ],
             ),
-            onSelected: (String langCode) {
-              widget.settingsController.updateLocale(Locale(langCode));
+            onSelected: (String langCode) async {
+              await widget.settingsController.updateLocale(Locale(langCode));
+              await GtfsManager().changeRegionLocale(langCode);
             },
             itemBuilder: (BuildContext context) => [
               const PopupMenuItem(value: 'el', child: Text('Ελληνικά (EL)')),
