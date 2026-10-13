@@ -79,7 +79,8 @@ class TripSortingService {
 
     }
 
-    // Reverse the list if user selected descending
+    // Reverse the list if user selected descending. If they selected ascending
+    // keep as is, we have already sorted it this way
     final List<RoutingTrip> sorted = filter.sortDirection == SortDirection.ascending
         ? trips
         : trips.reversed.toList();
