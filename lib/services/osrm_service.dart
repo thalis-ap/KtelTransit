@@ -600,16 +600,16 @@ class RoutingService {
   ) async {
     if (start is Stop && destination is Stop) {
       // Both are stops, need only BusService
-      return await getStopToStopRoutes(start, destination, selectedTime);
+      return getStopToStopRoutes(start, destination, selectedTime);
     } else if (start is! Stop && destination is Stop) {
       // Start is not a stop, destination is a stop
-      return await getPinToStopRoutes(start, destination, selectedTime);
+      return getPinToStopRoutes(start, destination, selectedTime);
     } else if (start is Stop && destination is! Stop) {
       // Start is a stop, destination is not
-      return await getStopToPinRoutes(start, destination, selectedTime);
+      return getStopToPinRoutes(start, destination, selectedTime);
     } else {
       // Neither start nor destination is a stop
-      return await getPinToPinRoutes(start, destination, selectedTime);
+      return getPinToPinRoutes(start, destination, selectedTime);
     }
   }
 }
