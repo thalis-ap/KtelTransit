@@ -245,9 +245,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
       }
 
-
-      await Future.delayed(Duration(seconds: 3));
-
       setState(() {
         activeRoute = routingTrip;
         isLoadingRoute = false;
