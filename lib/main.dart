@@ -9,7 +9,6 @@ import 'package:ktel_transit/services/settings_service.dart';
 import 'package:ktel_transit/services/version_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
-import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:ktel_transit/widgets/region_loading_sheet.dart';
 
 void main() async {
