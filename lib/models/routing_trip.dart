@@ -50,7 +50,7 @@ class RoutingTrip {
   });
 
   // Returns -1 if its a walking trip only
-  double get fare => busTrip?.totalFare ?? -1;
+  double? get fare => busTrip?.totalFare;
 
   String get fareAsString => FareService.fareAsString(fare);
 

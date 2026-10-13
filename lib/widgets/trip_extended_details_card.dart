@@ -107,7 +107,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
             Row(
               children: [
-                if (trip.fare > 0) ...[
+                if (trip.fare != null) ...[
                   Icon(
                     Icons.confirmation_num_outlined,
                     size: 18,
@@ -684,7 +684,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     final legs = busTrip.legs;
     if (legs.isEmpty) return const SizedBox.shrink();
 
-    final totalFare = widget.routingTrip.fare;
+    final double? totalFare = widget.routingTrip.fare;
 
     return Column(
       children: [

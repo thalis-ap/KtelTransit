@@ -119,12 +119,11 @@ class BusTrip {
 
   BusTrip({required this.isStartAlsoOrigin, required this.legs})
     : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
-    // Will remain -1 if there are no legs (pure walking trip)
-    totalFare = legs.fold(0, (sum, leg) => sum + leg.fare);
+    totalFare = legs.fold(0, (sum, leg) => (sum ?? 0) + leg.fare);
   }
 
   // Holds the total of all the legs' fares
-  double totalFare = -1;
+  double? totalFare;
 
   // Get the safeDuration by combining all the legs again
   int get safeDuration =>

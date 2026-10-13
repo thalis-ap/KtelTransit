@@ -22,7 +22,7 @@ class FareService {
     return (calculatedPrice * 10).round() / 10.0;
   }
 
-  static String fareAsString(double fare) {
-    return fare > 0 ? "${fare.toStringAsFixed(2)}€" : "-€";
+  static String fareAsString(double? fare) {
+    return fare != null ? "${fare.toStringAsFixed(2)}€" : "-€";
   }
 }

@@ -61,7 +61,7 @@ class TripSortingService {
         );
         break;
       case SortCriterion.cost:
-        trips.sort((a, b) => a.fare.compareTo(b.fare));
+        trips.sort((a, b) => (a.fare ?? 0).compareTo((b.fare ?? 0)));
         break;
       case SortCriterion.transferCount:
         trips.sort(

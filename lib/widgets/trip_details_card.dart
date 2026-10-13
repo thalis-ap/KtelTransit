@@ -97,8 +97,8 @@ class TripDetailsCard extends StatelessWidget {
       ).join("\n");
     }
 
-    // Get the total fare (-1 if no bus legs exist)
-    final double fare = routingTrip.fare;
+    // Get the total fare (null if no bus legs exist)
+    final double? fare = routingTrip.fare;
 
     return Column(
       children: [
@@ -158,7 +158,7 @@ class TripDetailsCard extends StatelessWidget {
             ),
             Row(
               children: [
-                if (fare > 0) ...[
+                if (fare != null) ...[
                   Icon(
                     Icons.confirmation_num_outlined,
                     size: 18,
