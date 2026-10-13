@@ -485,14 +485,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
 
     // No sheets open – handle normal back logic
+    // showExitDialog() (async) should be called outside of setState()
+    if (startPoint == null && destinationPoint == null) {
+      _showExitDialog();
+      return;
+    } else if (startPoint != null) {
+      startPoint = null;
+    } else {
+      destinationPoint = null;
+    }
+
     setState(() {
-      if (startPoint == null && destinationPoint == null) {
-        _showExitDialog();
-      } else if (startPoint != null) {
-        startPoint = null;
-      } else {
-        destinationPoint = null;
-      }
       activeRoute = null;
       selectedTripIndex = null;
       selectedSearchTime = DateTime.now();
