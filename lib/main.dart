@@ -4,6 +4,7 @@ import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/screens/welcome_screen.dart';
+import 'package:ktel_transit/services/map_caching_service.dart';
 import 'package:ktel_transit/services/settings_service.dart';
 import 'package:ktel_transit/services/version_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
@@ -24,8 +25,7 @@ void main() async {
   await settingsController.loadSettings();
 
   // Initialize the map cache
-  await FMTCObjectBoxBackend().initialise();
-  await FMTCStore("osmcache").manage.create();
+  await MapCachingService.initialize();
 
   final GtfsManager gtfsManager = GtfsManager();
   await gtfsManager.init(settingsController: settingsController);
