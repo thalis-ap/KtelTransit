@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:ktel_transit/gtfs/gtfs_local.dart';
 import 'package:ktel_transit/gtfs/gtfs_remote.dart';
 import 'package:ktel_transit/gtfs/gtfs_repository.dart';
 import 'package:ktel_transit/gtfs/gtfs_storage.dart';
 import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/services/settings_service.dart';
+import 'package:ktel_transit/utilities/latency_utils.dart';
 import 'package:ktel_transit/utilities/notifiers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,6 +47,8 @@ class GtfsManager {
 
   final CustomValueNotifier<double> progressNotifier =
       CustomValueNotifier<double>(0.0);
+
+  static const String _regionStatusesKey = 'region_statuses';
 
   /// Bumped every time any region's status changes. UI that lists regions
   /// (e.g. RegionSearchDelegate) can listen to this to silently refresh
@@ -170,7 +174,7 @@ class GtfsManager {
   /// memory for fast lookup.
   Future<void> loadRegionStatuses() async {
     final prefs = await SharedPreferences.getInstance();
-    final statusesJson = prefs.getString('region_statuses');
+    final statusesJson = prefs.getString(_regionStatusesKey);
     if (statusesJson == null) return;
 
     try {
@@ -196,7 +200,7 @@ class GtfsManager {
     for (final entry in _regionStatusCache.entries) {
       allStatuses[entry.key] = entry.value.toJson();
     }
-    await prefs.setString('region_statuses', jsonEncode(allStatuses));
+    await prefs.setString(_regionStatusesKey, jsonEncode(allStatuses));
 
     // Let anything listening (e.g. the region picker) know a status
     // changed, without needing to know which region or what changed.
@@ -248,7 +252,7 @@ class GtfsManager {
         stateNotifier.value = RegionState.loading;
 
         // Add small fake delay to not clamp widgets together
-        await Future.delayed(Duration(seconds: 1));
+        await SchedulerBinding.instance.endOfFrame;
 
         final regionPath = await _storage.getRegionPath(regionId);
 
@@ -408,8 +412,10 @@ class GtfsManager {
     if (currentRegion == null) return RegionLoadResult.unknownError();
     // Set state to 'changing locale'
     stateNotifier.value = RegionState.changingLocale;
+
     // Add a small delay to present the user the loading sheet
-    await Future.delayed(Duration(seconds: 1));
+    await SchedulerBinding.instance.endOfFrame;
+
     final regionPath = await _storage.getRegionPath(currentRegion!.id);
     final res = await _local.loadFromPath(regionPath, repository, languageCode: newLanguageCode);
 
@@ -628,7 +634,8 @@ class GtfsManager {
 
       // Add a tiny delay so the user actually sees the "Deleting..." sheet
       // before it instantly vanishes and throws them to the Welcome Screen.
-      await Future.delayed(const Duration(seconds: 1));
+      // await Future.delayed(const Duration(seconds: 1));
+      await LatencyUtils.minDisplayWait;
 
       currentRegionNotifier.value = null;
       stateNotifier.value = RegionState.idle;
