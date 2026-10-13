@@ -245,6 +245,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
       }
 
+
+      await Future.delayed(Duration(seconds: 3));
+
       setState(() {
         activeRoute = routingTrip;
         isLoadingRoute = false;
@@ -412,6 +415,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
 
     _sheetManager.animateTo(SheetKeys.tripInfo, SheetSizes.middle);
+
     _fetchRouteForSelectedTrip(trip);
   }
 
@@ -946,58 +950,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: ValueNotifier(isLoadingRoute),
-      builder: (context, isLoadingRoute, child) {
-        return AnimatedPositioned(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutBack,
-          // Slides up when loading, hides below the screen when done
-          top: isLoadingRoute ? MediaQuery.of(context).padding.top + 10 : -100,
-          left: 24,
-          right: 100,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: isLoadingRoute ? 1.0 : 0.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(
-                color: colorScheme.tertiary,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutBack,
+      // Slides up when loading, hides below the screen when done
+      top: isLoadingRoute ? MediaQuery.of(context).padding.top + 10 : -100,
+      left: 24,
+      right: 100,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: isLoadingRoute ? 1.0 : 0.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: colorScheme.tertiary,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: colorScheme.onTertiary,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      l10n.loadingMapRoute,
-                      style: context.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onTertiary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
-        );
-      },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: colorScheme.onTertiary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  l10n.loadingMapRoute,
+                  style: context.textTheme.labelLarge?.copyWith(
+                    color: colorScheme.onTertiary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -1235,19 +1234,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: ValueNotifier(isLoadingPreciseLocation),
-      builder: (context, isLoadingLocation, child) {
+
         return AnimatedPositioned(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutBack,
           // Slides up when loading, hides below the screen when done
-          bottom: isLoadingLocation ? 18.0 : -100.0,
+          bottom: isLoadingPreciseLocation ? 18.0 : -100.0,
           left: 24,
           right: 100,
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 200),
-            opacity: isLoadingLocation ? 1.0 : 0.0,
+            opacity: isLoadingPreciseLocation ? 1.0 : 0.0,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
@@ -1288,8 +1285,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
         );
-      },
-    );
   }
 
   /// Builds the floating action button for 'my location' on the right bottom
