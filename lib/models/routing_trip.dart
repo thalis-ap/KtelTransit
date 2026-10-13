@@ -11,13 +11,13 @@ class RoutingTrip {
   final MapPoint startPoint, destinationPoint;
 
   // The walk trip that takes you from the start point to the start bus stop
-  WalkingTrip? accessTrip;
+  final WalkingTrip? accessTrip;
 
   // The bus trip from start stop to destination stop (not point!)
-  BusTrip? busTrip;
+  final BusTrip? busTrip;
 
   // The walk trip that takes you from the desintation bus stop to the destination point
-  WalkingTrip? egressTrip;
+  final WalkingTrip? egressTrip;
 
   double get duration =>
       (accessTrip?.duration ?? 0) +
@@ -41,7 +41,7 @@ class RoutingTrip {
   double get walkingDuration =>
       (accessTrip?.duration ?? 0) + (egressTrip?.duration ?? 0);
 
-  RoutingTrip({
+  const RoutingTrip({
     required this.startPoint,
     required this.destinationPoint,
     this.accessTrip,
@@ -49,7 +49,7 @@ class RoutingTrip {
     this.egressTrip,
   });
 
-  // Returns -1 if its a walking trip only
+  // Returns null if its a walking trip only
   double? get fare => busTrip?.totalFare;
 
   String get fareAsString => FareService.fareAsString(fare);
@@ -87,5 +87,21 @@ class RoutingTrip {
     }
 
     return finalArrival;
+  }
+
+  RoutingTrip copyWith({
+    MapPoint? startPoint,
+    MapPoint? destinationPoint,
+    WalkingTrip? accessTrip,
+    BusTrip? busTrip,
+    WalkingTrip? egressTrip,
+  }) {
+    return RoutingTrip(
+      startPoint: startPoint ?? this.startPoint,
+      destinationPoint: destinationPoint ?? this.destinationPoint,
+      accessTrip: accessTrip ?? this.accessTrip,
+      busTrip: busTrip ?? this.busTrip,
+      egressTrip: egressTrip ?? this.egressTrip,
+    );
   }
 }

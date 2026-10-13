@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
+import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 
@@ -240,9 +242,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     try {
       if (routingTrip.busTrip != null) {
         // Update the bus trip object (with points + safe duration)
-        routingTrip.busTrip = await BusService.getCompleteTrip(
-          routingTrip.busTrip!,
-        );
+        BusTrip completeBusTrip = await BusService.getCompleteTrip(routingTrip.busTrip!);
+        routingTrip = routingTrip.copyWith(busTrip: completeBusTrip);
       }
 
       setState(() {
@@ -250,6 +251,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         isLoadingRoute = false;
       });
     } catch (e) {
+      if (kDebugMode) debugPrint('Route completion failed: $e');
       setState(() {
         isLoadingRoute = false;
       });
