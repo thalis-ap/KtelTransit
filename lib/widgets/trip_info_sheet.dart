@@ -111,7 +111,9 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     if (wasSelected && !isSelected) {
       // Restore saved scroll position after frame
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController != null && _scrollController!.hasClients && _savedScrollOffset > 0) {
+        if (_scrollController != null &&
+            _scrollController!.hasClients &&
+            _savedScrollOffset > 0) {
           _scrollController!.jumpTo(_savedScrollOffset);
         }
       });
@@ -155,8 +157,8 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
   }
 
   bool _hasActiveFilters(TripSortFilter filter) {
-    return filter.noPureWalking == true ||
-        filter.includeDirectOnly == true;
+    // Return true if the filters are not in their default value
+    return filter.noPureWalking || filter.includeDirectOnly;
   }
 
   Widget _buildActiveFilterChip(BuildContext context) {
@@ -176,7 +178,9 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
           const SizedBox(width: 4),
           Text(
             l10n.filtersActive,
-            style: context.textTheme.titleSmall?.copyWith(color: colorScheme.primary),
+            style: context.textTheme.titleSmall?.copyWith(
+              color: colorScheme.primary,
+            ),
           ),
         ],
       ),
@@ -195,10 +199,7 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              l10n.availableRoutes,
-              style: theme.textTheme.titleMedium,
-            ),
+            Text(l10n.availableRoutes, style: theme.textTheme.titleMedium),
             Container(
               width: 32,
               height: 32,
@@ -299,7 +300,10 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     );
   }
 
-  void _handleHeaderDragUpdate(DragUpdateDetails details, double availableHeight) {
+  void _handleHeaderDragUpdate(
+    DragUpdateDetails details,
+    double availableHeight,
+  ) {
     if (!widget.controller.isAttached) return;
     final delta = details.primaryDelta! / availableHeight;
     final newSize = (widget.controller.size - delta).clamp(
@@ -318,18 +322,18 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     if (velocity.abs() > 1.0) {
       if (velocity < 0) {
         target = _snapPoints.firstWhere(
-              (s) => s > currentSize + 0.01,
+          (s) => s > currentSize + 0.01,
           orElse: () => _snapPoints.last,
         );
       } else {
         target = _snapPoints.lastWhere(
-              (s) => s < currentSize - 0.01,
+          (s) => s < currentSize - 0.01,
           orElse: () => _snapPoints.first,
         );
       }
     } else {
       target = _snapPoints.reduce(
-            (a, b) => (a - currentSize).abs() < (b - currentSize).abs() ? a : b,
+        (a, b) => (a - currentSize).abs() < (b - currentSize).abs() ? a : b,
       );
     }
 
@@ -357,11 +361,13 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
         builder: (context, scrollController) {
           // Store the draggable's scroll controller
           _scrollController = scrollController;
-      
+
           return Container(
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
               boxShadow: const [BoxShadow(blurRadius: 15, spreadRadius: 2)],
             ),
             child: ListenableBuilder(
@@ -378,9 +384,10 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
                   animation: widget.controller,
                   builder: (context, _) {
                     final bool showConnectionBanner =
-                        (widget.startPoint is! Stop || widget.destinationPoint is! Stop) &&
-                            !connectionService.isConnected;
-      
+                        (widget.startPoint is! Stop ||
+                            widget.destinationPoint is! Stop) &&
+                        !connectionService.isConnected;
+
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,16 +425,23 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
                                   _buildHeader(context)
                                 else
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       TextButton.icon(
                                         onPressed: widget.onBackToAllTrips,
-                                        icon: const Icon(Icons.arrow_back, size: 20),
+                                        icon: const Icon(
+                                          Icons.arrow_back,
+                                          size: 20,
+                                        ),
                                         label: Text(
-                                          AppLocalizations.of(context)!.allTrips,
-                                          style: context.textTheme.labelLarge?.copyWith(
-                                            color: colorScheme.primary,
-                                          ),
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.allTrips,
+                                          style: context.textTheme.labelLarge
+                                              ?.copyWith(
+                                                color: colorScheme.primary,
+                                              ),
                                         ),
                                       ),
                                     ],
@@ -437,7 +451,7 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
                             ),
                           ),
                         ),
-      
+
                         if (showConnectionBanner)
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -448,7 +462,7 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
                               onRetry: widget.onRetryConnection,
                             ),
                           ),
-      
+
                         // Use the draggable's scrollController
                         Expanded(
                           child: SingleChildScrollView(
@@ -462,7 +476,8 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (widget.selectedTripIndex != null && widget.trips != null)
+                                if (widget.selectedTripIndex != null &&
+                                    widget.trips != null)
                                   _buildSelectedTripWidget(context)
                                 else
                                   _buildTripsSheet(context),
