@@ -67,6 +67,8 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
   ScrollController? _scrollController; // from DraggableScrollableSheet builder
   double _savedScrollOffset = 0.0;
 
+  late bool _previousConnectionStatus;
+
   static const List<double> _snapPoints = [
     SheetSizes.low,
     SheetSizes.middle,
@@ -76,6 +78,7 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
   @override
   void initState() {
     super.initState();
+    _previousConnectionStatus = connectionService.isConnected;
   }
 
   @override
@@ -342,7 +345,6 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
-    bool previousConnectionStatus = connectionService.isConnected;
 
     return SafeArea(
       child: DraggableScrollableSheet(
@@ -365,11 +367,13 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
             child: ListenableBuilder(
               listenable: connectionService,
               builder: (context, _) {
-                if (previousConnectionStatus != connectionService.isConnected &&
-                    connectionService.isConnected) {
+                final isConnected = connectionService.isConnected;
+                // If we now have connection auto retry since we had no results before
+                if (!_previousConnectionStatus && isConnected) {
                   widget.onRetryConnection();
-                  previousConnectionStatus = connectionService.isConnected;
                 }
+                // Save the previous connection status
+                _previousConnectionStatus = isConnected;
                 return AnimatedBuilder(
                   animation: widget.controller,
                   builder: (context, _) {
