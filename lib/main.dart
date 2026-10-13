@@ -135,45 +135,40 @@ class _MyAppState extends State<MyApp> {
     return ListenableBuilder(
       listenable: widget.settingsController,
       builder: (context, child) {
-        return ListenableBuilder(
-          listenable: widget.settingsController,
+        return MaterialApp(
+          navigatorKey: _navigatorKey,
+          onGenerateTitle: (context) =>
+              AppLocalizations.of(context)!.appTitle,
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: widget.settingsController.locale,
+          themeMode: widget.settingsController.themeMode,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          home: widget.hasSavedRegion
+              ? HomeScreen(settingsController: widget.settingsController)
+              : WelcomeScreen(
+                  settingsController: widget.settingsController,
+                ),
           builder: (context, child) {
-            return MaterialApp(
-              navigatorKey: _navigatorKey,
-              onGenerateTitle: (context) =>
-                  AppLocalizations.of(context)!.appTitle,
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
+            return Stack(
+              children: [
+                child!,
+                // Bottom sheet overlay
+                RegionLoadingBottomSheet(
+                  gtfsManager: gtfsManager,
+                  onDismiss: () {
+                    // Reset state to hide the sheet
+                    gtfsManager.stateNotifier.value = RegionState.idle;
+                  },
+                ),
               ],
-              supportedLocales: AppLocalizations.supportedLocales,
-              locale: widget.settingsController.locale,
-              themeMode: widget.settingsController.themeMode,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              home: widget.hasSavedRegion
-                  ? HomeScreen(settingsController: widget.settingsController)
-                  : WelcomeScreen(
-                      settingsController: widget.settingsController,
-                    ),
-              builder: (context, child) {
-                return Stack(
-                  children: [
-                    child!,
-                    // Bottom sheet overlay
-                    RegionLoadingBottomSheet(
-                      gtfsManager: gtfsManager,
-                      onDismiss: () {
-                        // Reset state to hide the sheet
-                        gtfsManager.stateNotifier.value = RegionState.idle;
-                      },
-                    ),
-                  ],
-                );
-              },
             );
           },
         );
