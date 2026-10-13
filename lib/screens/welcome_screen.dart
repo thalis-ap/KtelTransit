@@ -103,8 +103,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final theme = Theme.of(context);
     final languageCode = widget.settingsController.locale.languageCode;
 
-    final isRegionReady = gtfsManager.stateNotifier.value == RegionState.ready;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.welcomeTitle),
@@ -178,29 +176,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                Opacity(
-                  opacity: (!isChangingRegion && isRegionReady) ? 1.0 : 0.4,
-                  child: FilledButton.icon(
-                    onPressed: _onGoPressed,
-                    label: Text(
-                      l10n.letGoButton,
-                      style: context.textTheme.headlineSmall?.copyWith(
-                        color: theme.colorScheme.onPrimary,
+                ValueListenableBuilder<RegionState>(valueListenable: gtfsManager.stateNotifier, builder: (context, regionState, _) {
+                  final isRegionReady = regionState == RegionState.ready;
+                  return Opacity(
+                    opacity: (!isChangingRegion && isRegionReady) ? 1.0 : 0.4,
+                    child: FilledButton.icon(
+                      onPressed: _onGoPressed,
+                      label: Text(
+                        l10n.letGoButton,
+                        style: context.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                      icon: const Icon(Icons.arrow_forward, size: 26),
+                      iconAlignment: IconAlignment.end,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 60,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
                     ),
-                    icon: const Icon(Icons.arrow_forward, size: 26),
-                    iconAlignment: IconAlignment.end,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 60,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                  ),
-                ),
+                  );
+                }),
+
               ],
             ),
           ),
