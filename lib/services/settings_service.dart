@@ -9,7 +9,7 @@ class SettingsController extends ChangeNotifier {
   static const String _localeKey = 'user_language_code';
 
   AppThemePreference _themePreference = AppThemePreference.system;
-  Locale _locale = const Locale('en'); // Default to Greek
+  Locale _locale = const Locale('en'); // Default to English
 
   AppThemePreference get themePreference => _themePreference;
 
