@@ -9,16 +9,14 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/bus_trip.dart';
 import '../models/map_point.dart';
-import '../models/region.dart';
 import '../models/routing_trip.dart';
 import '../models/stop.dart';
+import '../services/map_caching_service.dart';
 import '../theme/app_theme.dart';
 import 'compass_cone.dart';
 
 class CustomMap extends StatelessWidget {
-  final GtfsManager gtfsManager = GtfsManager();
-
-  final Region currentRegion;
+  final GtfsManager gtfsManager;
 
   final MapController mapController;
 
@@ -42,9 +40,9 @@ class CustomMap extends StatelessWidget {
   // In angles
   final double? compassHeading;
 
-  CustomMap({
+  const CustomMap({
     super.key,
-    required this.currentRegion,
+    required this.gtfsManager,
     required this.mapController,
     required this.onLongPress,
     required this.onMapReady,
@@ -112,7 +110,7 @@ class CustomMap extends StatelessWidget {
               userAgentPackageName: 'com.symplyapps.ktel_transit',
               tileProvider: FMTCTileProvider(
                 stores: const {
-                  'osmcache': BrowseStoreStrategy.readUpdateCreate,
+                  MapCachingService.cacheKey: BrowseStoreStrategy.readUpdateCreate,
                   // auto-cache tiles as user browses
                 },
               ),
