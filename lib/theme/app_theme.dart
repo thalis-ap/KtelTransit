@@ -16,7 +16,6 @@ class AppTheme {
 
   // Standard blue color to use for both light and dark theme because it
   // looks nicer in some cases
-
   static const Color blueish = Color(0xFF1976D2);
 
   static final _buttonShape = RoundedRectangleBorder(
