@@ -222,9 +222,10 @@ class RegionUtils {
 
       // Change the region (which automatically commands the map to fly there)
       res = await gtfsManager.changeRegion(selectedRegion.id);
+
+      afterAction?.call();
     }
 
-    afterAction?.call();
 
     return res;
   }

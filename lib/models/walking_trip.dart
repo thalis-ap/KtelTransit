@@ -14,6 +14,6 @@ class WalkingTrip {
   /// Returns an approximation of the duration needed to walk 'distance' meters
   /// Result is returned in seconds
   static double getDurationFromDistance(double distance) {
-    return 0.72 * distance;
+    return 0.72 * distance; // average walking speed
   }
 }

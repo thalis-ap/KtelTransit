@@ -64,7 +64,7 @@ class BusService {
       final List<LatLng> points = coordinates
           .map((coord) => LatLng(coord[1], coord[0]))
           .toList();
-      // factor = 1.25, offset = 300s (5 minutes)
+      // factor = 1.25 since bus is a bit slower than cars, offset = 300s (5 minutes) margin for boarding
       final int safeDuration = (1.25 * carDuration).toInt() + 300;
 
       // Save the calculated geographic data to the cache
