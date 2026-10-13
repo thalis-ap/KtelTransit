@@ -1023,7 +1023,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onSearch: (isStart) => _searchAndSetStop(isStart: isStart),
                   ),
           )
-        : SizedBox.shrink();
+        : const SizedBox.shrink();
   }
 
   /// Builds the compass button at the correct height. Height is adjusted based
