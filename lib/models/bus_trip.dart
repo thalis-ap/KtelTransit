@@ -117,18 +117,18 @@ class BusTrip {
   // length >= 2 for any number of transfers.
   final List<BusLeg> legs;
 
+  BusTrip({required this.isStartAlsoOrigin, required this.legs})
+    : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
+    // Will remain -1 if there are no legs (pure walking trip)
+    totalFare = legs.fold(0, (sum, leg) => sum + leg.fare);
+  }
+
   // Holds the total of all the legs' fares
   double totalFare = -1;
 
   // Get the safeDuration by combining all the legs again
   int get safeDuration =>
       legs.fold(0, (sum, leg) => sum + (leg.safeDuration ?? 0));
-
-  BusTrip({required this.isStartAlsoOrigin, required this.legs})
-    : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
-    // Will remain -1 if there are no legs (pure walking trip)
-    totalFare = legs.fold(0, (sum, leg) => sum + leg.fare);
-  }
 
   // ---- Convenience getters ----
   bool get isTransfer => legs.length > 1;
@@ -166,8 +166,6 @@ class BusTrip {
   }
 
   BusTrip copyWith({
-    List<List<LatLng>>? points,
-    int? safeDuration,
     bool? isStartAlsoOrigin,
     List<BusLeg>? legs,
   }) {

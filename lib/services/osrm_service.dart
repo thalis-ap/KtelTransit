@@ -89,20 +89,14 @@ class BusService {
   /// copyWith() function on the existing immutable object.
   /// Note: Caching is implemented in the getCompleteLeg() function
   static Future<BusTrip> getCompleteTrip(BusTrip busTrip) async {
-    // Get all the leg routes
-    List<List<LatLng>> busTripPoints = [];
-    int busTripSafeDuration = 0;
+    // Get all the complete leg routes
+    List<BusLeg> newLegs = [];
     for (int i=0; i<busTrip.legs.length; i++) {
-      BusLeg currLeg = await getCompleteLeg(busTrip.legs[i]);
-      busTripPoints.add(currLeg.points ?? []);
-      busTripSafeDuration += currLeg.safeDuration ?? 0;
-
       // Update the actual leg with the new data
-      busTrip.legs[i] = busTrip.legs[i].copyWith(points: currLeg.points, safeDuration: currLeg.safeDuration);
+      newLegs.add(await getCompleteLeg(busTrip.legs[i]));
     }
 
-    // Combine the points of all legs into the bus trip object
-    return busTrip.copyWith(points: busTripPoints, safeDuration: busTripSafeDuration);
+    return busTrip.copyWith(legs: newLegs);
   }
 }
 
