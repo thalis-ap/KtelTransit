@@ -284,7 +284,7 @@ class CustomMap extends StatelessWidget {
                   iconColor = colorScheme.tertiary;
                 } else {
                   iconData = Icons.directions_bus;
-                  iconColor = colorScheme.surfaceTint;
+                  iconColor = colorScheme.primary;
                 }
 
                 return Marker(
