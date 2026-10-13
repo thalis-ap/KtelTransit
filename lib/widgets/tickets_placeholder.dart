@@ -26,7 +26,7 @@ class TicketsPlaceholder extends StatelessWidget {
 
         // Title
         Text(
-          l10n.tickets_placeholder_title,
+          l10n.ticketsPlaceholderTitle,
           style: context.textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
@@ -41,7 +41,7 @@ class TicketsPlaceholder extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Text(
-              l10n.tickets_placeholder_desc,
+              l10n.ticketsPlaceholderDesc,
               style: context.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),

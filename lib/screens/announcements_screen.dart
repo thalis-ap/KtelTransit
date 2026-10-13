@@ -31,7 +31,7 @@ class AnnouncementsScreen extends StatelessWidget {
 
               // Title
               Text(
-                l10n.announcements_placeholder_title,
+                l10n.announcementsPlaceholderTitle,
                 style: context.textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
@@ -48,7 +48,7 @@ class AnnouncementsScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        l10n.announcements_placeholder_desc,
+                        l10n.announcementsPlaceholderDesc,
                         style: context.textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
@@ -63,7 +63,7 @@ class AnnouncementsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          l10n.announcements_placeholder_note,
+                          l10n.announcementsPlaceholderNote,
                           style: context.textTheme.labelLarge?.copyWith(
                             color: colorScheme.primary,
                           ),

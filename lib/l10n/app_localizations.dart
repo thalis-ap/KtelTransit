@@ -1112,23 +1112,23 @@ abstract class AppLocalizations {
   /// **'Θέλετε σίγουρα να διαγράψετε τα δεδομένα για την περιοχή {region};'**
   String deleteRegionConfirmation(String region);
 
-  /// No description provided for @announcements_placeholder_title.
+  /// No description provided for @announcementsPlaceholderTitle.
   ///
   /// In el, this message translates to:
   /// **'Ανακοινώσεις Περιοχής'**
-  String get announcements_placeholder_title;
+  String get announcementsPlaceholderTitle;
 
-  /// No description provided for @announcements_placeholder_desc.
+  /// No description provided for @announcementsPlaceholderDesc.
   ///
   /// In el, this message translates to:
   /// **'Σημαντικές ανακοινώσεις σχετικά με δρομολόγια, απεργίες και καθυστερήσεις θα εμφανίζονται εδώ.'**
-  String get announcements_placeholder_desc;
+  String get announcementsPlaceholderDesc;
 
-  /// No description provided for @announcements_placeholder_note.
+  /// No description provided for @announcementsPlaceholderNote.
   ///
   /// In el, this message translates to:
   /// **'Η πλήρης ροή ανακοινώσεων θα ενσωματωθεί σε μελλοντική ενημέρωση.'**
-  String get announcements_placeholder_note;
+  String get announcementsPlaceholderNote;
 
   /// No description provided for @comingSoon.
   ///
@@ -1214,53 +1214,53 @@ abstract class AppLocalizations {
   /// **'Αλλαγή γλώσσας...'**
   String get changingLanguage;
 
-  /// No description provided for @agency_info_title.
+  /// No description provided for @agencyInfoTitle.
   ///
   /// In el, this message translates to:
   /// **'Πληροφορίες Πρακτορείου'**
-  String get agency_info_title;
+  String get agencyInfoTitle;
 
-  /// No description provided for @agency_contact_title.
+  /// No description provided for @agencyContactTitle.
   ///
   /// In el, this message translates to:
   /// **'Στοιχεία Επικοινωνίας'**
-  String get agency_contact_title;
+  String get agencyContactTitle;
 
-  /// No description provided for @agency_links_title.
+  /// No description provided for @agencyLinksTitle.
   ///
   /// In el, this message translates to:
   /// **'Ιστοσελίδες & Εισιτήρια'**
-  String get agency_links_title;
+  String get agencyLinksTitle;
 
-  /// No description provided for @agency_phone.
+  /// No description provided for @agencyPhone.
   ///
   /// In el, this message translates to:
   /// **'Τηλέφωνο'**
-  String get agency_phone;
+  String get agencyPhone;
 
-  /// No description provided for @agency_email.
+  /// No description provided for @agencyEmail.
   ///
   /// In el, this message translates to:
   /// **'Email'**
-  String get agency_email;
+  String get agencyEmail;
 
-  /// No description provided for @agency_website.
+  /// No description provided for @agencyWebsite.
   ///
   /// In el, this message translates to:
   /// **'Επίσημη Ιστοσελίδα'**
-  String get agency_website;
+  String get agencyWebsite;
 
-  /// No description provided for @agency_fare_website.
+  /// No description provided for @agencyFareWebsite.
   ///
   /// In el, this message translates to:
   /// **'Εισιτήρια & Τιμές'**
-  String get agency_fare_website;
+  String get agencyFareWebsite;
 
-  /// No description provided for @agency_no_contact_info.
+  /// No description provided for @agencyNoContactInfo.
   ///
   /// In el, this message translates to:
   /// **'Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.'**
-  String get agency_no_contact_info;
+  String get agencyNoContactInfo;
 
   /// No description provided for @wheelchairAccessible.
   ///
@@ -1280,77 +1280,77 @@ abstract class AppLocalizations {
   /// **'Δε βρέθηκαν αποτελέσματα για'**
   String get noPlacesFoundFor;
 
-  /// No description provided for @tickets_any_media.
+  /// No description provided for @ticketsAnyMedia.
   ///
   /// In el, this message translates to:
   /// **'Οποιοσδήποτε τρόπος πληρωμής'**
-  String get tickets_any_media;
+  String get ticketsAnyMedia;
 
-  /// No description provided for @tickets_eligibility_link.
+  /// No description provided for @ticketsEligibilityLink.
   ///
   /// In el, this message translates to:
   /// **'Ποιοι δικαιούνται;'**
-  String get tickets_eligibility_link;
+  String get ticketsEligibilityLink;
 
-  /// No description provided for @tickets_price_note.
+  /// No description provided for @ticketsPriceNote.
   ///
   /// In el, this message translates to:
   /// **'Οι τιμές ενδέχεται να διαφέρουν ανάλογα με την απόσταση της διαδρομής. Επιβεβαιώστε την ακριβή τιμή με τον οδηγό ή το τοπικό σας ΚΤΕΛ.'**
-  String get tickets_price_note;
+  String get ticketsPriceNote;
 
-  /// No description provided for @tickets_no_products_for_category.
+  /// No description provided for @ticketsNoProductsForCategory.
   ///
   /// In el, this message translates to:
   /// **'Δεν υπάρχουν διαθέσιμες επιλογές εισιτηρίων για αυτή την κατηγορία.'**
-  String get tickets_no_products_for_category;
+  String get ticketsNoProductsForCategory;
 
-  /// No description provided for @tickets_placeholder_title.
+  /// No description provided for @ticketsPlaceholderTitle.
   ///
   /// In el, this message translates to:
   /// **'Δεν υπάρχουν πληροφορίες εισιτηρίων'**
-  String get tickets_placeholder_title;
+  String get ticketsPlaceholderTitle;
 
-  /// No description provided for @tickets_placeholder_desc.
+  /// No description provided for @ticketsPlaceholderDesc.
   ///
   /// In el, this message translates to:
   /// **'Το πρακτορείο δεν έχει παράσχει πληροφορίες για τα εισιτήρια αυτής της περιοχής. Επικοινωνήστε μαζί του για περισσότερες πληροφορίες.'**
-  String get tickets_placeholder_desc;
+  String get ticketsPlaceholderDesc;
 
-  /// No description provided for @tickets_contact_agency.
+  /// No description provided for @ticketsContactAgency.
   ///
   /// In el, this message translates to:
   /// **'Επικοινωνία με το πρακτορείο'**
-  String get tickets_contact_agency;
+  String get ticketsContactAgency;
 
-  /// No description provided for @tickets_media_none.
+  /// No description provided for @ticketsMediaNone.
   ///
   /// In el, this message translates to:
   /// **'Πληρωμή στο λεωφορείο'**
-  String get tickets_media_none;
+  String get ticketsMediaNone;
 
-  /// No description provided for @tickets_media_paper.
+  /// No description provided for @ticketsMediaPaper.
   ///
   /// In el, this message translates to:
   /// **'Χάρτινο εισιτήριο'**
-  String get tickets_media_paper;
+  String get ticketsMediaPaper;
 
-  /// No description provided for @tickets_media_card.
+  /// No description provided for @ticketsMediaCard.
   ///
   /// In el, this message translates to:
   /// **'Κάρτα'**
-  String get tickets_media_card;
+  String get ticketsMediaCard;
 
-  /// No description provided for @tickets_media_contactless.
+  /// No description provided for @ticketsMediaContactless.
   ///
   /// In el, this message translates to:
   /// **'Ανέπαφη κάρτα'**
-  String get tickets_media_contactless;
+  String get ticketsMediaContactless;
 
-  /// No description provided for @tickets_media_app.
+  /// No description provided for @ticketsMediaApp.
   ///
   /// In el, this message translates to:
   /// **'Εφαρμογή κινητού'**
-  String get tickets_media_app;
+  String get ticketsMediaApp;
 }
 
 class _AppLocalizationsDelegate

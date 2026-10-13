@@ -581,15 +581,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get announcements_placeholder_title => 'Regional Announcements';
+  String get announcementsPlaceholderTitle => 'Regional Announcements';
 
   @override
-  String get announcements_placeholder_desc =>
-      'Important announcements regarding schedules, strikes, and delays will appear here.';
+  String get announcementsPlaceholderDesc =>
+      'Σημαντικές ανακοινώσεις σχετικά με δρομολόγια, απεργίες και καθυστερήσεις θα εμφανίζονται εδώ.';
 
   @override
-  String get announcements_placeholder_note =>
-      'A complete announcement feed will be integrated in a future update.';
+  String get announcementsPlaceholderNote =>
+      'Η πλήρης ροή ανακοινώσεων θα ενσωματωθεί σε μελλοντική ενημέρωση.';
 
   @override
   String get comingSoon => 'Coming soon';
@@ -644,28 +644,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changingLanguage => 'Changing language...';
 
   @override
-  String get agency_info_title => 'Agency Information';
+  String get agencyInfoTitle => 'Agency Information';
 
   @override
-  String get agency_contact_title => 'Contact Details';
+  String get agencyContactTitle => 'Contact Details';
 
   @override
-  String get agency_links_title => 'Websites & Fares';
+  String get agencyLinksTitle => 'Websites & Fares';
 
   @override
-  String get agency_phone => 'Phone Number';
+  String get agencyPhone => 'Phone Number';
 
   @override
-  String get agency_email => 'Email Address';
+  String get agencyEmail => 'Email Address';
 
   @override
-  String get agency_website => 'Official Website';
+  String get agencyWebsite => 'Official Website';
 
   @override
-  String get agency_fare_website => 'Tickets & Fares';
+  String get agencyFareWebsite => 'Tickets & Fares';
 
   @override
-  String get agency_no_contact_info =>
+  String get agencyNoContactInfo =>
       'No contact information provided by the agency.';
 
   @override
@@ -678,41 +678,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPlacesFoundFor => 'No places found for';
 
   @override
-  String get tickets_any_media => 'Any payment method';
+  String get ticketsAnyMedia => 'Any payment method';
 
   @override
-  String get tickets_eligibility_link => 'Who is eligible?';
+  String get ticketsEligibilityLink => 'Who is eligible?';
 
   @override
-  String get tickets_price_note =>
+  String get ticketsPriceNote =>
       'Prices may vary depending on the distance travelled. Please confirm the exact fare with the driver or your local KTEL office.';
 
   @override
-  String get tickets_no_products_for_category =>
+  String get ticketsNoProductsForCategory =>
       'No ticket options are available for this category.';
 
   @override
-  String get tickets_placeholder_title => 'No ticket information';
+  String get ticketsPlaceholderTitle => 'No ticket information';
 
   @override
-  String get tickets_placeholder_desc =>
+  String get ticketsPlaceholderDesc =>
       'This agency has not provided ticket information for this region. Please contact them for more details.';
 
   @override
-  String get tickets_contact_agency => 'Contact the agency';
+  String get ticketsContactAgency => 'Contact the agency';
 
   @override
-  String get tickets_media_none => 'Payment on the bus';
+  String get ticketsMediaNone => 'Payment on the bus';
 
   @override
-  String get tickets_media_paper => 'Paper ticket';
+  String get ticketsMediaPaper => 'Paper ticket';
 
   @override
-  String get tickets_media_card => 'Transit card';
+  String get ticketsMediaCard => 'Transit card';
 
   @override
-  String get tickets_media_contactless => 'Contactless card';
+  String get ticketsMediaContactless => 'Contactless card';
 
   @override
-  String get tickets_media_app => 'Mobile app';
+  String get ticketsMediaApp => 'Mobile app';
 }

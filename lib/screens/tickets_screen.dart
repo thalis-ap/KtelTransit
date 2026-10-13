@@ -83,8 +83,8 @@ class _TicketsScreenState extends State<TicketsScreen> {
         icon: Icons.local_play_outlined,
         // Name the agency only when there is more than one to tell apart
         label: agencies.length > 1
-            ? '${l10n.agency_fare_website} - ${agency.name}'
-            : l10n.agency_fare_website,
+            ? '${l10n.agencyFareWebsite} - ${agency.name}'
+            : l10n.agencyFareWebsite,
         onTap: () => LauncherUtils.launchWebSite(agency.fareUrl),
       );
     }).toList();
@@ -106,7 +106,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
             // don't have
             TicketLinkTile(
               icon: Icons.mail_outline,
-              label: l10n.tickets_contact_agency,
+              label: l10n.ticketsContactAgency,
               trailingIcon: Icons.chevron_right,
               onTap: () => Navigator.push(
                 context,
@@ -139,7 +139,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            l10n.tickets_price_note,
+            l10n.ticketsPriceNote,
             style: context.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -187,7 +187,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
 
         if (groups.isEmpty)
           TripWarningBanner(
-            message: l10n.tickets_no_products_for_category,
+            message: l10n.ticketsNoProductsForCategory,
             icon: Icons.warning_rounded,
             isCompact: false,
           )
@@ -201,7 +201,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
         if (selectedCategory?.eligibilityUrl != null)
           TicketLinkTile(
             icon: Icons.info_outline,
-            label: l10n.tickets_eligibility_link,
+            label: l10n.ticketsEligibilityLink,
             onTap: () =>
                 LauncherUtils.launchWebSite(selectedCategory!.eligibilityUrl!),
           ),

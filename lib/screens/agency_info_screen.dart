@@ -27,7 +27,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
     final agencies = gtfsManager.repository.agencies;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.agency_info_title), centerTitle: true),
+      appBar: AppBar(title: Text(l10n.agencyInfoTitle), centerTitle: true),
       body: Column(
         children: [
           RegionInfoBanner(
@@ -53,7 +53,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
             child: agencies.isEmpty
                 ? Center(
                     child: Text(
-                      l10n.agency_no_contact_info,
+                      l10n.agencyNoContactInfo,
                       style: context.textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -135,7 +135,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        l10n.agency_contact_title,
+                        l10n.agencyContactTitle,
                         style: context.textTheme.titleSmall?.copyWith(
                           color: colorScheme.primary,
                         ),
@@ -147,7 +147,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
                     _buildClickableTile(
                       context: context,
                       icon: Icons.phone_outlined,
-                      title: l10n.agency_phone,
+                      title: l10n.agencyPhone,
                       subtitle: agency.phone,
                       onTap: () => LauncherUtils.launchPhone(agency.phone),
                     ),
@@ -157,7 +157,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
                     _buildClickableTile(
                       context: context,
                       icon: Icons.email_outlined,
-                      title: l10n.agency_email,
+                      title: l10n.agencyEmail,
                       subtitle: agency.email,
                       onTap: () => LauncherUtils.launchEmail(agency.email),
                     ),
@@ -189,7 +189,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        l10n.agency_links_title,
+                        l10n.agencyLinksTitle,
                         style: context.textTheme.titleSmall?.copyWith(
                           color: colorScheme.primary,
                         ),
@@ -201,7 +201,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
                     _buildClickableTile(
                       context: context,
                       icon: Icons.public,
-                      title: l10n.agency_website,
+                      title: l10n.agencyWebsite,
                       subtitle: Uri.decodeFull(agency.url),
                       onTap: () => LauncherUtils.launchWebSite(agency.url),
                     ),
@@ -211,7 +211,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
                     _buildClickableTile(
                       context: context,
                       icon: Icons.local_play_outlined,
-                      title: l10n.agency_fare_website,
+                      title: l10n.agencyFareWebsite,
                       subtitle: Uri.decodeFull(agency.fareUrl),
                       onTap: () => LauncherUtils.launchWebSite(agency.fareUrl),
                     ),
@@ -225,7 +225,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              l10n.agency_no_contact_info,
+              l10n.agencyNoContactInfo,
               style: context.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,

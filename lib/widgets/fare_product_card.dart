@@ -34,7 +34,7 @@ class FareProductCard extends StatelessWidget {
   }
 
   String _mediaLabel(FareProductOption option, AppLocalizations l10n) {
-    if (option.product.isValidOnAnyMedia) return l10n.tickets_any_media;
+    if (option.product.isValidOnAnyMedia) return l10n.ticketsAnyMedia;
 
     final media = option.media;
     // The media is not defined in the region: show the raw id
@@ -47,15 +47,15 @@ class FareProductCard extends StatelessWidget {
     // No name given: fall back to a generic label for the media type
     switch (media.type) {
       case FareMediaType.none:
-        return l10n.tickets_media_none;
+        return l10n.ticketsMediaNone;
       case FareMediaType.paperTicket:
-        return l10n.tickets_media_paper;
+        return l10n.ticketsMediaPaper;
       case FareMediaType.transitCard:
-        return l10n.tickets_media_card;
+        return l10n.ticketsMediaCard;
       case FareMediaType.contactlessEmv:
-        return l10n.tickets_media_contactless;
+        return l10n.ticketsMediaContactless;
       case FareMediaType.mobileApp:
-        return l10n.tickets_media_app;
+        return l10n.ticketsMediaApp;
       case FareMediaType.unknown:
         return media.name;
     }

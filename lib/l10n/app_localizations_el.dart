@@ -589,14 +589,14 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get announcements_placeholder_title => 'Ανακοινώσεις Περιοχής';
+  String get announcementsPlaceholderTitle => 'Ανακοινώσεις Περιοχής';
 
   @override
-  String get announcements_placeholder_desc =>
+  String get announcementsPlaceholderDesc =>
       'Σημαντικές ανακοινώσεις σχετικά με δρομολόγια, απεργίες και καθυστερήσεις θα εμφανίζονται εδώ.';
 
   @override
-  String get announcements_placeholder_note =>
+  String get announcementsPlaceholderNote =>
       'Η πλήρης ροή ανακοινώσεων θα ενσωματωθεί σε μελλοντική ενημέρωση.';
 
   @override
@@ -652,28 +652,28 @@ class AppLocalizationsEl extends AppLocalizations {
   String get changingLanguage => 'Αλλαγή γλώσσας...';
 
   @override
-  String get agency_info_title => 'Πληροφορίες Πρακτορείου';
+  String get agencyInfoTitle => 'Πληροφορίες Πρακτορείου';
 
   @override
-  String get agency_contact_title => 'Στοιχεία Επικοινωνίας';
+  String get agencyContactTitle => 'Στοιχεία Επικοινωνίας';
 
   @override
-  String get agency_links_title => 'Ιστοσελίδες & Εισιτήρια';
+  String get agencyLinksTitle => 'Ιστοσελίδες & Εισιτήρια';
 
   @override
-  String get agency_phone => 'Τηλέφωνο';
+  String get agencyPhone => 'Τηλέφωνο';
 
   @override
-  String get agency_email => 'Email';
+  String get agencyEmail => 'Email';
 
   @override
-  String get agency_website => 'Επίσημη Ιστοσελίδα';
+  String get agencyWebsite => 'Επίσημη Ιστοσελίδα';
 
   @override
-  String get agency_fare_website => 'Εισιτήρια & Τιμές';
+  String get agencyFareWebsite => 'Εισιτήρια & Τιμές';
 
   @override
-  String get agency_no_contact_info =>
+  String get agencyNoContactInfo =>
       'Δεν παρέχονται στοιχεία επικοινωνίας από το πρακτορείο.';
 
   @override
@@ -686,41 +686,41 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noPlacesFoundFor => 'Δε βρέθηκαν αποτελέσματα για';
 
   @override
-  String get tickets_any_media => 'Οποιοσδήποτε τρόπος πληρωμής';
+  String get ticketsAnyMedia => 'Οποιοσδήποτε τρόπος πληρωμής';
 
   @override
-  String get tickets_eligibility_link => 'Ποιοι δικαιούνται;';
+  String get ticketsEligibilityLink => 'Ποιοι δικαιούνται;';
 
   @override
-  String get tickets_price_note =>
+  String get ticketsPriceNote =>
       'Οι τιμές ενδέχεται να διαφέρουν ανάλογα με την απόσταση της διαδρομής. Επιβεβαιώστε την ακριβή τιμή με τον οδηγό ή το τοπικό σας ΚΤΕΛ.';
 
   @override
-  String get tickets_no_products_for_category =>
+  String get ticketsNoProductsForCategory =>
       'Δεν υπάρχουν διαθέσιμες επιλογές εισιτηρίων για αυτή την κατηγορία.';
 
   @override
-  String get tickets_placeholder_title => 'Δεν υπάρχουν πληροφορίες εισιτηρίων';
+  String get ticketsPlaceholderTitle => 'Δεν υπάρχουν πληροφορίες εισιτηρίων';
 
   @override
-  String get tickets_placeholder_desc =>
+  String get ticketsPlaceholderDesc =>
       'Το πρακτορείο δεν έχει παράσχει πληροφορίες για τα εισιτήρια αυτής της περιοχής. Επικοινωνήστε μαζί του για περισσότερες πληροφορίες.';
 
   @override
-  String get tickets_contact_agency => 'Επικοινωνία με το πρακτορείο';
+  String get ticketsContactAgency => 'Επικοινωνία με το πρακτορείο';
 
   @override
-  String get tickets_media_none => 'Πληρωμή στο λεωφορείο';
+  String get ticketsMediaNone => 'Πληρωμή στο λεωφορείο';
 
   @override
-  String get tickets_media_paper => 'Χάρτινο εισιτήριο';
+  String get ticketsMediaPaper => 'Χάρτινο εισιτήριο';
 
   @override
-  String get tickets_media_card => 'Κάρτα';
+  String get ticketsMediaCard => 'Κάρτα';
 
   @override
-  String get tickets_media_contactless => 'Ανέπαφη κάρτα';
+  String get ticketsMediaContactless => 'Ανέπαφη κάρτα';
 
   @override
-  String get tickets_media_app => 'Εφαρμογή κινητού';
+  String get ticketsMediaApp => 'Εφαρμογή κινητού';
 }
