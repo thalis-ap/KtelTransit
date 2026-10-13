@@ -913,7 +913,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Builds everything related to the map
   Widget _buildMap() {
     return CustomMap(
-      currentRegion: gtfsManager.currentRegion!,
+      gtfsManager: gtfsManager,
       mapController: mapController,
       onLongPress: (coordinates) => _showDroppedPinSheet(coordinates),
       onMapReady: () {
