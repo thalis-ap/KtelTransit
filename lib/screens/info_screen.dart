@@ -129,7 +129,7 @@ class InfoScreen extends StatelessWidget {
                   ),
                   _buildFeatureTile(
                     context,
-                    Icons.directions_bus_outlined,
+                    Icons.directions_bus,
                     l10n.info_feature_stops,
                   ),
                   _buildFeatureTile(
