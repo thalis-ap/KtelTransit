@@ -308,5 +308,6 @@
   "ticketsMediaPaper": "Paper ticket",
   "ticketsMediaCard": "Transit card",
   "ticketsMediaContactless": "Contactless card",
-  "ticketsMediaApp": "Mobile app"
+  "ticketsMediaApp": "Mobile app",
+  "selectThisRegion": "Select this region"
 }

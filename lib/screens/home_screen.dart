@@ -932,6 +932,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       },
       onMapPointPressed: (coordinates) => _showDroppedPinSheet(coordinates),
       onStopPressed: (stop) => _showStopSheet(stop),
+      onRegionPressed: (region) => gtfsManager.loadRegion(region.id),
 
       activeRoute: activeRoute,
       trips: cachedTrips,

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
+import 'package:ktel_transit/l10n/app_localizations.dart';
+import 'package:ktel_transit/models/region.dart';
 import 'package:ktel_transit/utilities/color_utils.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -14,6 +16,7 @@ import '../models/stop.dart';
 import '../services/map_caching_service.dart';
 import '../theme/app_theme.dart';
 import 'compass_cone.dart';
+
 
 class CustomMap extends StatelessWidget {
   final GtfsManager gtfsManager;
@@ -36,6 +39,7 @@ class CustomMap extends StatelessWidget {
 
   final Function(LatLng) onMapPointPressed;
   final Function(Stop) onStopPressed;
+  final Function(Region) onRegionPressed;
 
   // In angles
   final double? compassHeading;
@@ -49,6 +53,7 @@ class CustomMap extends StatelessWidget {
     required this.onPositionChanged,
     required this.onMapPointPressed,
     required this.onStopPressed,
+    required this.onRegionPressed,
     required this.activeRoute,
     required this.trips,
     required this.selectedTripIndex,
@@ -64,6 +69,7 @@ class CustomMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     // Find the active transfer stop, to determine its icon correctly
     Stop? activeTransferStop;
@@ -118,6 +124,45 @@ class CustomMap extends StatelessWidget {
                   ? darkModeTileBuilder
                   : null,
             ),
+
+            // Inactive regions selection markers
+            MarkerLayer(
+              markers: gtfsManager.availableRegions
+                  .where((r) => r.id != activeRegion.id)
+                  .map(
+                    (region) => Marker(
+                      point: region.center,
+                      width: 180,
+                      height: 50,
+                      child: Center(
+                        child: FilledButton.tonal(
+                          onPressed: () => onRegionPressed(region),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.secondaryContainer.withAlpha(200),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                region.getLocalizedName(
+                                  Localizations.localeOf(context).languageCode,
+                                ),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                              Text(
+                                l10n.selectThisRegion,
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+
             if (activeRoute != null)
               PolylineLayer(
                 polylines: [

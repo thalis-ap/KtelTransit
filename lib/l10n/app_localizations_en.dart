@@ -715,4 +715,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ticketsMediaApp => 'Mobile app';
+
+  @override
+  String get selectThisRegion => 'Select this region';
 }

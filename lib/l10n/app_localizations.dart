@@ -1351,6 +1351,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Εφαρμογή κινητού'**
   String get ticketsMediaApp;
+
+  /// No description provided for @selectThisRegion.
+  ///
+  /// In el, this message translates to:
+  /// **'Επιλογή περιοχής'**
+  String get selectThisRegion;
 }
 
 class _AppLocalizationsDelegate

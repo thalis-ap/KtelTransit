@@ -419,5 +419,6 @@
   "ticketsMediaPaper": "Χάρτινο εισιτήριο",
   "ticketsMediaCard": "Κάρτα",
   "ticketsMediaContactless": "Ανέπαφη κάρτα",
-  "ticketsMediaApp": "Εφαρμογή κινητού"
+  "ticketsMediaApp": "Εφαρμογή κινητού",
+  "selectThisRegion": "Επιλογή περιοχής"
 }

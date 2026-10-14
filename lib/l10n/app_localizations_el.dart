@@ -723,4 +723,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get ticketsMediaApp => 'Εφαρμογή κινητού';
+
+  @override
+  String get selectThisRegion => 'Επιλογή περιοχής';
 }
