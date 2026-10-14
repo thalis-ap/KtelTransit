@@ -31,6 +31,7 @@ void main() async {
 
   runApp(
     MyApp(
+      gtfsManager: gtfsManager,
       settingsController: settingsController,
       hasSavedRegion: hasSavedRegion,
     ),
@@ -38,11 +39,13 @@ void main() async {
 }
 
 class MyApp extends StatefulWidget {
+  final GtfsManager gtfsManager;
   final SettingsController settingsController;
   final bool hasSavedRegion;
 
   const MyApp({
     super.key,
+    required this.gtfsManager,
     required this.settingsController,
     required this.hasSavedRegion,
   });
@@ -52,8 +55,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final GtfsManager gtfsManager = GtfsManager();
-
   // Lets us drive navigation from outside any particular screen's
   // BuildContext, so this works no matter which screen the user deleted
   // the region from (Home, Routes, Announcements, Welcome, ...).
@@ -67,17 +68,17 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    gtfsManager.stateNotifier.addListener(_onGtfsStateChanged);
+    widget.gtfsManager.stateNotifier.addListener(_onGtfsStateChanged);
   }
 
   @override
   void dispose() {
-    gtfsManager.stateNotifier.removeListener(_onGtfsStateChanged);
+    widget.gtfsManager.stateNotifier.removeListener(_onGtfsStateChanged);
     super.dispose();
   }
 
   void _onGtfsStateChanged() {
-    final RegionState current = gtfsManager.stateNotifier.value;
+    final RegionState current = widget.gtfsManager.stateNotifier.value;
     final RegionState previous = _previousRegionState;
     _previousRegionState = current;
 
@@ -89,7 +90,7 @@ class _MyAppState extends State<MyApp> {
     final justDeletedCurrentRegion =
         previous == RegionState.deleting &&
         current == RegionState.idle &&
-        gtfsManager.currentRegion == null;
+        widget.gtfsManager.currentRegion == null;
 
     if (justDeletedCurrentRegion) {
       _resetToWelcomeScreen();
@@ -161,10 +162,10 @@ class _MyAppState extends State<MyApp> {
                 child!,
                 // Bottom sheet overlay
                 RegionLoadingBottomSheet(
-                  gtfsManager: gtfsManager,
+                  gtfsManager: widget.gtfsManager,
                   onDismiss: () {
                     // Reset state to hide the sheet
-                    gtfsManager.stateNotifier.value = RegionState.idle;
+                    widget.gtfsManager.stateNotifier.value = RegionState.idle;
                   },
                 ),
               ],
