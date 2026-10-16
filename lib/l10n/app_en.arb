@@ -235,8 +235,8 @@
     }
   },
   "announcementsPlaceholderTitle": "Regional Announcements",
-  "announcements_placeholder_desc": "Important announcements regarding schedules, strikes, and delays will appear here.",
-  "announcements_placeholder_note": "A complete announcement feed will be integrated in a future update.",
+  "announcementsPlaceholderDesc": "Important announcements regarding schedules, strikes, and delays will appear here.",
+  "announcementsPlaceholderNote": "A complete announcement feed will be integrated in a future update.",
   "comingSoon": "Coming soon",
   "regionInfo": "Region info",
   "statusLabel": "Status: {status}",
