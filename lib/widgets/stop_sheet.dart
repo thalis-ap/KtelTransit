@@ -185,7 +185,7 @@ class StopSheet extends MapPointSheet {
               children: [
                 Text(
                   l10n.upcomingDeparturesToday,
-                  style: theme.textTheme.labelLarge,
+                  style: theme.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 12),
                 _buildDeparturesList(todayDepartures, theme),
@@ -202,7 +202,7 @@ class StopSheet extends MapPointSheet {
                 const SizedBox(height: 24),
                 Text(
                   l10n.departuresOnDay(nextDayLabel),
-                  style: theme.textTheme.labelLarge,
+                  style: theme.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 12),
                 _buildDeparturesList(nextDepartures, theme),
