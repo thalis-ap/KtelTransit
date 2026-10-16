@@ -80,7 +80,6 @@ class MapPointSheet extends StatelessWidget {
               top: 12.0,
               left: 24.0,
               right: 24.0,
-              bottom: 24.0,
             ),
             decoration: BoxDecoration(
               color: colorScheme.surface,
