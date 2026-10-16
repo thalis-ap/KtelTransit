@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:ktel_transit/models/stop.dart';
+import 'package:ktel_transit/services/fare_catalog_service.dart';
 import 'package:ktel_transit/services/fare_service.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -16,7 +17,13 @@ class BusLeg {
   final DateTime departureDateTime;
   final DateTime arrivalDateTime;
   final int estimatedDuration; // seconds, from stop_times.txt
-  final double fare;
+
+  /// All possible fare options for this leg (across all rider categories).
+  /// Used to populate the fare breakdown modal.
+  final List<FareProductOption> fareOptions;
+
+  /// The primary fare amount to display in summaries (e.g. the standard adult fare).
+  final double? fare;
 
   final Stop originStop;
   final Stop destinationStop;
@@ -67,6 +74,7 @@ class BusLeg {
     required this.stopNames,
     required this.originStop,
     required this.destinationStop,
+    required this.fareOptions,
     required this.fare,
     required this.passingPoints,
     this.points,
@@ -80,6 +88,7 @@ class BusLeg {
     DateTime? departureDateTime,
     DateTime? arrivalDateTime,
     int? estimatedDuration,
+    List<FareProductOption>? fareOptions,
     double? fare,
     List<String>? stopNames,
     Stop? originStop,
@@ -95,6 +104,7 @@ class BusLeg {
       departureDateTime: departureDateTime ?? this.departureDateTime,
       arrivalDateTime: arrivalDateTime ?? this.arrivalDateTime,
       estimatedDuration: estimatedDuration ?? this.estimatedDuration,
+      fareOptions: fareOptions ?? this.fareOptions,
       fare: fare ?? this.fare,
       stopNames: stopNames ?? this.stopNames,
       originStop: originStop ?? this.originStop,
@@ -119,7 +129,7 @@ class BusTrip {
 
   BusTrip({required this.isStartAlsoOrigin, required this.legs})
     : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
-    totalFare = legs.fold(0, (sum, leg) => (sum ?? 0) + leg.fare);
+    totalFare = legs.fold(0.0, (sum, leg) => (sum ?? 0.0) + (leg.fare ?? 0.0));
   }
 
   // Holds the total of all the legs' fares

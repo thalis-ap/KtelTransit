@@ -286,7 +286,23 @@ class GtfsRepository {
         allTripStops.sort((a, b) => a.stopSequence.compareTo(b.stopSequence));
 
         final stopNames = _getStopNamesForTrip(trip.tripId);
-        final double fare = FareService.calculateFare(startStop, destStop);
+
+        // Fetch all possible fare options for this leg
+        final fareOptions = FareService.getOptionsForLeg(
+          originStopId: startStopId,
+          destinationStopId: destStopId,
+          allProducts: fareProducts,
+          allMedia: fareMedia,
+        );
+
+        // Pick the "Standard/Default" fare for summary price
+        final summaryFare = fareOptions
+            .where((o) =>
+                o.product.riderCategoryId == defaultRiderCategory?.riderCategoryId ||
+                o.product.isValidForAnyRiderCategory)
+            .firstOrNull
+            ?.product
+            .amount;
 
         final leg = BusLeg(
           routeName: displayName,
@@ -295,7 +311,8 @@ class GtfsRepository {
           arrivalDateTime: TimeFormat.gtfsTimeToDateTime(
               date, stDest.arrivalTime),
           estimatedDuration: durationSecs,
-          fare: fare,
+          fareOptions: fareOptions,
+          fare: summaryFare,
           stopNames: stopNames,
           originStop: startStop,
           destinationStop: destStop,
@@ -398,10 +415,35 @@ class GtfsRepository {
               final stopNamesA = _getStopNamesForTrip(tripA.tripId);
               final stopNamesB = _getStopNamesForTrip(tripB.tripId);
 
-              final double fare1 = FareService.calculateFare(
-                  startStop, transferStop);
-              final double fare2 = FareService.calculateFare(
-                  transferStop, destStop);
+              // Fetch all possible fare options for both legs
+              final fareOptions1 = FareService.getOptionsForLeg(
+                originStopId: startStopId,
+                destinationStopId: transferA.stopId,
+                allProducts: fareProducts,
+                allMedia: fareMedia,
+              );
+              final fareOptions2 = FareService.getOptionsForLeg(
+                originStopId: transferA.stopId,
+                destinationStopId: destStopId,
+                allProducts: fareProducts,
+                allMedia: fareMedia,
+              );
+
+              // Pick the "Standard/Default" fares for summary price
+              final summaryFare1 = fareOptions1
+                  .where((o) =>
+                      o.product.riderCategoryId == defaultRiderCategory?.riderCategoryId ||
+                      o.product.isValidForAnyRiderCategory)
+                  .firstOrNull
+                  ?.product
+                  .amount;
+              final summaryFare2 = fareOptions2
+                  .where((o) =>
+                      o.product.riderCategoryId == defaultRiderCategory?.riderCategoryId ||
+                      o.product.isValidForAnyRiderCategory)
+                  .firstOrNull
+                  ?.product
+                  .amount;
 
               final leg1 = BusLeg(
                 routeName: rAName,
@@ -410,7 +452,8 @@ class GtfsRepository {
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(
                     date, transferA.arrivalTime),
                 estimatedDuration: durationLeg1,
-                fare: fare1,
+                fareOptions: fareOptions1,
+                fare: summaryFare1,
                 stopNames: stopNamesA,
                 originStop: startStop,
                 destinationStop: transferStop,
@@ -428,7 +471,8 @@ class GtfsRepository {
                 arrivalDateTime: TimeFormat.gtfsTimeToDateTime(
                     date, stDest.arrivalTime),
                 estimatedDuration: durationLeg2,
-                fare: fare2,
+                fareOptions: fareOptions2,
+                fare: summaryFare2,
                 stopNames: stopNamesB,
                 originStop: transferStop,
                 destinationStop: destStop,

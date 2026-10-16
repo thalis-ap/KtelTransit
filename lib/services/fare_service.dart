@@ -1,28 +1,37 @@
-import 'package:latlong2/latlong.dart';
-
-import '../models/map_point.dart';
+import '../models/fare_media.dart';
+import '../models/fare_product.dart';
+import 'fare_catalog_service.dart';
 
 class FareService {
-  // This is a temporary distance-based placeholder until multiple regions with different
-  // pricing are supported. Remove this duplication when a proper FareService is implemented.
-  static double calculateFare(MapPoint start, MapPoint dest) {
-    final distanceCalc = const Distance();
-    final meters = distanceCalc(
-      LatLng(start.latitude, start.longitude),
-      LatLng(dest.latitude, dest.longitude),
-    );
+  /// Finds all valid fare options for a specific leg between two stops.
+  static List<FareProductOption> getOptionsForLeg({
+    required String originStopId,
+    required String destinationStopId,
+    required List<FareProduct> allProducts,
+    required List<FareMedia> allMedia,
+    String? riderCategoryId,
+    // Add fare_rules logic here if your KTEL uses them
+  }) {
+    // In the simplest KTEL case, we might just have a list of products.
+    // Map media for quick lookup
+    FareMedia? mediaLookup(String id) =>
+        allMedia.cast<FareMedia?>().firstWhere((m) => m?.fareMediaId == id, orElse: () => null);
 
-    // Draft - Hard coded values (e.g. 2.2)
-    final km = meters / 1000;
-    if (km <= 14) return 2.2;
-
-    double calculatedPrice = 2.20 + ((km - 14) * 0.137);
-    if (calculatedPrice > 4.20) calculatedPrice = 4.20;
-
-    return (calculatedPrice * 10).round() / 10.0;
+    // For now, filter products that apply to this specific route/leg
+    // (This logic will expand when you get real fare_rules.txt data)
+    return FareCatalogService.groupProducts(
+      allProducts,
+      mediaLookup: mediaLookup,
+      riderCategoryId: riderCategoryId,
+    ).expand((group) => group.options).toList();
   }
 
   static String fareAsString(double? fare) {
     return fare != null ? "${fare.toStringAsFixed(2)}€" : "-€";
+  }
+
+  static String formatPrice(double amount, String currency) {
+    final symbol = currency == 'EUR' ? '€' : currency;
+    return "${amount.toStringAsFixed(2)}$symbol";
   }
 }
