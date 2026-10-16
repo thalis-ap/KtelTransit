@@ -15,8 +15,8 @@
   "resetOrientationTooltip": "Επαναφορά προσανατολισμού",
   "startLabel": "Αφετηρία",
   "destinationLabel": "Προορισμός",
-  "upcomingDeparturesToday": "ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ",
-  "departuresOnDay": "ΑΝΑΧΩΡΗΣΕΙΣ {day}",
+  "upcomingDeparturesToday": "Επερχόμενες αναχωρήσεις σήμερα",
+  "departuresOnDay": "Αναχωρήσεις για {day}",
   "@departuresOnDay": {
     "placeholders": {
       "day": {
@@ -24,7 +24,7 @@
       }
     }
   },
-  "tomorrow": "ΑΥΡΙΟ",
+  "tomorrow": "Αύριο",
   "noDeparturesToday": "Δεν υπάρχουν αναχωρήσεις σήμερα",
   "noScheduledDepartures": "Δεν υπάρχουν προγραμματισμένες αναχωρήσεις",
   "settingsTitle": "Ρυθμίσεις",
@@ -59,7 +59,7 @@
   "noBusTripsForRoute": "Δεν βρέθηκαν δρομολόγια λεωφορείων για αυτή τη διαδρομή.",
   "costBreakdown": "Ανάλυση κόστους",
   "totalTicketCost": "Συνολικό κόστος εισιτηρίων",
-  "transfer": "ΜΕΤΕΠΙΒΙΒΑΣΗ",
+  "transfer": "Μετεπιβίβαση",
   "departureFrom": "Αναχώρηση από {stop}:",
   "@departureFrom": {
     "placeholders": {
@@ -119,7 +119,7 @@
       }
     }
   },
-  "changeButton": "ΑΛΛΑΓΗ",
+  "changeButton": "Αλλαγή",
   "daily": "Καθημερινά",
   "unknownDays": "Άγνωστες ημέρες",
   "searchRegionHint": "Αναζήτηση περιοχής...",

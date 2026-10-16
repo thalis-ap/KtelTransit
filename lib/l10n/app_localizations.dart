@@ -191,19 +191,19 @@ abstract class AppLocalizations {
   /// No description provided for @upcomingDeparturesToday.
   ///
   /// In el, this message translates to:
-  /// **'ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ'**
+  /// **'Επερχόμενες αναχωρήσεις σήμερα'**
   String get upcomingDeparturesToday;
 
   /// No description provided for @departuresOnDay.
   ///
   /// In el, this message translates to:
-  /// **'ΑΝΑΧΩΡΗΣΕΙΣ {day}'**
+  /// **'Αναχωρήσεις για {day}'**
   String departuresOnDay(String day);
 
   /// No description provided for @tomorrow.
   ///
   /// In el, this message translates to:
-  /// **'ΑΥΡΙΟ'**
+  /// **'Αύριο'**
   String get tomorrow;
 
   /// No description provided for @noDeparturesToday.
@@ -371,7 +371,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer.
   ///
   /// In el, this message translates to:
-  /// **'ΜΕΤΕΠΙΒΙΒΑΣΗ'**
+  /// **'Μετεπιβίβαση'**
   String get transfer;
 
   /// No description provided for @departureFrom.
@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @changeButton.
   ///
   /// In el, this message translates to:
-  /// **'ΑΛΛΑΓΗ'**
+  /// **'Αλλαγή'**
   String get changeButton;
 
   /// No description provided for @daily.

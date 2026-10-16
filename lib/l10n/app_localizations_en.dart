@@ -56,15 +56,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get destinationLabel => 'Destination';
 
   @override
-  String get upcomingDeparturesToday => 'UPCOMING DEPARTURES TODAY';
+  String get upcomingDeparturesToday => 'Upcoming departures today';
 
   @override
   String departuresOnDay(String day) {
-    return 'DEPARTURES $day';
+    return 'Departures on $day';
   }
 
   @override
-  String get tomorrow => 'TOMORROW';
+  String get tomorrow => 'Tomorrow';
 
   @override
   String get noDeparturesToday => 'No departures scheduled today';
@@ -151,7 +151,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalTicketCost => 'Total ticket fare';
 
   @override
-  String get transfer => 'TRANSFER';
+  String get transfer => 'Trasnfer';
 
   @override
   String departureFrom(String stop) {
@@ -189,7 +189,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get changeButton => 'CHANGE';
+  String get changeButton => 'Change';
 
   @override
   String get daily => 'Daily';

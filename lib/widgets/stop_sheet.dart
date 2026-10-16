@@ -169,7 +169,7 @@ class StopSheet extends MapPointSheet {
             nextDayLabel = DateFormat(
               'EEEE',
               currentLocale,
-            ).format(nextDate).toUpperCase();
+            ).format(nextDate);
           }
           break;
         }

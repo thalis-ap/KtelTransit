@@ -57,15 +57,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String get destinationLabel => 'Προορισμός';
 
   @override
-  String get upcomingDeparturesToday => 'ΕΠΕΡΧΟΜΕΝΕΣ ΑΝΑΧΩΡΗΣΕΙΣ ΣΗΜΕΡΑ';
+  String get upcomingDeparturesToday => 'Επερχόμενες αναχωρήσεις σήμερα';
 
   @override
   String departuresOnDay(String day) {
-    return 'ΑΝΑΧΩΡΗΣΕΙΣ $day';
+    return 'Αναχωρήσεις για $day';
   }
 
   @override
-  String get tomorrow => 'ΑΥΡΙΟ';
+  String get tomorrow => 'Αύριο';
 
   @override
   String get noDeparturesToday => 'Δεν υπάρχουν αναχωρήσεις σήμερα';
@@ -154,7 +154,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get totalTicketCost => 'Συνολικό κόστος εισιτηρίων';
 
   @override
-  String get transfer => 'ΜΕΤΕΠΙΒΙΒΑΣΗ';
+  String get transfer => 'Μετεπιβίβαση';
 
   @override
   String departureFrom(String stop) {
@@ -192,7 +192,7 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get changeButton => 'ΑΛΛΑΓΗ';
+  String get changeButton => 'Αλλαγή';
 
   @override
   String get daily => 'Καθημερινά';
