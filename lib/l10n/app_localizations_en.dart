@@ -585,11 +585,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get announcementsPlaceholderDesc =>
-      'Σημαντικές ανακοινώσεις σχετικά με δρομολόγια, απεργίες και καθυστερήσεις θα εμφανίζονται εδώ.';
+      'Important announcements regarding schedules, strikes, and delays will appear here.';
 
   @override
   String get announcementsPlaceholderNote =>
-      'Η πλήρης ροή ανακοινώσεων θα ενσωματωθεί σε μελλοντική ενημέρωση.';
+      'A complete announcement feed will be integrated in a future update.';
 
   @override
   String get comingSoon => 'Coming soon';
