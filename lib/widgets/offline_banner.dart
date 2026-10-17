@@ -16,7 +16,7 @@ class OfflineBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: colorScheme.errorContainer,
+        color: colorScheme.error.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -40,7 +40,7 @@ class OfflineBanner extends StatelessWidget {
               onPressed: onRetry,
               style: TextButton.styleFrom(
                 foregroundColor: colorScheme.error,
-                padding: EdgeInsets.zero,
+                padding: EdgeInsets.all(4),
               ),
               child: Text(
                 l10n.retryButton, // ✅ Already exists in your l10n
