@@ -141,6 +141,8 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
   Future<void> _fetchLocationName() async {
     // We let the widget build first so we can safely access the context for the language code
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Quickly set the dummy name so as the text does not stay empty
+      widget.mapPoint.name = AppLocalizations.of(context)!.chosenPoint;
       final languageCode = Localizations.localeOf(context).languageCode;
 
       // Try to retrieve a name and update point.name as soon as we can
@@ -260,7 +262,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
 
     return [
       Padding(
-        padding: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 4.0),
+        padding: const EdgeInsets.only(left: 4.0),
         child: Text(
           // Use widget coordinates since we are inside the build method
           "${l10n.chosenPoint}: ${widget.mapPoint.getLatLngAsString()}",
@@ -273,7 +275,7 @@ class _DroppedPinSheetState extends State<DroppedPinSheet> {
       // Only draw the nearest stops section if our calculation returned results
       if (nearestStops.isNotEmpty) ...[
         Padding(
-          padding: const EdgeInsets.only(top: 12.0, bottom: 8.0, left: 4.0),
+          padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 4.0),
           child: Row(
             children: [
               Icon(Icons.near_me, size: 20, color: theme.colorScheme.primary),

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
+import 'package:ktel_transit/widgets/trip_details_card_header.dart';
 
 import '../models/bus_trip.dart';
-import '../utilities/distance_utils.dart';
 
 /// A pure UI widget that transforms any routing trip into a nice looking
 /// detailed card for the trip. Departed trips and callbacks on tap are handled
@@ -21,6 +20,14 @@ class TripDetailsCard extends StatelessWidget {
     required this.selectedDepartureTime,
   });
 
+  Widget _buildHeader() {
+    return TripDetailsCardHeader(
+      trip: routingTrip,
+      selectedDepartureTime: selectedDepartureTime,
+      includeRouteText: true,
+    );
+  }
+
   Widget _buildPureWalking(
     BuildContext context, {
     required DateTime selectedTime,
@@ -29,7 +36,7 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(context, l10n: l10n),
+        _buildHeader(),
         const SizedBox(height: 12),
         _buildWalkingRow(
           context,
@@ -74,122 +81,6 @@ class TripDetailsCard extends StatelessWidget {
           ),
         ),
         Text(departureTimeText, style: context.textTheme.titleSmall),
-      ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, {required AppLocalizations l10n}) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    String routeText;
-    if (routingTrip.busTrip == null) {
-      routeText = l10n.walking;
-    } else if (!routingTrip.busTrip!.isTransfer) {
-      // Grab the first (only) leg's route name
-      routeText = routingTrip.busTrip!.legs.first.routeName;
-    } else {
-      // Create a title that looks like this:
-      // 1. First routeName
-      // 2. Second routeName ...
-      routeText = List.generate(
-        routingTrip.busTrip!.legs.length,
-        (i) => "${i + 1}. ${routingTrip.busTrip!.legs[i].routeName}",
-      ).join("\n");
-    }
-
-    // Get the total fare (null if no bus legs exist)
-    final double? fare = routingTrip.fare;
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(Icons.schedule, size: 20, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    TimeFormat.secondsToFormattedString(
-                      routingTrip.durationFull,
-                      l10n,
-                    ),
-                    style: context.textTheme.titleSmall,
-                  ),
-                  if (routingTrip.busTrip == null &&
-                      routingTrip.accessTrip != null) ...[
-                    const SizedBox(width: 10),
-                    Text(
-                      "(${DistanceFormat.metersToFormattedString(routingTrip.accessTrip!.distance, l10n)})",
-                      style: context.textTheme.titleSmall,
-                    ),
-                  ] else if (routingTrip.busTrip != null &&
-                      routingTrip.busTrip!.isTransfer) ...[
-                    const SizedBox(width: 10),
-                    Text(
-                      "(${TimeFormat.secondsToFormattedString(routingTrip.totalWaitTime, l10n)})",
-                      style: context.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.tertiary,
-                      ),
-                    ),
-                  ],
-                  if (routingTrip.busTrip != null &&
-                      routingTrip.busTrip!.isWheelchairAccessible !=
-                          WheelchairBoarding.unknown) ...[
-                    SizedBox(width: 10),
-                    Tooltip(
-                      message:
-                          routingTrip.busTrip!.isWheelchairAccessible ==
-                              WheelchairBoarding.accessible
-                          ? l10n.wheelchairAccessible
-                          : l10n.wheelchairNotAccessible,
-                      child: Icon(
-                        routingTrip.busTrip!.isWheelchairAccessible ==
-                                WheelchairBoarding.accessible
-                            ? Icons.accessible_outlined
-                            : Icons.not_accessible_outlined,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Row(
-              children: [
-                if (fare != null) ...[
-                  Icon(
-                    Icons.confirmation_num_outlined,
-                    size: 18,
-                    color: colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    routingTrip.fareAsString,
-                    style: context.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.secondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                routeText,
-                style: context.textTheme.titleSmall?.copyWith(
-                  color: colorScheme.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -248,16 +139,22 @@ class TripDetailsCard extends StatelessWidget {
   }
 
   Widget _buildWaitTimeRow(BuildContext context, String waitText) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
       child: Row(
         children: [
-          Icon(Icons.access_time_rounded, size: 14),
+          Icon(
+            Icons.access_time_rounded,
+            size: 16,
+            color: colorScheme.tertiary,
+          ),
           const SizedBox(width: 8),
           Text(
             waitText,
-            style: context.textTheme.bodySmall?.copyWith(
+            style: context.textTheme.labelMedium?.copyWith(
               fontStyle: FontStyle.italic,
+              color: colorScheme.tertiary,
             ),
           ),
         ],
@@ -339,7 +236,7 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(context, l10n: l10n),
+        _buildHeader(),
         const SizedBox(height: 6),
         if (access != null)
           Padding(
@@ -444,7 +341,7 @@ class TripDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(context, l10n: l10n),
+        _buildHeader(),
         const SizedBox(height: 6),
         if (access != null)
           Padding(

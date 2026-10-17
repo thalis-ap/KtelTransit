@@ -3,7 +3,6 @@ import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
 import 'package:ktel_transit/models/trip_sort_filter.dart';
 import 'package:ktel_transit/services/connection_service.dart';
-import 'package:ktel_transit/services/sheet_manager_service.dart';
 import 'package:ktel_transit/services/trip_grouping_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/widgets/time_selection_bar.dart';
@@ -17,6 +16,7 @@ import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 import '../models/stop.dart';
+import 'bottom_sheet_wrapper.dart';
 import 'offline_banner.dart';
 
 class TripInfoSheet extends StatefulWidget {
@@ -69,17 +69,19 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
 
   late bool _previousConnectionStatus;
 
-  static const List<double> _snapPoints = [
-    SheetSizes.low,
-    SheetSizes.middle,
-    SheetSizes.high,
-  ];
-
   @override
   void initState() {
     super.initState();
     _previousConnectionStatus = connectionService.isConnected;
+    connectionService.addListener(_onConnectionChanged);
   }
+
+  @override
+  void dispose() {
+    connectionService.removeListener(_onConnectionChanged);
+    super.dispose();
+  }
+
 
   @override
   void didUpdateWidget(TripInfoSheet oldWidget) {
@@ -118,6 +120,18 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
         }
       });
     }
+  }
+
+  void _onConnectionChanged() {
+    final isConnected = connectionService.isConnected;
+
+    // Reconnected after being offline → retry, as a clean event handler
+    if (!_previousConnectionStatus && isConnected) {
+      widget.onRetryConnection();
+    }
+    _previousConnectionStatus = isConnected;
+
+    if (mounted) setState(() {});   // triggers the rebuild you lost
   }
 
   void _showSortSheet(BuildContext context) {
@@ -187,40 +201,12 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     );
   }
 
+  /// Builds the stationary widgets that should always be displayed on top
+  /// regardless of the scrolling (Date picker, sort/filter buttons)
   Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final l10n = AppLocalizations.of(context)!;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(l10n.availableRoutes, style: theme.textTheme.titleMedium),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: Icon(
-                  Icons.close,
-                  size: 22,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                onPressed: widget.onClose,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
         TimeSelectionBar(
           selectedSearchTime: widget.selectedSearchTime,
           onChangeTime: widget.onChangeTime,
@@ -300,200 +286,48 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
     );
   }
 
-  void _handleHeaderDragUpdate(
-    DragUpdateDetails details,
-    double availableHeight,
-  ) {
-    if (!widget.controller.isAttached) return;
-    final delta = details.primaryDelta! / availableHeight;
-    final newSize = (widget.controller.size - delta).clamp(
-      SheetSizes.low,
-      SheetSizes.high,
-    );
-    widget.controller.jumpTo(newSize);
-  }
-
-  void _handleHeaderDragEnd(DragEndDetails details, double availableHeight) {
-    if (!widget.controller.isAttached) return;
-    final currentSize = widget.controller.size;
-    final velocity = details.velocity.pixelsPerSecond.dy / availableHeight;
-
-    double target;
-    if (velocity.abs() > 1.0) {
-      if (velocity < 0) {
-        target = _snapPoints.firstWhere(
-          (s) => s > currentSize + 0.01,
-          orElse: () => _snapPoints.last,
-        );
-      } else {
-        target = _snapPoints.lastWhere(
-          (s) => s < currentSize - 0.01,
-          orElse: () => _snapPoints.first,
-        );
-      }
-    } else {
-      target = _snapPoints.reduce(
-        (a, b) => (a - currentSize).abs() < (b - currentSize).abs() ? a : b,
-      );
-    }
-
-    widget.controller.animateTo(
-      target,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final l10n = AppLocalizations.of(context)!;
 
-    return SafeArea(
-      child: DraggableScrollableSheet(
-        controller: widget.controller,
-        initialChildSize: SheetSizes.middle,
-        minChildSize: SheetSizes.low,
-        maxChildSize: SheetSizes.high,
-        snap: true,
-        snapSizes: const [SheetSizes.middle],
-        builder: (context, scrollController) {
-          // Store the draggable's scroll controller
-          _scrollController = scrollController;
+    final isConnected = connectionService.isConnected;
+    final bool showConnectionBanner =
+        (widget.startPoint is! Stop || widget.destinationPoint is! Stop) &&
+        !isConnected;
 
-          return Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
-              boxShadow: const [BoxShadow(blurRadius: 15, spreadRadius: 2)],
-            ),
-            child: ListenableBuilder(
-              listenable: connectionService,
-              builder: (context, _) {
-                final isConnected = connectionService.isConnected;
-                // If we now have connection auto retry since we had no results before
-                if (!_previousConnectionStatus && isConnected) {
-                  widget.onRetryConnection();
-                }
-                // Save the previous connection status
-                _previousConnectionStatus = isConnected;
-                return AnimatedBuilder(
-                  animation: widget.controller,
-                  builder: (context, _) {
-                    final bool showConnectionBanner =
-                        (widget.startPoint is! Stop ||
-                            widget.destinationPoint is! Stop) &&
-                        !connectionService.isConnected;
+    final bool viewingTrip = widget.selectedTripIndex != null && widget.trips != null;
 
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Fixed header
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onVerticalDragUpdate: (details) =>
-                              _handleHeaderDragUpdate(details, screenHeight),
-                          onVerticalDragEnd: (details) =>
-                              _handleHeaderDragEnd(details, screenHeight),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 12.0,
-                              left: 24.0,
-                              right: 24.0,
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Center(
-                                  child: Container(
-                                    width: 48,
-                                    height: 5,
-                                    margin: const EdgeInsets.only(bottom: 16),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.onSurfaceVariant
-                                          .withValues(alpha: 0.4),
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                  ),
-                                ),
-                                if (widget.selectedTripIndex == null)
-                                  _buildHeader(context)
-                                else
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TextButton.icon(
-                                        onPressed: widget.onBackToAllTrips,
-                                        icon: const Icon(
-                                          Icons.arrow_back,
-                                          size: 20,
-                                        ),
-                                        label: Text(
-                                          AppLocalizations.of(
-                                            context,
-                                          )!.allTrips,
-                                          style: context.textTheme.labelLarge
-                                              ?.copyWith(
-                                                color: colorScheme.primary,
-                                              ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                const SizedBox(height: 8),
-                              ],
-                            ),
-                          ),
-                        ),
+    return BottomSheetWrapper(
+      onScrollControllerCreated: (c) => _scrollController = c,
+      controller: widget.controller,
+      onClose: widget.onClose,
+      dragHandleEnabled: true,
+      title: viewingTrip
+          ? TextButton.icon(
+        onPressed: widget.onBackToAllTrips,
+        icon: const Icon(Icons.arrow_back, size: 20),
+        label: Text(
+          l10n.allTrips,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colorScheme.primary,
+          ),
+        ),
+      )
+          : Text(l10n.availableRoutes, style: theme.textTheme.titleMedium),
 
-                        if (showConnectionBanner)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24.0,
-                              vertical: 8.0,
-                            ),
-                            child: OfflineBanner(
-                              onRetry: widget.onRetryConnection,
-                            ),
-                          ),
+      underTitle: [
+        if (!viewingTrip) _buildHeader(context),
+        if (showConnectionBanner) ...[
+          const SizedBox(height: 12),
+          OfflineBanner(onRetry: widget.onRetryConnection),
+        ],
+      ],
 
-                        // Use the draggable's scrollController
-                        Expanded(
-                          child: SingleChildScrollView(
-                            controller: scrollController,
-                            padding: const EdgeInsets.only(
-                              left: 24.0,
-                              right: 24.0,
-                              bottom: 16.0,
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (widget.selectedTripIndex != null &&
-                                    widget.trips != null)
-                                  _buildSelectedTripWidget(context)
-                                else
-                                  _buildTripsSheet(context),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          );
-        },
-      ),
+      child: viewingTrip
+          ? _buildSelectedTripWidget(context)
+          : _buildTripsSheet(context),
     );
   }
 }

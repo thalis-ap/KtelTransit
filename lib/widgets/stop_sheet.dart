@@ -177,12 +177,11 @@ class StopSheet extends MapPointSheet {
     }
 
     return [
-      const SizedBox(height: 20),
-
       todayDepartures.isNotEmpty
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 12,),
                 Text(
                   l10n.upcomingDeparturesToday,
                   style: theme.textTheme.titleSmall,
@@ -199,7 +198,7 @@ class StopSheet extends MapPointSheet {
                   message: l10n.noDeparturesToday,
                   icon: Icons.warning_rounded,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 Text(
                   l10n.departuresOnDay(nextDayLabel),
                   style: theme.textTheme.titleSmall,

@@ -23,9 +23,6 @@ class TripWarningBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.tertiary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(isCompact ? 12.0 : 20.0),
-        border: isCompact
-            ? Border.all(width: 2.0, color: colorScheme.error)
-            : null,
       ),
       child: Row(
         children: [

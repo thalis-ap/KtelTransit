@@ -48,7 +48,7 @@ class TripCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
-                    vertical: 2,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
                     color: colorScheme.errorContainer,

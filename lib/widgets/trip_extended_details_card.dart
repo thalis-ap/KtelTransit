@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/routing_trip.dart';
-import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
 import 'package:ktel_transit/widgets/timeline_node.dart';
+import 'package:ktel_transit/widgets/trip_details_card_header.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/bus_trip.dart';
-import '../models/stop.dart';
-import '../utilities/distance_utils.dart';
 
 class ExtendedDetailsCard extends StatefulWidget {
   final RoutingTrip routingTrip;
@@ -32,100 +30,11 @@ class ExtendedDetailsCard extends StatefulWidget {
 }
 
 class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
-  Widget _buildHeader(
-    ColorScheme colorScheme, {
-    required AppLocalizations l10n,
-  }) {
-    final trip = widget.routingTrip;
-    final bus = trip.busTrip;
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Text(
-              "${l10n.routeFor}: ${TimeFormat.dateTimeToFormattedStringDateMonth(trip.getDepartureDateTime(widget.selectedDepartureTime))} - ${TimeFormat.dateTimeToFormattedStringHoursMinutes(trip.getDepartureDateTime(widget.selectedDepartureTime))}",
-              style: context.textTheme.bodyMedium?.copyWith(
-
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(Icons.schedule, size: 20, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    TimeFormat.secondsToFormattedString(
-                      widget.routingTrip.durationFull,
-                      l10n,
-                    ),
-                    style: context.textTheme.titleSmall,
-                  ),
-                  if (bus == null && trip.accessTrip != null) ...[
-                    const SizedBox(width: 10),
-                    Text(
-                      "(${DistanceFormat.metersToFormattedString(trip.accessTrip!.distance, l10n)})",
-                      style: context.textTheme.titleSmall,
-                    ),
-                  ] else if (bus != null && bus.isTransfer) ...[
-                    const SizedBox(width: 10),
-                    Text(
-                      "(${TimeFormat.secondsToFormattedString(trip.totalWaitTime, l10n)})",
-                      style: context.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.tertiary,
-                      ),
-                    ),
-                  ],
-                  if (bus != null &&
-                      bus.isWheelchairAccessible !=
-                          WheelchairBoarding.unknown) ...[
-                    SizedBox(width: 10),
-                    Tooltip(
-                      message:
-                      bus.isWheelchairAccessible ==
-                          WheelchairBoarding.accessible
-                          ? l10n.wheelchairAccessible
-                          : l10n.wheelchairNotAccessible,
-                      child: Icon(
-                        bus.isWheelchairAccessible ==
-                            WheelchairBoarding.accessible
-                            ? Icons.accessible_outlined
-                            : Icons.not_accessible_outlined,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Row(
-              children: [
-                if (trip.fare != null) ...[
-                  Icon(
-                    Icons.confirmation_num_outlined,
-                    size: 18,
-                    color: colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    trip.fareAsString,
-                    style: context.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.secondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ],
+  Widget _buildHeader() {
+    return TripDetailsCardHeader(
+      trip: widget.routingTrip,
+      selectedDepartureTime: widget.selectedDepartureTime,
+      includeDateInfo: true,
     );
   }
 
@@ -135,12 +44,11 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-
     final trip = widget.routingTrip;
 
     return Column(
       children: [
-        _buildHeader(colorScheme, l10n: l10n),
+        _buildHeader(),
         Divider(height: 32, thickness: 2),
         GestureDetector(
           onTap: () {
@@ -329,7 +237,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
 
     return Column(
       children: [
-        _buildHeader(colorScheme, l10n: l10n),
+        _buildHeader(),
         Divider(height: 32, thickness: 2),
         if (access != null)
           GestureDetector(
@@ -449,7 +357,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
 
     return Column(
       children: [
-        _buildHeader(colorScheme, l10n: l10n),
+        _buildHeader(),
         Divider(height: 32, thickness: 2),
         if (access != null)
           GestureDetector(
@@ -572,7 +480,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                               children: [
                                 Icon(
                                   Icons.access_time_rounded,
-                                  size: 14,
+                                  size: 16,
                                   color: colorScheme.tertiary,
                                 ),
                                 const SizedBox(width: 8),
@@ -586,9 +494,8 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                                       l10n,
                                     ),
                                   ),
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.tertiary,
-                                  ),
+                                  style: context.textTheme.labelMedium
+                                      ?.copyWith(color: colorScheme.tertiary),
                                 ),
                               ],
                             ),
@@ -674,90 +581,6 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
     );
   }
 
-  Widget _buildFareBreakdown(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final busTrip = widget.routingTrip.busTrip;
-    if (busTrip == null) return const SizedBox.shrink();
-
-    final legs = busTrip.legs;
-    if (legs.isEmpty) return const SizedBox.shrink();
-
-    final double? totalFare = widget.routingTrip.fare;
-
-    return Column(
-      children: [
-        const Divider(height: 30, thickness: 2),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.costBreakdown,
-              style: context.textTheme.labelLarge?.copyWith(
-                color: colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            for (int i = 0; i < legs.length; i++) ...[
-              if (i > 0) const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "${i + 1}. ${legs[i].originStop.name} - ${legs[i].destinationStop.name}",
-                    style: context.textTheme.labelLarge?.copyWith(
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.confirmation_num_outlined,
-                        size: 16,
-                        color: colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        FareService.fareAsString(legs[i].fare),
-                        style: context.textTheme.labelLarge?.copyWith(
-                          color: colorScheme.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-            const Divider(height: 20, thickness: 2),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(l10n.totalTicketCost, style: context.textTheme.titleSmall),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.confirmation_num_outlined,
-                      size: 16,
-                      color: colorScheme.secondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      FareService.fareAsString(totalFare),
-                      style: context.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.secondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final BusTrip? busTrip = widget.routingTrip.busTrip;
@@ -766,14 +589,9 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
       return _buildPureWalkingWidget(context);
     }
 
-    return Column(
-      children: [
-        busTrip.isTransfer
-            ? _buildBusWithTransfer(context)
-            : _buildBusWoTransfer(context),
-        _buildFareBreakdown(context),
-      ],
-    );
+    return busTrip.isTransfer
+        ? _buildBusWithTransfer(context)
+        : _buildBusWoTransfer(context);
   }
 }
 
