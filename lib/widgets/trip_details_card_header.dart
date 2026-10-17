@@ -120,18 +120,21 @@ class TripDetailsCardHeader extends StatelessWidget {
           ],
         ),
         if (includeRouteText)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  routeText,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    color: colorScheme.primary,
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    routeText,
+                    style: context.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.primary,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
       ],
     );

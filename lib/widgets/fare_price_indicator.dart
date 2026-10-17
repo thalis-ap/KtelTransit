@@ -18,7 +18,7 @@ class FarePriceIndicator extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           color: colorScheme.secondary.withValues(alpha: 0.075),
         ),
-        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
         child: Row(children: [Icon(
           Icons.confirmation_num_outlined,
           size: 18,
