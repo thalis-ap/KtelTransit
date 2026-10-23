@@ -3,7 +3,6 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/map_point.dart';
 import 'package:ktel_transit/gtfs/gtfs_repository.dart';
 
-import '../services/sheet_manager_service.dart';
 import 'bottom_sheet_wrapper.dart';
 
 /// This class acts as a base widget for any point the user presses on the map
