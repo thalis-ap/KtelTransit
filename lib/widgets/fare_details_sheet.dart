@@ -4,7 +4,6 @@ import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/rider_category.dart';
 import 'package:ktel_transit/services/fare_catalog_service.dart';
-import 'package:ktel_transit/services/fare_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/launcher_utils.dart';
 import 'package:ktel_transit/widgets/bottom_sheet_wrapper.dart';
@@ -13,17 +12,20 @@ import 'package:ktel_transit/widgets/rider_category_selector.dart';
 import 'package:ktel_transit/widgets/ticket_link_tile.dart';
 import 'package:ktel_transit/widgets/trips_warning_banner.dart';
 
-class FareDetailsSheet extends StatefulWidget {
-  final List<BusLeg> legs;
+import '../utilities/fare_utils.dart';
 
-  const FareDetailsSheet({super.key, required this.legs});
+class FareDetailsSheet extends StatefulWidget {
+  final BusTrip busTrip;
+
+  const FareDetailsSheet({super.key, required this.busTrip});
 
   @override
   State<FareDetailsSheet> createState() => _FareDetailsSheetState();
 }
 
 class _FareDetailsSheetState extends State<FareDetailsSheet> {
-  final DraggableScrollableController scrollController = DraggableScrollableController();
+  final DraggableScrollableController scrollController =
+      DraggableScrollableController();
   final repository = GtfsManager().repository;
   String? _selectedCategoryId;
 
@@ -100,31 +102,64 @@ class _FareDetailsSheetState extends State<FareDetailsSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final categories = repository.riderCategories;
 
+    final legs = widget.busTrip.legs;
+    final hasMultipleLegs = legs.length > 1;
+
     final RiderCategory? selectedCategory =
         categories
             .where((c) => c.riderCategoryId == _selectedCategoryId)
             .firstOrNull ??
         repository.defaultRiderCategory;
 
-    double calculatedTotalFare = 0;
-    final List<Widget> fareContent = [];
+    // --- Unified (full-trip) products ---
+    // Only meaningful for multi-leg trips. For single-leg trips,
+    // BusTrip.unifiedFareOptions mirrors legs.first.fareOptions, so treating
+    // them as "unified" would wrongly empty the per-leg view.
+    final List<FareProductGroup> unifiedGroups = hasMultipleLegs
+        ? FareCatalogService.groupProducts(
+            widget.busTrip.unifiedFareOptions
+                .where(
+                  (o) =>
+                      selectedCategory == null ||
+                      o.product.isValidForAnyRiderCategory ||
+                      o.product.riderCategoryId ==
+                          selectedCategory.riderCategoryId,
+                )
+                .map((o) => o.product)
+                .toList(),
+            riderCategoryId: selectedCategory?.riderCategoryId,
+            mediaLookup: repository.getFareMedia,
+          )
+        : const <FareProductGroup>[];
 
-    for (final leg in widget.legs) {
+    // Products that live in the unified section must be hidden from the
+    // per-leg view — otherwise a day pass shows up once per leg at its full
+    // price, implying the rider would pay it twice.
+    final unifiedProductIds = unifiedGroups.map((g) => g.fareProductId).toSet();
+
+    // --- Per-leg products (excluding unified) ---
+    double separateTotalFare = 0;
+    final List<Widget> perLegContent = [];
+
+    for (final leg in legs) {
       final groups = FareCatalogService.groupProducts(
-        leg.fareOptions.map((o) => o.product).toList(),
+        leg.fareOptions
+            .where((o) => !unifiedProductIds.contains(o.product.fareProductId))
+            .map((o) => o.product)
+            .toList(),
         riderCategoryId: selectedCategory?.riderCategoryId,
         mediaLookup: repository.getFareMedia,
       );
 
       if (groups.isNotEmpty && groups.first.options.isNotEmpty) {
-        calculatedTotalFare += groups.first.options.first.product.amount;
+        separateTotalFare += groups.first.options.first.product.amount;
       }
 
-      fareContent.add(
+      perLegContent.add(
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.legs.length > 1)
+            if (hasMultipleLegs)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0, top: 16.0),
                 child: Text(
@@ -150,6 +185,58 @@ class _FareDetailsSheetState extends State<FareDetailsSheet> {
       );
     }
 
+    // --- Decide where the unified section goes ---
+    // Cheaper unified products are promoted to the top; more expensive ones
+    // are still shown (riders may want the flexibility) but kept below the
+    // per-leg breakdown so they don't look like the recommended option.
+    final double? cheapestUnifiedFare = unifiedGroups.isNotEmpty
+        ? unifiedGroups.first.options.firstOrNull?.product.amount
+        : null;
+
+    final bool unifiedIsCheaper =
+        cheapestUnifiedFare != null && cheapestUnifiedFare < separateTotalFare;
+
+    final double displayTotal = unifiedIsCheaper
+        ? cheapestUnifiedFare
+        : separateTotalFare;
+    final double savings = unifiedIsCheaper
+        ? separateTotalFare - cheapestUnifiedFare
+        : 0.0;
+
+    Widget? buildUnifiedSection() {
+      if (unifiedGroups.isEmpty) return null;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+              l10n.costBreakdownUnifiedHeader,
+              style: context.textTheme.titleSmall?.copyWith(
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+          for (final group in unifiedGroups) FareProductCard(group: group),
+          if (savings > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                l10n.costBreakdownUnifiedSavings(
+                  FareFormat.fareAsString(savings),
+                ),
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.secondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    final unifiedSection = buildUnifiedSection();
+
     final agencyLinks = repository.agencies
         .where((agency) => agency.fareUrl.isNotEmpty)
         .toList();
@@ -159,7 +246,7 @@ class _FareDetailsSheetState extends State<FareDetailsSheet> {
       controller: scrollController,
       onClose: () => Navigator.pop(context),
       dragHandleEnabled: true,
-      title: Text(l10n.costBreakdown, style: context.textTheme.titleLarge,),
+      title: Text(l10n.costBreakdown, style: context.textTheme.titleLarge),
       underTitle: (categories.length > 1)
           ? [
               const SizedBox(height: 16),
@@ -173,14 +260,23 @@ class _FareDetailsSheetState extends State<FareDetailsSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ...fareContent,
+          // Unified products: promoted when cheaper, demoted otherwise.
+          if (unifiedIsCheaper && unifiedSection != null) ...[
+            unifiedSection,
+            const Divider(height: 32),
+          ],
+          ...perLegContent,
+          if (!unifiedIsCheaper && unifiedSection != null) ...[
+            const Divider(height: 32),
+            unifiedSection,
+          ],
           const Divider(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(l10n.totalTicketCost, style: context.textTheme.titleLarge),
               Text(
-                FareService.fareAsString(calculatedTotalFare),
+                FareFormat.fareAsString(displayTotal),
                 style: context.textTheme.headlineSmall?.copyWith(
                   color: colorScheme.secondary,
                 ),
