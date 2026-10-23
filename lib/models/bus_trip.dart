@@ -169,6 +169,9 @@ class BusTrip {
   // Holds the total of all the legs' fares
   double? totalDefaultFare;
 
+  // Holds the amount of the cheapest available product that covers the whole trip
+  double? get cheapestFare => unifiedFareOptions.firstOrNull?.product.amount;
+
   // Get the safeDuration by combining all the legs again
   int get safeDuration =>
       legs.fold(0, (sum, leg) => sum + (leg.safeDuration ?? 0));
@@ -208,10 +211,17 @@ class BusTrip {
     );
   }
 
-  BusTrip copyWith({bool? isStartAlsoOrigin, List<BusLeg>? legs}) {
+  BusTrip copyWith({
+    bool? isStartAlsoOrigin,
+    List<BusLeg>? legs,
+    Map<String, List<FareLegRule>>? legRulesByProductId,
+    List<FareTransferRule>? transferRules,
+  }) {
     return BusTrip(
       isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
       legs: legs ?? this.legs,
+      legRulesByProductId: legRulesByProductId ?? _legRulesByProductId,
+      transferRules: transferRules ?? _transferRules,
     );
   }
 }

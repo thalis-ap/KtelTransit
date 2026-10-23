@@ -52,7 +52,9 @@ class RoutingTrip {
   // Returns null if its a walking trip only
   double? get fare => busTrip?.totalDefaultFare;
 
-  String get fareAsString => FareFormat.fareAsString(fare);
+  double? get cheapestFare => busTrip?.cheapestFare;
+
+  String get fareAsString => FareFormat.fareAsString(cheapestFare);
 
   DateTime getDepartureDateOnly(DateTime selectedTime) {
     return TimeFormat.dateTimeToDateOnly(getDepartureDateTime(selectedTime));

@@ -201,7 +201,7 @@ class InfoScreen extends StatelessWidget {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          Expanded(child: Container()),
+                          const Spacer(),
                           Icon(
                             Icons.open_in_new,
                             size: 14,
