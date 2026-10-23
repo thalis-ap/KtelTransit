@@ -10,6 +10,10 @@ import 'package:ktel_transit/utilities/region_utils.dart';
 
 import '../models/calendar.dart';
 import '../models/calendar_date.dart';
+import '../models/fare_leg_rules.dart';
+import '../models/fare_transfer_rules.dart';
+import '../models/network.dart';
+import '../models/route_network.dart';
 import '../models/shape.dart';
 import '../models/stop.dart';
 import '../models/route.dart';
@@ -43,6 +47,10 @@ class GtfsLocal {
       final List<FareMedia> tempFareMedia = [];
       final List<RiderCategory> tempRiderCategories = [];
       final List<FareProduct> tempFareProducts = [];
+      final List<Network> tempNetworks = [];
+      final List<RouteNetwork> tempRouteNetworks = [];
+      final List<FareLegRule> tempFareLegRules = [];
+      final List<FareTransferRule> tempFareTransferRules = [];
 
       // Load translations (if exists)
       final translations = await _loadTranslations(regionPath, languageCode);
@@ -60,6 +68,10 @@ class GtfsLocal {
         _loadFareMedia(regionPath, tempFareMedia, translations),
         _loadRiderCategories(regionPath, tempRiderCategories, translations),
         _loadFareProducts(regionPath, tempFareProducts, translations),
+        _loadNetworks(regionPath, tempNetworks, translations),
+        _loadRouteNetworks(regionPath, tempRouteNetworks),
+        _loadFareLegRules(regionPath, tempFareLegRules),
+        _loadFareTransferRules(regionPath, tempFareTransferRules),
       ]);
 
       if (results.every((res) => res.isSuccess)) {
@@ -76,6 +88,10 @@ class GtfsLocal {
         repository.fareMedia = tempFareMedia;
         repository.riderCategories = tempRiderCategories;
         repository.fareProducts = tempFareProducts;
+        repository.networks = tempNetworks;
+        repository.routeNetworks = tempRouteNetworks;
+        repository.fareLegRules = tempFareLegRules;
+        repository.fareTransferRules = tempFareTransferRules;
 
         // Build indexes - this is required for performance
         repository.buildIndexes();
@@ -531,6 +547,109 @@ class GtfsLocal {
       // Ignore duplicates of the same (product, category, media) row
       if (!seenKeys.add(product.key)) continue;
       outFareProducts.add(product);
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadNetworks(
+      String regionPath,
+      List<Network> outNetworks,
+      Map<String, String> translations,
+      ) async {
+    final rows = await _readOptionalRows(regionPath, 'networks.txt');
+    if (rows == null) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    if (!Network.hasRequiredHeaders(headers)) {
+      debugPrint('networks.txt missing required columns, skipping');
+      return RegionLoadResult.success();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (!Network.isValidRow(row, headers)) continue;
+
+      final id = row[headers[Network.networkIdKey]!].toString().trim();
+      outNetworks.add(Network.fromCsv(
+        row,
+        headers,
+        translatedName: translations['networks_network_name_$id'],
+      ));
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadRouteNetworks(
+      String regionPath,
+      List<RouteNetwork> outRouteNetworks,
+      ) async {
+    final rows = await _readOptionalRows(regionPath, 'route_networks.txt');
+    if (rows == null) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    if (!RouteNetwork.hasRequiredHeaders(headers)) {
+      debugPrint('route_networks.txt missing required columns, skipping');
+      return RegionLoadResult.success();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (!RouteNetwork.isValidRow(row, headers)) continue;
+      outRouteNetworks.add(RouteNetwork.fromCsv(row, headers));
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadFareLegRules(
+      String regionPath,
+      List<FareLegRule> outFareLegRules,
+      ) async {
+    final rows = await _readOptionalRows(regionPath, 'fare_leg_rules.txt');
+    if (rows == null) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    if (!FareLegRule.hasRequiredHeaders(headers)) {
+      debugPrint('fare_leg_rules.txt missing required columns, skipping');
+      return RegionLoadResult.success();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (!FareLegRule.isValidRow(row, headers)) continue;
+      outFareLegRules.add(FareLegRule.fromCsv(row, headers));
+    }
+
+    return RegionLoadResult.success();
+  }
+
+  Future<RegionLoadResult> _loadFareTransferRules(
+      String regionPath,
+      List<FareTransferRule> outFareTransferRules,
+      ) async {
+    final rows = await _readOptionalRows(regionPath, 'fare_transfer_rules.txt');
+    if (rows == null) return RegionLoadResult.success();
+
+    final headers = {
+      for (int i = 0; i < rows[0].length; i++) rows[0][i].toString(): i,
+    };
+
+    if (!FareTransferRule.hasRequiredHeaders(headers)) {
+      debugPrint('fare_transfer_rules.txt missing required columns, skipping');
+      return RegionLoadResult.success();
+    }
+
+    for (final row in rows.skip(1)) {
+      if (!FareTransferRule.isValidRow(row, headers)) continue;
+      outFareTransferRules.add(FareTransferRule.fromCsv(row, headers));
     }
 
     return RegionLoadResult.success();
