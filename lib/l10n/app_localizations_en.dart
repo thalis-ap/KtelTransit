@@ -718,4 +718,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectThisRegion => 'Select this region';
+
+  @override
+  String get costBreakdownUnifiedHeader => 'One ticket for the whole trip';
+
+  @override
+  String costBreakdownUnifiedSavings(String amount) {
+    return 'Saves $amount vs separate tickets';
+  }
 }

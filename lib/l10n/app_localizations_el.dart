@@ -726,4 +726,12 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get selectThisRegion => 'Επιλογή περιοχής';
+
+  @override
+  String get costBreakdownUnifiedHeader => 'Ένα εισιτήριο για όλη τη διαδρομή';
+
+  @override
+  String costBreakdownUnifiedSavings(String amount) {
+    return 'Εξοικονομείτε $amount σε σχέση με τα μεμονωμένα εισιτήρια';
+  }
 }

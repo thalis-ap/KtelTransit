@@ -309,5 +309,14 @@
   "ticketsMediaCard": "Transit card",
   "ticketsMediaContactless": "Contactless card",
   "ticketsMediaApp": "Mobile app",
-  "selectThisRegion": "Select this region"
+  "selectThisRegion": "Select this region",
+  "costBreakdownUnifiedHeader": "One ticket for the whole trip",
+  "costBreakdownUnifiedSavings": "Saves {amount} vs separate tickets",
+  "@costBreakdownUnifiedSavings": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

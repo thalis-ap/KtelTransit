@@ -1357,6 +1357,18 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Επιλογή περιοχής'**
   String get selectThisRegion;
+
+  /// No description provided for @costBreakdownUnifiedHeader.
+  ///
+  /// In el, this message translates to:
+  /// **'Ένα εισιτήριο για όλη τη διαδρομή'**
+  String get costBreakdownUnifiedHeader;
+
+  /// No description provided for @costBreakdownUnifiedSavings.
+  ///
+  /// In el, this message translates to:
+  /// **'Εξοικονομείτε {amount} σε σχέση με τα μεμονωμένα εισιτήρια'**
+  String costBreakdownUnifiedSavings(String amount);
 }
 
 class _AppLocalizationsDelegate

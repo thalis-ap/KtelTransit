@@ -420,5 +420,14 @@
   "ticketsMediaCard": "Κάρτα",
   "ticketsMediaContactless": "Ανέπαφη κάρτα",
   "ticketsMediaApp": "Εφαρμογή κινητού",
-  "selectThisRegion": "Επιλογή περιοχής"
+  "selectThisRegion": "Επιλογή περιοχής",
+  "costBreakdownUnifiedHeader": "Ένα εισιτήριο για όλη τη διαδρομή",
+  "costBreakdownUnifiedSavings": "Εξοικονομείτε {amount} σε σχέση με τα μεμονωμένα εισιτήρια",
+  "@costBreakdownUnifiedSavings": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }
