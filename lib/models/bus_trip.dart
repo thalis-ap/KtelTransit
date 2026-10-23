@@ -1,11 +1,13 @@
 import 'dart:ui';
-
 import 'package:ktel_transit/models/stop.dart';
 import 'package:ktel_transit/services/fare_catalog_service.dart';
-import 'package:ktel_transit/services/fare_service.dart';
+import 'package:ktel_transit/utilities/fare_utils.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../services/fare_service.dart';
 import '../theme/app_theme.dart';
+import 'fare_leg_rules.dart';
+import 'fare_transfer_rules.dart';
 
 /// A single bus ride on one route, from one stop to another, with no
 /// transfers in between. A BusTrip with a transfer is just 2+ of these.
@@ -22,8 +24,8 @@ class BusLeg {
   /// Used to populate the fare breakdown modal.
   final List<FareProductOption> fareOptions;
 
-  /// The primary fare amount to display in summaries (e.g. the standard adult fare).
-  final double? fare;
+  // This is the fare of the default rider category that appears before category selection
+  final double? defaultFare;
 
   final Stop originStop;
   final Stop destinationStop;
@@ -43,7 +45,7 @@ class BusLeg {
   /// that satisfies passing from all of them
   final List<LatLng> passingPoints;
 
-  String get estimatedFareAsString => FareService.fareAsString(fare);
+  String get estimatedFareAsString => FareFormat.fareAsString(defaultFare);
 
   /// This indicates if the leg as a whole is accessible. This means that
   /// both origin stop and destination stop must be accessible while the trip
@@ -75,7 +77,7 @@ class BusLeg {
     required this.originStop,
     required this.destinationStop,
     required this.fareOptions,
-    required this.fare,
+    required this.defaultFare,
     required this.passingPoints,
     this.points,
     this.safeDuration,
@@ -89,7 +91,7 @@ class BusLeg {
     DateTime? arrivalDateTime,
     int? estimatedDuration,
     List<FareProductOption>? fareOptions,
-    double? fare,
+    double? defaultFare,
     List<String>? stopNames,
     Stop? originStop,
     Stop? destinationStop,
@@ -105,7 +107,7 @@ class BusLeg {
       arrivalDateTime: arrivalDateTime ?? this.arrivalDateTime,
       estimatedDuration: estimatedDuration ?? this.estimatedDuration,
       fareOptions: fareOptions ?? this.fareOptions,
-      fare: fare ?? this.fare,
+      defaultFare: defaultFare ?? this.defaultFare,
       stopNames: stopNames ?? this.stopNames,
       originStop: originStop ?? this.originStop,
       destinationStop: destinationStop ?? this.destinationStop,
@@ -127,13 +129,45 @@ class BusTrip {
   // length >= 2 for any number of transfers.
   final List<BusLeg> legs;
 
-  BusTrip({required this.isStartAlsoOrigin, required this.legs})
-    : assert(legs.isNotEmpty, 'BusTrip must have at least one leg') {
-    totalFare = legs.fold(0.0, (sum, leg) => (sum ?? 0.0) + (leg.fare ?? 0.0));
+  // Everything needed to compute the unified options, but not the options
+  // themselves. Kept private so the public API is just the getter below.
+  final Map<String, List<FareLegRule>> _legRulesByProductId;
+  final List<FareTransferRule> _transferRules;
+
+  List<FareProductOption>? _unifiedOptionsCache;
+
+  BusTrip({
+    required this.isStartAlsoOrigin,
+    required this.legs,
+    Map<String, List<FareLegRule>>? legRulesByProductId,
+    List<FareTransferRule>? transferRules,
+  }) : assert(legs.isNotEmpty, 'BusTrip must have at least one leg'),
+       _legRulesByProductId = legRulesByProductId ?? const {},
+       _transferRules = transferRules ?? const <FareTransferRule>[] {
+    totalDefaultFare = legs.fold(
+      0.0,
+      (sum, leg) => (sum ?? 0.0) + (leg.defaultFare ?? 0.0),
+    );
+  }
+
+  /// Products that pay for the whole trip in one purchase.
+  /// Computed on first access, then cached. Safe to call from build().
+  List<FareProductOption> get unifiedFareOptions =>
+      _unifiedOptionsCache ??= _computeUnifiedOptions();
+
+  List<FareProductOption> _computeUnifiedOptions() {
+    if (_legRulesByProductId.isEmpty) {
+      return const <FareProductOption>[]; // invalid feed, no rules
+    }
+    return FareService.getOptionsForTrip(
+      perLegOptions: [for (final leg in legs) leg.fareOptions],
+      legRulesByProductId: _legRulesByProductId,
+      transferRules: _transferRules,
+    );
   }
 
   // Holds the total of all the legs' fares
-  double? totalFare;
+  double? totalDefaultFare;
 
   // Get the safeDuration by combining all the legs again
   int get safeDuration =>
@@ -157,7 +191,7 @@ class BusTrip {
     (i) => i,
   ).fold(0, (sum, legIndex) => sum + waitTimeAfterLeg(legIndex).inSeconds);
 
-  String get estimatedFareAsString => FareService.fareAsString(totalFare);
+  String get estimatedFareAsString => FareFormat.fareAsString(totalDefaultFare);
 
   /// This indicates if the whole trip is wheelchair accessible, meaning all legs
   /// are wheelchair accessible. (See BusLeg.isWheelchairAccessible for more)
@@ -174,10 +208,7 @@ class BusTrip {
     );
   }
 
-  BusTrip copyWith({
-    bool? isStartAlsoOrigin,
-    List<BusLeg>? legs,
-  }) {
+  BusTrip copyWith({bool? isStartAlsoOrigin, List<BusLeg>? legs}) {
     return BusTrip(
       isStartAlsoOrigin: isStartAlsoOrigin ?? this.isStartAlsoOrigin,
       legs: legs ?? this.legs,
