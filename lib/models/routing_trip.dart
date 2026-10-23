@@ -1,6 +1,6 @@
 import 'package:ktel_transit/models/bus_trip.dart';
 import 'package:ktel_transit/models/walking_trip.dart';
-import 'package:ktel_transit/services/fare_service.dart';
+import 'package:ktel_transit/utilities/fare_utils.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
 
 import 'map_point.dart';
@@ -50,9 +50,9 @@ class RoutingTrip {
   });
 
   // Returns null if its a walking trip only
-  double? get fare => busTrip?.totalFare;
+  double? get fare => busTrip?.totalDefaultFare;
 
-  String get fareAsString => FareService.fareAsString(fare);
+  String get fareAsString => FareFormat.fareAsString(fare);
 
   DateTime getDepartureDateOnly(DateTime selectedTime) {
     return TimeFormat.dateTimeToDateOnly(getDepartureDateTime(selectedTime));
