@@ -141,15 +141,15 @@ class TripDetailsCardHeader extends StatelessWidget {
   }
 
   void showFareDetailsSheet(BuildContext context) {
-    final legs = trip.busTrip?.legs;
-    if (legs == null || legs.isEmpty) return;
+    final busTrip = trip.busTrip;
+    if (busTrip == null || busTrip.legs.isEmpty) return;
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => FareDetailsSheet(legs: legs),
+      builder: (_) => FareDetailsSheet(busTrip: busTrip),
     );
   }
 }
