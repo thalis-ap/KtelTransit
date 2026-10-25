@@ -2,23 +2,23 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:flutter/cupertino.dart' hide Route;
-import 'package:ktel_transit/models/agency.dart';
-import 'package:ktel_transit/models/fare_media.dart';
-import 'package:ktel_transit/models/fare_product.dart';
-import 'package:ktel_transit/models/rider_category.dart';
-import 'package:ktel_transit/utilities/region_utils.dart';
+import 'package:ktel_transit/models/gtfs/agency/agency.dart';
+import 'package:ktel_transit/models/gtfs/fares/fare_media.dart';
+import 'package:ktel_transit/models/gtfs/fares/fare_product.dart';
+import 'package:ktel_transit/models/gtfs/fares/rider_category.dart';
 
-import '../models/calendar.dart';
-import '../models/calendar_date.dart';
-import '../models/fare_leg_rules.dart';
-import '../models/fare_transfer_rules.dart';
-import '../models/network.dart';
-import '../models/route_network.dart';
-import '../models/shape.dart';
-import '../models/stop.dart';
-import '../models/route.dart';
-import '../models/stop_time.dart';
-import '../models/trip.dart';
+import '../models/extras/region.dart';
+import '../models/gtfs/calendars/calendar.dart';
+import '../models/gtfs/calendars/calendar_date.dart';
+import '../models/gtfs/fares/fare_leg_rules.dart';
+import '../models/gtfs/fares/fare_transfer_rules.dart';
+import '../models/gtfs/networks/network.dart';
+import '../models/gtfs/networks/route_network.dart';
+import '../models/gtfs/shapes/shape.dart';
+import '../models/gtfs/stops/stop.dart';
+import '../models/gtfs/routes/route.dart';
+import '../models/gtfs/stops/stop_time.dart';
+import '../models/gtfs/trips/trip.dart';
 import 'gtfs_repository.dart';
 
 /// This file acts as the local gtfs files manager. It has nothing to do with

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
-import 'package:ktel_transit/models/region.dart';
+import 'package:ktel_transit/models/extras/region.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
-import 'package:ktel_transit/services/settings_service.dart';
+import 'package:ktel_transit/services/ui/settings_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
-import 'package:ktel_transit/widgets/custom_snackbar.dart';
-import 'package:ktel_transit/widgets/region_info_banner.dart';
+import 'package:ktel_transit/widgets/common/custom_snackbar.dart';
+import 'package:ktel_transit/widgets/region/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {

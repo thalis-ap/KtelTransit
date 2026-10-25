@@ -4,12 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ktel_transit/utilities/language_utils.dart';
-import 'package:ktel_transit/widgets/region_info_banner.dart';
+import 'package:ktel_transit/widgets/region/region_info_banner.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
-import '../models/map_point.dart';
-import '../models/region.dart';
-import '../models/stop.dart';
+import '../models/map/map_point.dart';
+import '../models/extras/region.dart';
+import '../models/gtfs/stops/stop.dart';
 import 'base_search_delegate.dart';
 
 class StopSearchDelegate extends BaseSearchDelegate<MapPoint> {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
-import 'package:ktel_transit/models/agency.dart';
+import 'package:ktel_transit/models/gtfs/agency/agency.dart';
 import 'package:ktel_transit/utilities/launcher_utils.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/widgets/region_info_banner.dart';
+import 'package:ktel_transit/widgets/region/region_info_banner.dart';
 
-import '../models/region.dart';
+import '../models/extras/region.dart';
 import '../utilities/region_utils.dart';
 
 class AgencyInfoScreen extends StatefulWidget {

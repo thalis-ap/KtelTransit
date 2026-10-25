@@ -4,12 +4,14 @@ import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
 import 'package:ktel_transit/screens/welcome_screen.dart';
-import 'package:ktel_transit/services/map_caching_service.dart';
-import 'package:ktel_transit/services/settings_service.dart';
-import 'package:ktel_transit/services/version_service.dart';
+import 'package:ktel_transit/services/map/map_caching_service.dart';
+import 'package:ktel_transit/services/ui/settings_service.dart';
+import 'package:ktel_transit/services/app_info/version_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
-import 'package:ktel_transit/widgets/region_loading_sheet.dart';
+import 'package:ktel_transit/widgets/region/region_loading_sheet.dart';
+
+import 'models/extras/region.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

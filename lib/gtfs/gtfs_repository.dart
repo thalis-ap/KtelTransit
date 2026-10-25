@@ -1,25 +1,25 @@
-import 'package:ktel_transit/models/agency.dart';
-import 'package:ktel_transit/models/calendar.dart';
-import 'package:ktel_transit/models/departure.dart';
-import 'package:ktel_transit/models/bus_trip.dart';
-import 'package:ktel_transit/models/fare_media.dart';
-import 'package:ktel_transit/models/fare_product.dart';
-import 'package:ktel_transit/models/rider_category.dart';
-import 'package:ktel_transit/models/stop.dart';
-import 'package:ktel_transit/models/trip.dart';
-import 'package:ktel_transit/models/route.dart';
-import 'package:ktel_transit/models/stop_time.dart';
+import 'package:ktel_transit/models/gtfs/agency/agency.dart';
+import 'package:ktel_transit/models/gtfs/calendars/calendar.dart';
+import 'package:ktel_transit/models/extras/departure.dart';
+import 'package:ktel_transit/models/routing/bus_trip.dart';
+import 'package:ktel_transit/models/gtfs/fares/fare_media.dart';
+import 'package:ktel_transit/models/gtfs/fares/fare_product.dart';
+import 'package:ktel_transit/models/gtfs/fares/rider_category.dart';
+import 'package:ktel_transit/models/gtfs/stops/stop.dart';
+import 'package:ktel_transit/models/gtfs/trips/trip.dart';
+import 'package:ktel_transit/models/gtfs/routes/route.dart';
+import 'package:ktel_transit/models/gtfs/stops/stop_time.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/color_utils.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/calendar_date.dart';
-import '../models/fare_leg_rules.dart';
-import '../models/fare_transfer_rules.dart';
-import '../models/network.dart';
-import '../models/route_network.dart';
-import '../models/shape.dart';
-import '../services/fare_service.dart';
+import '../models/gtfs/calendars/calendar_date.dart';
+import '../models/gtfs/fares/fare_leg_rules.dart';
+import '../models/gtfs/fares/fare_transfer_rules.dart';
+import '../models/gtfs/networks/network.dart';
+import '../models/gtfs/networks/route_network.dart';
+import '../models/gtfs/shapes/shape.dart';
+import '../services/gtfs/fares/fare_service.dart';
 
 /// Pure data container for GTFS data.
 /// All strings are already translated. No language code is needed.
@@ -65,6 +65,8 @@ class GtfsRepository {
   Map<String, List<FareLegRule>> _fareLegRulesByLegGroupId = {};
   Map<String, List<FareLegRule>> _fareLegRulesByNetworkId = {};
   Map<String, List<FareTransferRule>> _fareTransferRulesByFromLegGroupId = {};
+  Set<String> _fareProductIdsWithoutNetwork = {};
+  Map<String, Set<String>> _fareProductIdsByRouteId = {};
 
   /// Clears all data and indexes.
   void clear() {
@@ -100,6 +102,8 @@ class GtfsRepository {
     _fareLegRulesByLegGroupId = {};
     _fareLegRulesByNetworkId = {};
     _fareTransferRulesByFromLegGroupId = {};
+    _fareProductIdsWithoutNetwork = {};
+    _fareProductIdsByRouteId = {};
   }
 
   /// Builds indexes from current data.
@@ -152,6 +156,8 @@ class GtfsRepository {
 
     _fareLegRulesByProductId = {};
     _fareLegRulesByLegGroupId = {};
+    _fareLegRulesByNetworkId = {};
+
     for (final rule in fareLegRules) {
       _fareLegRulesByProductId
           .putIfAbsent(rule.fareProductId, () => [])
@@ -163,7 +169,26 @@ class GtfsRepository {
       final nid = rule.networkId;
       if (nid != null) {
         _fareLegRulesByNetworkId.putIfAbsent(nid, () => []).add(rule);
+      } else {
+        _fareProductIdsWithoutNetwork.add(rule.fareProductId);
       }
+    }
+
+    // Resolve which fare products can be used on each route. A rule that
+    // names one of the route's networks wins; otherwise the route falls back
+    // to the rules that don't name any network.
+    for (final route in routes) {
+      final explicit = <String>{};
+      for (final network in getNetworksForRoute(route.routeId)) {
+        explicit.addAll(
+          (_fareLegRulesByNetworkId[network.networkId] ?? const []).map(
+                (r) => r.fareProductId,
+          ),
+        );
+      }
+      _fareProductIdsByRouteId[route.routeId] = explicit.isNotEmpty
+          ? explicit
+          : _fareProductIdsWithoutNetwork;
     }
 
     _fareTransferRulesByFromLegGroupId = {};
@@ -372,11 +397,11 @@ class GtfsRepository {
 
         // Fetch all possible fare options for this leg
         final fareOptions = FareService.getOptionsForLeg(
+          allowedProductIds: getFareProductIdsForRoute(route.routeId),
           originStopId: startStopId,
           destinationStopId: destStopId,
           allProducts: fareProducts,
           allMedia: fareMedia,
-          rulesByNetworkId: _fareLegRulesByNetworkId,
         );
 
         // Pick the "Standard/Default" fare for summary price
@@ -513,18 +538,18 @@ class GtfsRepository {
 
               // Fetch all possible fare options for both legs
               final fareOptions1 = FareService.getOptionsForLeg(
+                allowedProductIds: getFareProductIdsForRoute(routeA.routeId),
                 originStopId: startStopId,
                 destinationStopId: transferA.stopId,
                 allProducts: fareProducts,
                 allMedia: fareMedia,
-                rulesByNetworkId: _fareLegRulesByNetworkId,
               );
               final fareOptions2 = FareService.getOptionsForLeg(
+                allowedProductIds: getFareProductIdsForRoute(routeB.routeId),
                 originStopId: transferA.stopId,
                 destinationStopId: destStopId,
                 allProducts: fareProducts,
                 allMedia: fareMedia,
-                rulesByNetworkId: _fareLegRulesByNetworkId,
               );
 
               // Pick the "Standard/Default" fares for summary price
@@ -656,6 +681,13 @@ class GtfsRepository {
   List<FareTransferRule> getFareTransferRulesForFromLegGroup(
     String legGroupId,
   ) => _fareTransferRulesByFromLegGroupId[legGroupId] ?? const [];
+
+  /// Fare product ids that can be used to ride [routeId]. Null when the region
+  /// has no leg rules at all, meaning "don't filter".
+  Set<String>? getFareProductIdsForRoute(String routeId) {
+    if (fareLegRules.isEmpty) return null;
+    return _fareProductIdsByRouteId[routeId] ?? _fareProductIdsWithoutNetwork;
+  }
 
   /// True when the current region has adopted Fares v2 routing rules (networks
   /// and/or leg rules), as opposed to the simplified product-only model used

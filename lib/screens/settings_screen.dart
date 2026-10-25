@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import '../l10n/app_localizations.dart';
-import '../services/settings_service.dart';
+import '../services/ui/settings_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   final SettingsController settingsController;

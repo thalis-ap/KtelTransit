@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
-import 'package:ktel_transit/models/region.dart';
-import 'package:ktel_transit/models/rider_category.dart';
+import 'package:ktel_transit/models/extras/region.dart';
+import 'package:ktel_transit/models/gtfs/fares/rider_category.dart';
 import 'package:ktel_transit/screens/agency_info_screen.dart';
-import 'package:ktel_transit/services/fare_catalog_service.dart';
+import 'package:ktel_transit/services/gtfs/fares/fare_catalog_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/launcher_utils.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
-import 'package:ktel_transit/widgets/fare_product_card.dart';
-import 'package:ktel_transit/widgets/region_info_banner.dart';
-import 'package:ktel_transit/widgets/rider_category_selector.dart';
-import 'package:ktel_transit/widgets/ticket_link_tile.dart';
-import 'package:ktel_transit/widgets/tickets_placeholder.dart';
-import 'package:ktel_transit/widgets/trips_warning_banner.dart';
+import 'package:ktel_transit/widgets/fares/fare_product_card.dart';
+import 'package:ktel_transit/widgets/region/region_info_banner.dart';
+import 'package:ktel_transit/widgets/fares/rider_category_selector.dart';
+import 'package:ktel_transit/widgets/fares/ticket_link_tile.dart';
+import 'package:ktel_transit/widgets/fares/tickets_placeholder.dart';
+import 'package:ktel_transit/widgets/trips/trips_warning_banner.dart';
 
 class TicketsScreen extends StatefulWidget {
   const TicketsScreen({super.key});

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ktel_transit/utilities/launcher_utils.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
-import 'package:ktel_transit/services/version_service.dart';
+import 'package:ktel_transit/services/app_info/version_service.dart';
 
 class InfoScreen extends StatelessWidget {
   const InfoScreen({super.key});

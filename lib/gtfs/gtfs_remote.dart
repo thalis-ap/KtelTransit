@@ -4,10 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:ktel_transit/gtfs/gtfs_storage.dart';
-import 'package:ktel_transit/utilities/region_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/region.dart';
+import '../models/extras/region.dart';
 
 class GtfsRemote {
   final GtfsStorage _storage = GtfsStorage();

@@ -3,7 +3,7 @@ import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
 import '../l10n/app_localizations.dart';
-import '../models/region.dart';
+import '../models/extras/region.dart';
 import '../utilities/language_utils.dart';
 import 'base_search_delegate.dart';
 

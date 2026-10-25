@@ -3,18 +3,18 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Route;
 import 'package:intl/intl.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
-import 'package:ktel_transit/models/trip.dart';
+import 'package:ktel_transit/models/gtfs/trips/trip.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/color_utils.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
-import 'package:ktel_transit/widgets/expandable_description.dart';
-import 'package:ktel_transit/widgets/region_info_banner.dart';
-import 'package:ktel_transit/widgets/timeline_node.dart';
+import 'package:ktel_transit/widgets/common/expandable_description.dart';
+import 'package:ktel_transit/widgets/region/region_info_banner.dart';
+import 'package:ktel_transit/widgets/common/timeline_node.dart';
 import '../l10n/app_localizations.dart';
-import '../models/region.dart';
-import '../models/route.dart';
+import '../models/extras/region.dart';
+import '../models/gtfs/routes/route.dart';
 import 'package:ktel_transit/gtfs/gtfs_repository.dart';
-import '../models/stop.dart';
+import '../models/gtfs/stops/stop.dart';
 import '../utilities/region_utils.dart';
 
 // =====================================================================
