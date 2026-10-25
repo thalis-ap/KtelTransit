@@ -141,7 +141,7 @@ class GtfsRepository {
 
     _networksById = {for (final n in networks) n.networkId: n};
 
-    // Resolve the route↔network join in both directions. Rows whose route or
+    // Resolve the route-network join in both directions. Rows whose route or
     // network doesn't exist are silently dropped — a dangling reference is a
     // data-quality issue, not a reason to fail the whole load.
     _networksByRouteId = {};
@@ -659,7 +659,7 @@ class GtfsRepository {
   Network? getNetwork(String networkId) => _networksById[networkId];
 
   /// All networks the route belongs to. Empty for regions that haven't adopted
-  /// networks.txt (the common case for simple KTEL feeds).
+  /// networks.txt.
   List<Network> getNetworksForRoute(String routeId) =>
       _networksByRouteId[routeId] ?? const [];
 
@@ -707,7 +707,6 @@ class GtfsRepository {
   }
 
   List<String> _getServiceIds(DateTime targetDateTime) {
-    // Changed to a Set to naturally handle duplicates
     final Set<String> activeServiceIds = {};
 
     final int targetDateInt =
