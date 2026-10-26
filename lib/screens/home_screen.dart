@@ -15,6 +15,7 @@ import 'package:ktel_transit/services/map/map_movement_service.dart';
 import 'package:ktel_transit/services/ui/sheet_manager_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
+import 'package:ktel_transit/utilities/ui_utils.dart';
 import 'package:ktel_transit/widgets/map/choose_on_map_bar.dart';
 import 'package:ktel_transit/widgets/map/compass_button.dart';
 import 'package:ktel_transit/widgets/common/custom_loading_indicator.dart';
@@ -106,6 +107,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     gtfsManager.currentRegionNotifier.addListener(_onCurrentRegionChanged);
+    connectionService.addListener(_onConnectionChanged);
+
     // Defer the data loading until AFTER the first frame is built.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -123,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _compassService.dispose();
     gtfsManager.currentRegionNotifier.removeListener(_onCurrentRegionChanged);
     _sheetManager.dispose();
+    connectionService.removeListener(_onConnectionChanged);
     super.dispose();
   }
 
@@ -143,11 +147,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _checkInternetConnection() async {
     await connectionService.checkConnection();
     if (mounted && !connectionService.isConnected) {
-      CustomSnackBar.show(
-        context,
-        message: AppLocalizations.of(context)!.noInternetConnection,
-        color: Theme.of(context).colorScheme.error,
-      );
+      SnackbarUtils.showNoInternet(context);
+    }
+  }
+
+  void _onConnectionChanged() {
+    if (connectionService.isConnected) {
+      // Let the user know connectivity was restored
+      SnackbarUtils.showInternetAvailable(context);
+    } else {
+      SnackbarUtils.showNoInternet(context);
     }
   }
 
@@ -157,6 +166,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (regionId == null) {
       //  Should not happen because that would mean we don't have any region saved
       // (we should be on welcome screen then)
+      SnackbarUtils.showUnknownError(context);
     } else {
       // We came from WelcomeScreen, and data is ready, no need to re-load them
       if (gtfsManager.stateNotifier.value == RegionState.ready) {
@@ -165,8 +175,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       RegionLoadResult loadResult = await gtfsManager.loadRegion(regionId);
       if (loadResult.isSuccess) {
-      } else {
-        // TODO: Handle other cases (snackbars)
+        return;
+      } else if (mounted) {
+        SnackbarUtils.showUnknownError(context);
       }
     }
   }

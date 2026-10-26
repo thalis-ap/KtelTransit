@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/models/extras/region.dart';
 import 'package:ktel_transit/screens/home_screen.dart';
+import 'package:ktel_transit/services/connectivity/connection_service.dart';
 import 'package:ktel_transit/services/ui/settings_service.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/region_utils.dart';
+import 'package:ktel_transit/utilities/ui_utils.dart';
 import 'package:ktel_transit/widgets/common/custom_snackbar.dart';
 import 'package:ktel_transit/widgets/region/region_info_banner.dart';
 import '../l10n/app_localizations.dart';
@@ -20,12 +24,46 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final GtfsManager gtfsManager = GtfsManager();
+  final ConnectionService connectionService = ConnectionService();
 
   Region? selectedRegion;
   Region? loadedRegion;
 
   bool isChangingRegion = false;
   RegionLoadResult? regionLoadResult;
+
+  @override
+  void initState() {
+    super.initState();
+    connectionService.addListener(_onConnectionChanged);
+    connectionService.startMonitoring();
+    _checkInternetConnection();
+  }
+
+  @override
+  void dispose() {
+    connectionService.removeListener(_onConnectionChanged);
+    super.dispose();
+  }
+
+  void _onConnectionChanged() {
+    if (connectionService.isConnected) {
+      // We got back online, try to refresh the manifest in the background
+      unawaited(gtfsManager.refreshRemoteManifest());
+
+      // Let the user know connectivity was restored
+      SnackbarUtils.showInternetAvailable(context);
+    } else {
+      SnackbarUtils.showNoInternet(context);
+    }
+  }
+
+  void _checkInternetConnection() async {
+    await connectionService.checkConnection();
+    if (mounted && !connectionService.isConnected) {
+      SnackbarUtils.showNoInternet(context);
+    }
+  }
 
   Future<void> _changeRegion() async {
     setState(() {
