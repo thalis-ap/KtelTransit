@@ -150,7 +150,6 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               ),
             ],
           ),
-          // const SizedBox(height: 12,),
           const Divider(height: 20, thickness: 2),
         ],
       ),
