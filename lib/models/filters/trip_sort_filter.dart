@@ -37,7 +37,7 @@ class TripSortFilter {
     return TripSortFilter(
       sortBy: sortBy ?? this.sortBy,
       sortDirection: sortDirection ?? this.sortDirection,
-      noPureWalking: dontIncludeWalking ?? this.noPureWalking,
+      noPureWalking: dontIncludeWalking ?? noPureWalking,
       includeDirectOnly: includeDirectOnly ?? this.includeDirectOnly,
     );
   }

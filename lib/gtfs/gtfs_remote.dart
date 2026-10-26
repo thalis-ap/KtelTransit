@@ -38,7 +38,7 @@ class GtfsRemote {
       if (manifest == null) return false;
 
       final remoteVersion = manifest['version'] as String;
-      print("Remote manifest version is: $remoteVersion");
+      if (kDebugMode) debugPrint("Remote manifest version is: $remoteVersion");
 
       return remoteVersion != await getLocalManifestVersion();
     } catch (e) {
