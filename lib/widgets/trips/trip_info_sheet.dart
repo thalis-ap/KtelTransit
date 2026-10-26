@@ -263,7 +263,6 @@ class _TripInfoSheetState extends State<TripInfoSheet> {
       return TripWarningBanner(
         message: l10n.noTripsForRoute,
         icon: Icons.warning_rounded,
-        isCompact: false,
       );
     }
 

@@ -4,13 +4,13 @@ import 'package:ktel_transit/theme/app_theme.dart';
 class TripWarningBanner extends StatelessWidget {
   final String message;
   final IconData icon;
-  final bool isCompact;
+  final TextStyle? textStyle;
 
   const TripWarningBanner({
     super.key,
     required this.message,
     required this.icon,
-    this.isCompact = false,
+    this.textStyle
   });
 
   @override
@@ -18,20 +18,20 @@ class TripWarningBanner extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: EdgeInsets.all(isCompact ? 12.0 : 20.0),
+      padding: EdgeInsets.all(12.0),
       margin: const EdgeInsets.only(bottom: 12.0),
       decoration: BoxDecoration(
         color: colorScheme.tertiary.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(isCompact ? 12.0 : 20.0),
+        borderRadius: BorderRadius.circular(12.0),
       ),
       child: Row(
         children: [
-          Icon(icon, color: colorScheme.tertiary, size: isCompact ? 24 : 26),
-          SizedBox(width: isCompact ? 8.0 : 12.0),
+          Icon(icon, color: colorScheme.tertiary, size: 24),
+          const SizedBox(width: 8.0),
           Expanded(
             child: Text(
               message,
-              style: context.textTheme.bodyLarge?.copyWith(color: colorScheme.tertiary),
+              style: (textStyle ?? context.textTheme.bodyLarge)?.copyWith(color: colorScheme.tertiary),
             ),
           ),
         ],

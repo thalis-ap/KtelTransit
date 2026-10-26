@@ -175,7 +175,6 @@ class _FareDetailsSheetState extends State<FareDetailsSheet> {
                 child: TripWarningBanner(
                   message: l10n.ticketsNoProductsForCategory,
                   icon: Icons.warning_rounded,
-                  isCompact: false,
                 ),
               )
             else

@@ -35,7 +35,6 @@ class TripGroupsView extends StatelessWidget {
       return TripWarningBanner(
         message: l10n.noTripsForRoute,
         icon: Icons.warning_rounded,
-        isCompact: false,
       );
     }
 
@@ -143,7 +142,6 @@ class TripGroupsView extends StatelessWidget {
             child: TripWarningBanner(
               message: l10n.noTripsForDateShowingNext,
               icon: Icons.warning_rounded,
-              isCompact: false,
             ),
           ),
         _buildDateLabel(

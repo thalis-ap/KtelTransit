@@ -189,7 +189,6 @@ class _TicketsScreenState extends State<TicketsScreen> {
           TripWarningBanner(
             message: l10n.ticketsNoProductsForCategory,
             icon: Icons.warning_rounded,
-            isCompact: false,
           )
         else
           for (final group in groups) FareProductCard(group: group),
