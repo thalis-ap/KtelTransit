@@ -350,6 +350,9 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.';
 
   @override
+  String get internetConnection => 'Η σύνδεση στο διαδίκτυο αποκαταστάθηκε.';
+
+  @override
   String get chooseInMap => 'Επιλέξτε στον χάρτη';
 
   @override
@@ -737,4 +740,8 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get approximateRouteNotice => 'Η διαδρομή είναι ενδεικτική.';
+
+  @override
+  String get unknownError =>
+      'Προέκυψε άγνωστο σφάλμα. Επανεκκινήστε την εφαρμογή και δοκιμάστε ξανά.';
 }

@@ -668,6 +668,12 @@ abstract class AppLocalizations {
   /// **'Δεν υπάρχει σύνδεση στο διαδίκτυο. Ελέγξτε το δίκτυό σας.'**
   String get noInternetConnection;
 
+  /// No description provided for @internetConnection.
+  ///
+  /// In el, this message translates to:
+  /// **'Η σύνδεση στο διαδίκτυο αποκαταστάθηκε.'**
+  String get internetConnection;
+
   /// No description provided for @chooseInMap.
   ///
   /// In el, this message translates to:
@@ -1375,6 +1381,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Η διαδρομή είναι ενδεικτική.'**
   String get approximateRouteNotice;
+
+  /// No description provided for @unknownError.
+  ///
+  /// In el, this message translates to:
+  /// **'Προέκυψε άγνωστο σφάλμα. Επανεκκινήστε την εφαρμογή και δοκιμάστε ξανά.'**
+  String get unknownError;
 }
 
 class _AppLocalizationsDelegate

@@ -108,6 +108,7 @@
   "disembarkAt": "Disembark at {stop}",
   "tripStopsCount": "Trip: {count} stops",
   "noInternetConnection": "No internet connection. Please check your network.",
+  "internetConnection": "Internet connection restored.",
   "chooseInMap": "Select on the map",
   "chooseStartLocation": "Choose start location",
   "chooseDestinationLocation": "Choose destination location",
@@ -319,5 +320,7 @@
       }
     }
   },
-  "approximateRouteNotice": "Route shown is approximate."
+  "approximateRouteNotice": "Route shown is approximate.",
+  "unknownError": "Unknown error occurred. Restart the app and try again."
+
 }

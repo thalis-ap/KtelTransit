@@ -347,6 +347,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'No internet connection. Please check your network.';
 
   @override
+  String get internetConnection => 'Internet connection restored.';
+
+  @override
   String get chooseInMap => 'Select on the map';
 
   @override
@@ -729,4 +732,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get approximateRouteNotice => 'Route shown is approximate.';
+
+  @override
+  String get unknownError =>
+      'Unknown error occurred. Restart the app and try again.';
 }
