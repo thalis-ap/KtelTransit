@@ -318,5 +318,6 @@
         "type": "String"
       }
     }
-  }
+  },
+  "approximateRouteNotice": "Route shown is approximate."
 }

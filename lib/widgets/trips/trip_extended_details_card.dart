@@ -5,6 +5,7 @@ import 'package:ktel_transit/theme/app_theme.dart';
 import 'package:ktel_transit/utilities/time_utils.dart';
 import 'package:ktel_transit/widgets/common/timeline_node.dart';
 import 'package:ktel_transit/widgets/trips/trip_details_card_header.dart';
+import 'package:ktel_transit/widgets/trips/trips_warning_banner.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../models/routing/bus_trip.dart';
@@ -158,13 +159,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
 
   /// One bus-riding segment. Used twice for a transfer trip (leg 1 and leg 2),
   /// once for a direct trip.
-  Widget _buildBusLegWidget({
-    required String routeName,
-    required String stopName,
-    required String time,
-    required List<String> stopNames,
-    required int estimatedDuration,
-  }) {
+  Widget _buildBusLegWidget(BusLeg leg) {
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
@@ -175,9 +170,17 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(stopName, style: context.textTheme.titleSmall),
+              child: Text(
+                leg.originStop.name,
+                style: context.textTheme.titleSmall,
+              ),
             ),
-            Text(time, style: context.textTheme.titleSmall),
+            Text(
+              TimeFormat.dateTimeToFormattedStringHoursMinutes(
+                leg.departureDateTime,
+              ),
+              style: context.textTheme.titleSmall,
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -185,18 +188,30 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
         Row(
           children: [
             Expanded(
-              child: Text(routeName, style: context.textTheme.bodyMedium),
+              child: Text(leg.routeName, style: context.textTheme.bodyMedium),
             ),
             Icon(Icons.chevron_right),
           ],
         ),
-        const SizedBox(height: 24),
+        // Show the user a warning banner to inform them that the route might
+        // differ from the one shown.
+        if (leg.isRouteUncertain)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: TripWarningBanner(
+              message: l10n.approximateRouteNotice,
+              icon: Icons.warning_rounded,
+              textStyle: context.textTheme.bodyMedium,
+            ),
+          )
+        else
+          const SizedBox(height: 24),
         const Divider(height: 16, thickness: 2),
         StopsExpander(
-          stopNames: stopNames,
-          label: l10n.tripStopsCount(stopNames.length),
+          stopNames: leg.stopNames,
+          label: l10n.tripStopsCount(leg.stopNames.length),
           durationText: TimeFormat.secondsToFormattedString(
-            estimatedDuration.toDouble(),
+            leg.estimatedDuration.toDouble(),
             l10n,
           ),
         ),
@@ -285,18 +300,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
             ),
             lineStyle: LineStyle.solid,
             lineColor: colorScheme.primary,
-            content: _buildBusLegWidget(
-              routeName: leg.routeName,
-              stopName: leg.originStop.name,
-              time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                leg.departureDateTime,
-              ),
-              stopNames: leg.stopNamesFromTo(
-                leg.originStop.name,
-                leg.destinationStop.name,
-              ),
-              estimatedDuration: leg.estimatedDuration,
-            ),
+            content: _buildBusLegWidget(leg),
           ),
         ),
 
@@ -402,18 +406,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
               color: colorScheme.primary,
             ),
             lineColor: colorScheme.primary,
-            content: _buildBusLegWidget(
-              routeName: firstLeg.routeName,
-              stopName: firstLeg.originStop.name,
-              time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                firstLeg.departureDateTime,
-              ),
-              stopNames: firstLeg.stopNamesFromTo(
-                firstLeg.originStop.name,
-                firstLeg.destinationStop.name,
-              ),
-              estimatedDuration: firstLeg.estimatedDuration,
-            ),
+            content: _buildBusLegWidget(firstLeg),
           ),
         ),
 
@@ -525,18 +518,7 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
                 color: colorScheme.primary,
               ),
               lineColor: colorScheme.primary,
-              content: _buildBusLegWidget(
-                routeName: legs[legIndex].routeName,
-                stopName: legs[legIndex].originStop.name,
-                time: TimeFormat.dateTimeToFormattedStringHoursMinutes(
-                  legs[legIndex].departureDateTime,
-                ),
-                stopNames: legs[legIndex].stopNamesFromTo(
-                  legs[legIndex].originStop.name,
-                  legs[legIndex].destinationStop.name,
-                ),
-                estimatedDuration: legs[legIndex].estimatedDuration,
-              ),
+              content: _buildBusLegWidget(legs[legIndex]),
             ),
           ),
         ],
@@ -589,9 +571,13 @@ class _ExtendedDetailsCardState extends State<ExtendedDetailsCard> {
       return _buildPureWalkingWidget(context);
     }
 
-    return busTrip.isTransfer
-        ? _buildBusWithTransfer(context)
-        : _buildBusWoTransfer(context);
+    return Column(
+      children: [
+        busTrip.isTransfer
+            ? _buildBusWithTransfer(context)
+            : _buildBusWoTransfer(context),
+      ],
+    );
   }
 }
 

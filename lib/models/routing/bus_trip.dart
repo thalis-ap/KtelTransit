@@ -45,6 +45,10 @@ class BusLeg {
   /// that satisfies passing from all of them
   final List<LatLng> passingPoints;
 
+  /// If the only passingPoints we have are the origin and destination, then
+  /// the route shown is not guaranteed to be exactly right
+  bool get isRouteUncertain => passingPoints.length <= 2;
+
   String get estimatedFareAsString => FareFormat.fareAsString(defaultFare);
 
   /// This indicates if the leg as a whole is accessible. This means that

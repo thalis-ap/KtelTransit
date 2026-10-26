@@ -1369,6 +1369,12 @@ abstract class AppLocalizations {
   /// In el, this message translates to:
   /// **'Εξοικονομείτε {amount} σε σχέση με τα μεμονωμένα εισιτήρια'**
   String costBreakdownUnifiedSavings(String amount);
+
+  /// No description provided for @approximateRouteNotice.
+  ///
+  /// In el, this message translates to:
+  /// **'Η διαδρομή είναι ενδεικτική.'**
+  String get approximateRouteNotice;
 }
 
 class _AppLocalizationsDelegate

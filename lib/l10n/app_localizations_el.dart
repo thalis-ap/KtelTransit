@@ -734,4 +734,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String costBreakdownUnifiedSavings(String amount) {
     return 'Εξοικονομείτε $amount σε σχέση με τα μεμονωμένα εισιτήρια';
   }
+
+  @override
+  String get approximateRouteNotice => 'Η διαδρομή είναι ενδεικτική.';
 }

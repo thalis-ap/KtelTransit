@@ -726,4 +726,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String costBreakdownUnifiedSavings(String amount) {
     return 'Saves $amount vs separate tickets';
   }
+
+  @override
+  String get approximateRouteNotice => 'Route shown is approximate.';
 }
