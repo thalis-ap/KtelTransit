@@ -73,6 +73,9 @@ class _PlaceSearchContentState extends State<_PlaceSearchContent> {
   bool _isLoadingRemote = false;
   String _lastQuery = '';
 
+  // Used to contrain the search results to (mostly) Greece
+  static const String _greeceBbox = '19.3,34.7,29.7,41.8';
+
   @override
   void initState() {
     super.initState();
@@ -116,7 +119,7 @@ class _PlaceSearchContentState extends State<_PlaceSearchContent> {
 
   Future<List<MapPoint>?> _getPlaces(String query) async {
     final String url =
-        'https://photon.komoot.io/api/?q=${Uri.encodeComponent(query)}&limit=8&lat=${widget.currentRegion.center.latitude}&lon=${widget.currentRegion.center.longitude}';
+        'https://photon.komoot.io/api/?q=${Uri.encodeComponent(query)}&limit=8&lat=${widget.currentRegion.center.latitude}&lon=${widget.currentRegion.center.longitude}&bbox=$_greeceBbox';
 
     final response = await http.get(
       Uri.parse(url),
