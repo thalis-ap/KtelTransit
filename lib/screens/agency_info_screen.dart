@@ -4,12 +4,14 @@ import 'package:ktel_transit/models/gtfs/agency/agency.dart';
 import 'package:ktel_transit/utilities/launcher_utils.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/theme/app_theme.dart';
+import 'package:ktel_transit/widgets/agency/agency_logo_header.dart';
 import 'package:ktel_transit/widgets/region/region_info_banner.dart';
 
 import '../models/extras/region.dart';
 import '../utilities/region_utils.dart';
 
 class AgencyInfoScreen extends StatefulWidget {
+
   const AgencyInfoScreen({super.key});
 
   @override
@@ -17,13 +19,14 @@ class AgencyInfoScreen extends StatefulWidget {
 }
 
 class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
+  final GtfsManager gtfsManager = GtfsManager();
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final languageCode = Localizations.localeOf(context).languageCode;
 
-    final gtfsManager = GtfsManager();
     final agencies = gtfsManager.repository.agencies;
 
     return Scaffold(
@@ -94,21 +97,7 @@ class _AgencyInfoScreenState extends State<AgencyInfoScreen> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.directions_bus,
-                  size: 48,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  agency.name,
-                  style: context.textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+            child: AgencyLogoHeader(regionId: gtfsManager.currentRegion?.id, agencyName: agency.name),
           ),
         ),
 
