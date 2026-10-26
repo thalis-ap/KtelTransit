@@ -273,11 +273,11 @@ class GtfsLocal {
         translatedLongName: translatedLong,
         translatedDesc: translatedDesc,
       ));
-
-      // Sort based on route_sort_order in order to present them in the
-      // preferred order to the user in routes_screen for example
-      outRoutes.sort((a,b) => a.routeSortOrder.compareTo(b.routeSortOrder));
     }
+
+    // Sort based on route_sort_order in order to present them in the
+    // preferred order to the user in routes_screen for example
+    outRoutes.sort((a,b) => a.routeSortOrder.compareTo(b.routeSortOrder));
 
     return RegionLoadResult.success();
   }
