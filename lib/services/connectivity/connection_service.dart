@@ -6,6 +6,9 @@ class ConnectionService extends ChangeNotifier {
   factory ConnectionService() => _instance;
   ConnectionService._internal();
 
+  // Boolean guard to make sure not to have more than one monitoring instances
+  bool _isMonitoring = false;
+
   bool _isConnected = true;
 
   bool get isConnected => _isConnected;
@@ -28,8 +31,10 @@ class ConnectionService extends ChangeNotifier {
     }
   }
 
-  /// Start periodic checking (optional – call this once)
+  /// Start periodic checking of connectivity
   void startMonitoring({Duration interval = const Duration(seconds: 10)}) {
+    if (_isMonitoring) return;
+    _isMonitoring = true;
     checkConnection();
     Future.doWhile(() async {
       await Future.delayed(interval);
