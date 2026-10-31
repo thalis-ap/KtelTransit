@@ -7,14 +7,30 @@ import 'package:ktel_transit/gtfs/gtfs_storage.dart';
 
 import '../models/extras/region.dart';
 
-class GtfsRemote {
+class ManifestConfig {
   /// The main manifest - source of truth, url
-  static const String _manifestUrl =
+  static const String manifestUrl =
       'https://raw.githubusercontent.com/thalis-ap/KtelTransitGtfs/main/manifest.json';
 
   /// Base url for a region path
-  static const String _regionBaseUrl =
+  static const String regionBaseUrl =
       'https://raw.githubusercontent.com/thalis-ap/KtelTransitGtfs/main/regions/';
+
+  /// Manifest keys
+  static const String regionsKey = 'regions';
+  static const String versionKey = 'version';
+
+  /// Region metadata
+  static const String nameKey = 'name';
+  static const String englishNameKey = 'englishName';
+  static const String centerKey = 'center';
+  static const String defaultZoomKey = 'defaultZoom';
+  static const String hashKey = 'hash';
+  static const String sizeKey = 'size';
+}
+
+class GtfsRemote {
+
 
   final GtfsStorage _storage = GtfsStorage();
   final GtfsPreferences _prefs = GtfsPreferences();
@@ -65,7 +81,7 @@ class GtfsRemote {
       // Use a timeout so that in case the network is slow we give up instead of
       // hanging on the splash screen
       final response = await http
-          .get(Uri.parse(_manifestUrl))
+          .get(Uri.parse(ManifestConfig.manifestUrl))
           .timeout(const Duration(seconds: 10));
       if (response.statusCode != 200) return null;
 
@@ -99,14 +115,8 @@ class GtfsRemote {
       // no matter how a previous run ended, and self-heals on retry.
       final List<String> changedIds = [];
       for (Region region in getAvailableRegionsFromManifest(remoteManifest)) {
-        final RegionMetadata? metadata = getRegionMetadata(
-          remoteManifest,
-          region.id,
-        );
-        if (metadata == null) continue;
-
         // Found a region with a different hash
-        if (metadata.hash != await _prefs.getRegionHash(region.id)) {
+        if (region.metadata.hash != await _prefs.getRegionHash(region.id)) {
           changedIds.add(region.id);
         }
       }
@@ -120,7 +130,7 @@ class GtfsRemote {
 
   /// This function returns the region that a given manifest contains
   List<Region> getAvailableRegionsFromManifest(Map<String, dynamic> manifest) {
-    final regions = manifest['regions'] as Map<String, dynamic>?;
+    final regions = manifest[ManifestConfig.regionsKey] as Map<String, dynamic>?;
     if (regions == null) return [];
 
     return regions.entries.map((entry) {
@@ -128,26 +138,11 @@ class GtfsRemote {
     }).toList();
   }
 
-  RegionMetadata? getRegionMetadata(
-    Map<String, dynamic> manifest,
-    String regionId,
-  ) {
-    final regions = manifest['regions'] as Map<String, dynamic>?;
-    if (regions == null) return null;
-
-    final data = regions[regionId];
-    if (data == null) return null;
-    return RegionMetadata(
-      hash: data['hash'] as String,
-      size: data['size'] as int,
-    );
-  }
-
   /// Downloads only the GTFS zip file for the given region.
   /// Does not extract, nor update preferences.
   Future<RegionErrorCode> downloadRegionZip(String regionId) async {
     try {
-      final zipUrl = '$_regionBaseUrl$regionId/gtfs.zip';
+      final zipUrl = '${ManifestConfig.regionBaseUrl}$regionId/gtfs.zip';
       final zipResponse = await http.get(Uri.parse(zipUrl));
 
       if (zipResponse.statusCode != 200) {
@@ -205,14 +200,14 @@ class GtfsRemote {
         return RegionErrorCode.unknown;
       }
 
-      final regionData = manifest['regions'][regionId];
+      final regionData = manifest[ManifestConfig.regionsKey][regionId];
       if (regionData == null) {
         debugPrint('Region $regionId not found in manifest');
         return RegionErrorCode.unknown;
       }
 
-      final remoteHash = regionData['hash'] as String;
-      final remoteVersion = manifest['version'] as String;
+      final remoteHash = regionData[ManifestConfig.hashKey] as String;
+      final remoteVersion = manifest[ManifestConfig.versionKey] as String;
 
       // Update preferences
       await _prefs.saveRegionHash(regionId, remoteHash);
@@ -241,7 +236,7 @@ class GtfsRemote {
     final manifest = await getManifest();
     if (manifest == null) return 0;
 
-    final regions = manifest['regions'] as Map<String, dynamic>;
+    final regions = manifest[ManifestConfig.regionsKey] as Map<String, dynamic>;
     int successCount = 0;
 
     for (final regionId in regions.keys) {
