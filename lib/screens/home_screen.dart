@@ -620,9 +620,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _onCompassStateChanged() {
-    // Trigger rebuild so the compass cone rotates
-    if (mounted) setState(() {});
-
     // Show calibration dialog if needed
     if (_compassService.needsCalibration &&
         !_compassService.hasShownCalibrationDialog &&
@@ -953,7 +950,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedMapPoint: selectedMapPoint,
       userLocation: userLocation,
       activeStop: activeStop,
-      compassHeading: _compassService.heading,
+      compassService: _compassService,
     );
   }
 

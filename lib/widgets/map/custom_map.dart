@@ -6,6 +6,7 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:ktel_transit/gtfs/gtfs_manager.dart';
 import 'package:ktel_transit/l10n/app_localizations.dart';
 import 'package:ktel_transit/models/extras/region.dart';
+import 'package:ktel_transit/services/device_sensors/compass_service.dart';
 import 'package:ktel_transit/utilities/color_utils.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -42,7 +43,7 @@ class CustomMap extends StatelessWidget {
   final Function(Region) onRegionPressed;
 
   // In angles
-  final double? compassHeading;
+  final CompassService compassService;
 
   const CustomMap({
     super.key,
@@ -62,8 +63,7 @@ class CustomMap extends StatelessWidget {
     required this.selectedMapPoint,
     required this.userLocation,
     required this.activeStop,
-
-    required this.compassHeading,
+    required this.compassService,
   });
 
   @override
@@ -262,50 +262,53 @@ class CustomMap extends StatelessWidget {
               ),
 
             if (userLocation != null)
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: userLocation!.coordinates,
-                    width: 80,
-                    height: 80,
-                    rotate: true,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // The rotating cone (Bottom layer)
-                        if (compassHeading != null)
-                          Transform.rotate(
-                            angle: compassHeading! * (math.pi / 180),
-                            child: CustomPaint(
-                              size: const Size(80, 80),
-                              painter: CompassConePainter(
-                                color: AppTheme.blueish,
+              ListenableBuilder(listenable: compassService, builder: (context, child) {
+                return MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: userLocation!.coordinates,
+                      width: 80,
+                      height: 80,
+                      rotate: true,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // The rotating cone (Bottom layer)
+                          if (compassService.heading != null)
+                            Transform.rotate(
+                              angle: compassService.heading! * (math.pi / 180),
+                              child: CustomPaint(
+                                size: const Size(80, 80),
+                                painter: CompassConePainter(
+                                  color: AppTheme.blueish,
+                                ),
                               ),
                             ),
-                          ),
 
-                        // Google Maps dot (Top layer)
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: AppTheme.blueish,
-                            shape: BoxShape.circle,
-                            border: Border.all(width: 2, color: Colors.white),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.blueish,
-                                blurRadius: 20,
-                                spreadRadius: 4,
-                              ),
-                            ],
+                          // Google Maps dot (Top layer)
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: AppTheme.blueish,
+                              shape: BoxShape.circle,
+                              border: Border.all(width: 2, color: Colors.white),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.blueish,
+                                  blurRadius: 20,
+                                  spreadRadius: 4,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              }),
+
 
             MarkerLayer(
               markers: gtfsManager.repository.stops.map((stop) {
